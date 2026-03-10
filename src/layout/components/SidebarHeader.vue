@@ -1,0 +1,70 @@
+<!-- src/layouts/components/SidebarHeader.vue -->
+<template>
+  <div
+    class="d-flex align-center px-3 mb-5 mt-2"
+    style="height: 72px; overflow: hidden"
+  >
+    <v-avatar
+      :size="rail ? 36 : 44"
+      class="flex-shrink-0"
+      style="
+        transition:
+          width 0.2s,
+          height 0.2s;
+      "
+    >
+      <v-img :src="logo" alt="Sanamos logo" cover />
+    </v-avatar>
+
+    <Transition name="header-text">
+      <div
+        v-if="!rail"
+        class="ml-3 overflow-hidden"
+        style="white-space: nowrap"
+      >
+        <p
+          class="mb-0 font-weight-bold text-brand-grey-1 text-title-medium"
+          style=" line-height: 1.3"
+        >
+          Sanamos<br />Santander
+        </p>
+        <p
+          class="mb-0 mt-1 text-brand-grey-2 font-weight-medium text-body-small" 
+         
+        >
+          Sistema de Gestión
+        </p>
+      </div>
+    </Transition>
+  </div>
+
+  <v-divider  />
+</template>
+
+<script setup>
+import logo from "@/assets/sanamos_logo.jpg";
+
+defineProps({
+  rail: { type: Boolean, default: false },
+});
+</script>
+
+<style scoped>
+/*
+  Transición del texto al entrar/salir.
+  enter: viene desde la izquierda y aparece.
+  leave: sale hacia la izquierda y desaparece.
+  La duración es corta (150ms) 
+*/
+.header-text-enter-active,
+.header-text-leave-active {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.header-text-enter-from,
+.header-text-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+</style>
