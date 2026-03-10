@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.sidebar-tooltip {
+  background: rgba(var(--v-theme-on-surface), 0.85) !important;
+  color: rgb(var(--v-theme-surface)) !important;
+  font-size: 0.8rem !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+}
