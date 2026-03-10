@@ -1,7 +1,7 @@
 <template>
   <v-list density="compact" nav class="sidebar-nav">
-    <template v-for="group in menu" :key="group.Alias">
-      <v-list-group :value="group.Alias">
+    <template v-for="group in menu" :key="getGroupAlias(group)">
+      <v-list-group :value="getGroupAlias(group)">
         <template #activator="{ props, isOpen }">
           <v-tooltip
             :text="group.Nombre"
@@ -35,7 +35,7 @@
                 v-bind="tooltipProps"
                 :title="seccion.Nombre"
                 :prepend-icon="seccion.Icono"
-                :to="`/${group.Alias}${seccion.Ruta}`"
+                :to="`/${getGroupAlias(group)}${seccion.Ruta}`"
                 color="primary"
                 slim
               />
@@ -48,18 +48,24 @@
 </template>
 <script setup>
 import { useUiStore } from "@/stores/ui.store";
+import { useAuthStore } from "@/stores/auth.store";
 import { computed } from "vue";
-import { getOrderedMenu } from "./menu.mock";
 import { useRoute } from "vue-router";
 
 const uiStore = useUiStore();
+const authStore = useAuthStore();
 const route = useRoute();
 const rail = computed(() => uiStore.rail);
-const menu = computed(() => getOrderedMenu());
+const menu = computed(() => authStore.orderedMenu);
+
+function getGroupAlias(group) {
+  return group.Alias || group.Nombre?.toLowerCase()
+}
 
 function isGroupActive(group) {
+  const groupAlias = getGroupAlias(group)
   return group.secciones.some((seccion) =>
-    route.path.startsWith(`/${group.Alias}${seccion.Ruta}`),
+    route.path.startsWith(`/${groupAlias}${seccion.Ruta}`),
   );
 }
 </script>

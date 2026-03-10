@@ -35,7 +35,7 @@
             <div class="mb-6">
              
               <v-text-field
-                v-model="form.email"
+                v-model="form.Codigo"
                 placeholder="Usuario"
                 prepend-inner-icon="mdi-account-outline"
                 label="Usuario"
@@ -47,7 +47,7 @@
             <div class="mb-6">
              
               <v-text-field
-                v-model="form.password"
+                v-model="form.Contrasena"
                 placeholder="••••••••"
                 prepend-inner-icon="mdi-lock-outline"
                 :append-inner-icon="
@@ -104,7 +104,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
-import { authApi } from "@/shared/api/auth.api";
+import { authService } from "@/modules/auth/services/authservice";
 import Logo from "@/assets/sanamos_logo_horizontal.jpg";
 
 const router = useRouter();
@@ -112,12 +112,12 @@ const authStore = useAuthStore();
 const showPassword = ref(false);
 const loading = ref(false);
 const form = ref({
-  email: "",
-  password: "",
+  Codigo: "",
+  Contrasena: "",
 });
 
 const handleLogin = async () => {
-  if (!form.value.email || !form.value.password) {
+  if (!form.value.Codigo || !form.value.Contrasena) {
     window.$toast.error("Por favor completa todos los campos");
     return;
   }
@@ -125,16 +125,22 @@ const handleLogin = async () => {
   try {
     loading.value = true;
     
-    // Realizar login
-    const response = await authApi.login(form.value);
+    // Realizar login (backend devuelve cookie HTTP Only)
+    await authService.login(form.value);
     
-    // Guardar datos de autenticación
-    authStore.setAuth(response.data.user, response.data.token);
+    // Obtener perfil del usuario (menú y permisos)
+    // La cookie se envía automáticamente
+    const profileResponse = await authService.profile();
+    
+    // Guardar usuario y perfil
+    const profileData = profileResponse.data.data;
+    authStore.setAuth(profileData.user || { authenticated: true });
+    authStore.setProfile(profileData);
     
     window.$toast.success("¡Bienvenido!");
     
-    // Redirigir a la vista de clientes
-    router.push("/cartera/clientes");
+    // Redirigir a "/" - el router determinará automáticamente la primera ruta del menú
+    router.push("/");
   } catch (error) {
     // Los errores ya se manejan en el interceptor de axios
     console.error("Error en login:", error);

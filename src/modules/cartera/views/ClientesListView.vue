@@ -20,13 +20,10 @@
           size="small"
           class="py-4"
         >
-          Añadir Producto
+          Añadir Cliente
         </v-btn>
       </template>
     </app-bar>
-
-
-
     
   </div>
 </template>

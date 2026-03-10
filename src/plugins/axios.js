@@ -10,21 +10,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    const authStore = useAuthStore()
-
-    if (config.url.includes('/auth/')) return config
-
-    if (!authStore.isAuthenticated) {
-      const error = new Error('No autenticado')
-      error.response = {
-        status: 401,
-        data: { message: 'La sesión ha expirado' },
-      }
-      error.handledByInterceptor = true
-      // Cancelar la petición inmediatamente
-      return Promise.reject(error)
-    }
-
     return config
   },
   (error) => Promise.reject(error),
@@ -35,8 +20,11 @@ api.interceptors.response.use(
   async (error) => {
     if (error.handledByInterceptor) return Promise.reject(error)
 
-    // Ignorar el manejo especial de 401 si estamos en la ruta de login
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
+    // Manejar error 401 (no autorizado)
+    const publicRoutes = ['/auth/login']
+    const isPublicRoute = publicRoutes.some(route => error.config?.url?.includes(route))
+    
+    if (error.response?.status === 401 && !isPublicRoute) {
       await handleAuthError(error)
       error.handledByInterceptor = true
       return Promise.reject(error)
