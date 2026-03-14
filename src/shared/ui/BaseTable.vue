@@ -1,164 +1,284 @@
 <template>
-  <v-card
-    variant="outlined"
-    class="border rounded-lg bg-white overflow-hidden"
-    elevation="0"
-  >
-    <!-- Header: Title and Top Right Actions (e.g. Filters) -->
-    <v-card-text class="d-flex align-center justify-space-between py-4 border-b">
-      <div v-if="$slots.title || title" class="text-h6 font-weight-bold text-grey-darken-4">
+  <v-card class="rounded-lg bg-white overflow-hidden" elevation="0">
+    <!-- Header: título + acciones -->
+    <v-card-text
+      v-if="$slots.title || title || $slots.actions"
+      class="d-flex align-center justify-space-between py-4 px-4 border-b"
+    >
+      <div
+        v-if="$slots.title || title"
+        class="text-h6 font-weight-bold text-grey-darken-4"
+      >
         <slot name="title">{{ title }}</slot>
       </div>
-      
-      <div v-if="$slots.actions" class="d-flex align-center">
+      <div v-if="$slots.actions" class="d-flex align-center ga-2">
         <slot name="actions" />
       </div>
     </v-card-text>
 
-    <!-- Table content -->
-    <v-table hover class="bg-transparent">
-      <thead>
-        <tr>
-          <th
-            v-for="(header, index) in headers"
-            :key="index"
-            class="text-uppercase text-caption font-weight-bold text-grey-darken-1 py-4"
-            :class="[header.align ? `text-${header.align}` : 'text-left', header.class]"
-          >
-            {{ header.title }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <slot name="body" :items="items">
-          <tr v-for="(item, index) in items" :key="item[itemKey] || index">
-            <!-- Allow rendering custom cell via slots or fallback to plain value -->
-            <td
-              v-for="header in headers"
-              :key="header.key"
-              class="py-4"
-              :class="[header.align ? `text-${header.align}` : 'text-left']"
+    <!-- Barra: buscador + filtros + botones -->
+    <v-card-text v-if="searchable || $slots.filters" class="py-3 px-4 border-b">
+      <div class="d-flex align-center ga-3 flex-wrap">
+        <!-- Buscador -->
+        <v-text-field
+          v-if="searchable"
+          v-model="searchQuery"
+          :placeholder="searchPlaceholder"
+          prepend-inner-icon="mdi-magnify"
+          density="compact"
+          variant="outlined"
+          hide-details
+          clearable
+          style="min-width: 220px; max-width: 280px"
+          @keyup.enter="onSearch"
+          @click:clear="onClear"
+        />
+
+        <!-- Filtros del padre -->
+        <slot name="filters" />
+
+        <v-spacer />
+
+        <!-- Botón buscar -->
+        <v-btn
+          v-if="searchable"
+          color="primary"
+          variant="flat"
+          class="text-none"
+          :loading="loading"
+          @click="onSearch"
+        >
+          Buscar
+        </v-btn>
+
+        <!-- Botón refrescar -->
+        <v-tooltip text="Refrescar" location="top"  content-class="tooltip">
+          <template #activator="{ props: tooltipProps }">
+            <v-btn
+              v-bind="tooltipProps"
+              icon
+              variant="tonal"
+              color="primary"
+              size="small"
+              :loading="loading"
+              @click="onRefresh"
             >
-              <slot
-                :name="`item.${header.key}`"
-                :item="item"
-                :value="item[header.key]"
-              >
-                {{ item[header.key] }}
-              </slot>
-            </td>
-          </tr>
-        </slot>
-      </tbody>
-    </v-table>
-
-    <!-- Footer: Pagination -->
-    <v-card-text class="d-flex align-center justify-space-between py-4 border-t bg-grey-lighten-5">
-      <div class="text-body-2 text-grey-darken-1">
-        Mostrando {{ paginationInfo }}
-      </div>
-
-      <div class="d-flex align-center" v-if="totalPages > 1">
-        <v-btn
-          variant="outlined"
-          color="grey-darken-1"
-          size="small"
-          class="text-none mr-2 bg-white"
-          :disabled="page === 1"
-          @click="changePage(page - 1)"
-        >
-          Anterior
-        </v-btn>
-
-        <div class="d-flex ga-1">
-          <v-btn
-            v-for="p in totalPages"
-            :key="p"
-            :variant="p === page ? 'flat' : 'outlined'"
-            :color="p === page ? 'primary' : 'grey-darken-1'"
-            size="small"
-            class="min-w-0 px-3 bg-white"
-            @click="changePage(p)"
-          >
-            {{ p }}
-          </v-btn>
-        </div>
-
-        <v-btn
-          variant="outlined"
-          color="grey-darken-1"
-          size="small"
-          class="text-none ml-2 bg-white"
-          :disabled="page === totalPages"
-          @click="changePage(page + 1)"
-        >
-          Siguiente
-        </v-btn>
+              <v-icon size="18">mdi-refresh</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
       </div>
     </v-card-text>
+
+    <!-- Tabla -->
+    <v-data-table-server
+      v-bind="$attrs"
+      :headers="headers"
+      :items="items"
+      :items-length="totalItems"
+      :loading="loading"
+      :items-per-page="internalItemsPerPage"
+      :page="internalPage"
+      hover
+      class="bg-transparent"
+      :no-data-text="emptyText"
+      mobile-breakpoint="md"
+      @update:options="onOptionsUpdate"
+    >
+      <template v-for="(_, name) in $slots" #[name]="slotProps">
+        <slot :name="name" v-bind="slotProps ?? {}" />
+      </template>
+
+      <template #bottom>
+        <v-divider />
+        <div
+          class="d-flex align-center justify-space-between px-4 py-3 flex-wrap ga-3"
+        >
+          <div class="d-flex align-center ga-2">
+            <span class="text-caption text-grey-darken-1 text-no-wrap"
+              >Filas por página:</span
+            >
+            <v-select
+              v-model="internalItemsPerPage"
+              :items="rowsPerPageOptions"
+              density="compact"
+              variant="outlined"
+              hide-details
+              style="width: 80px"
+              @update:model-value="onItemsPerPageChange"
+            />
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-grey-darken-1 text-no-wrap">
+              {{ paginationInfo }}
+            </span>
+
+            <div v-if="totalPages > 1" class="d-flex align-center ga-1">
+              <v-btn
+                icon="mdi-page-first"
+                variant="text"
+                size="small"
+                color="grey-darken-2"
+                :disabled="internalPage === 1 || loading"
+                @click="goToPage(1)"
+              />
+              <v-btn
+                icon="mdi-chevron-left"
+                variant="text"
+                size="small"
+                color="grey-darken-2"
+                :disabled="internalPage === 1 || loading"
+                @click="goToPage(internalPage - 1)"
+              />
+
+              <template v-for="p in visiblePages" :key="p">
+                <span v-if="p === '...'" class="text-caption text-grey px-1"
+                  >…</span
+                >
+                <v-btn
+                  v-else
+                  :variant="p === internalPage ? 'flat' : 'text'"
+                  :color="p === internalPage ? 'primary' : 'grey-darken-2'"
+                  size="small"
+                  style="min-width: 32px"
+                  class="px-2"
+                  :disabled="loading"
+                  @click="goToPage(p)"
+                  >{{ p }}</v-btn
+                >
+              </template>
+
+              <v-btn
+                icon="mdi-chevron-right"
+                variant="text"
+                size="small"
+                color="grey-darken-2"
+                :disabled="internalPage === totalPages || loading"
+                @click="goToPage(internalPage + 1)"
+              />
+              <v-btn
+                icon="mdi-page-last"
+                variant="text"
+                size="small"
+                color="grey-darken-2"
+                :disabled="internalPage === totalPages || loading"
+                @click="goToPage(totalPages)"
+              />
+            </div>
+          </div>
+        </div>
+      </template>
+    </v-data-table-server>
   </v-card>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
+
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
-  title: {
-    type: String,
-    default: "",
-  },
-  headers: {
-    type: Array,
-    required: true,
-    // Formato: [{ title: 'Nombre', key: 'name', align: 'left', class: '' }]
-  },
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  itemKey: {
-    type: String,
-    default: "id",
-  },
-  // Paginación
-  page: {
-    type: Number,
-    default: 1,
-  },
-  itemsPerPage: {
-    type: Number,
-    default: 10,
-  },
-  totalItems: {
-    type: Number,
-    default: 0,
-  },
+  title: { type: String, default: "" },
+  headers: { type: Array, required: true },
+  items: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  emptyText: { type: String, default: "No hay registros para mostrar." },
+  totalItems: { type: Number, default: 0 },
+  page: { type: Number, default: 1 },
+  itemsPerPage: { type: Number, default: 10 },
+  rowsPerPageOptions: { type: Array, default: () => [5, 10, 25, 50] },
+  searchable: { type: Boolean, default: false },
+  searchPlaceholder: { type: String, default: "Buscar..." },
 });
 
-const emit = defineEmits(["update:page"]);
+const emit = defineEmits(["load"]);
 
-const totalPages = computed(() => {
-  return Math.ceil(props.totalItems / props.itemsPerPage) || 1;
-});
+const internalPage = ref(props.page);
+const internalItemsPerPage = ref(props.itemsPerPage);
+const currentSortBy = ref(null);
+const searchQuery = ref("");
+
+const totalPages = computed(
+  () => Math.ceil(props.totalItems / internalItemsPerPage.value) || 1,
+);
 
 const paginationInfo = computed(() => {
-  if (props.totalItems === 0) return "0 productos";
-  const start = (props.page - 1) * props.itemsPerPage + 1;
-  const end = Math.min(props.page * props.itemsPerPage, props.totalItems);
-  return `${start}-${end} de ${props.totalItems} registros`;
+  if (props.totalItems === 0) return "Sin registros";
+  const start = (internalPage.value - 1) * internalItemsPerPage.value + 1;
+  const end = Math.min(
+    internalPage.value * internalItemsPerPage.value,
+    props.totalItems,
+  );
+  return `${start}–${end} de ${props.totalItems}`;
 });
 
-function changePage(newPage) {
-  if (newPage >= 1 && newPage <= totalPages.value) {
-    emit("update:page", newPage);
-  }
-}
-</script>
+const visiblePages = computed(() => {
+  const total = totalPages.value;
+  const current = internalPage.value;
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push("...");
+  if (current > 2) pages.push(current - 1);
+  pages.push(current);
+  if (current < total - 1) pages.push(current + 1);
+  if (current < total - 2) pages.push("...");
+  pages.push(total);
+  return pages;
+});
 
-<style scoped>
-/* Vuetify proporciona las utilidades necesarias en su gran mayoría.
-   Añadimos pequeños ajustes en caso de que min-width moleste en botones pequeños. */
-.min-w-0 {
-  min-width: 0 !important;
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value || page === internalPage.value)
+    return;
+  internalPage.value = page;
+  emitLoad();
 }
-</style>
+
+function onItemsPerPageChange() {
+  internalPage.value = 1;
+  emitLoad();
+}
+
+function emitLoad() {
+  emit("load", {
+    page: internalPage.value,
+    itemsPerPage: internalItemsPerPage.value,
+    sortBy: currentSortBy.value,
+    search: searchQuery.value?.trim() || null,
+  });
+}
+
+function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
+  internalPage.value = page;
+  internalItemsPerPage.value = itemsPerPage;
+  currentSortBy.value = sortBy?.[0] ?? null;
+  emit("load", {
+    page,
+    itemsPerPage,
+    sortBy: currentSortBy.value,
+    search: searchQuery.value?.trim() || null,
+  });
+}
+
+function onSearch() {
+  internalPage.value = 1;
+  emitLoad();
+}
+function onClear() {
+  searchQuery.value = "";
+  internalPage.value = 1;
+  emitLoad();
+}
+function onRefresh() {
+  emitLoad();
+}
+
+function reset() {
+  internalPage.value = 1;
+  currentSortBy.value = null;
+  searchQuery.value = "";
+  emitLoad();
+}
+
+defineExpose({ reset });
+</script>

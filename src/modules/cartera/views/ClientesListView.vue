@@ -1,15 +1,14 @@
 <!-- src/modules/cartera/views/ClientesListView.vue -->
 <template>
   <div>
-    <app-bar title="Gestion de Clientes">
+    <app-bar title="Gestión de Clientes">
       <template #actions>
         <v-btn
           variant="tonal"
-          color="brand-grey-2 font-weight-bold"
+          color="brand-grey-2"
           prepend-icon="mdi-tray-arrow-down"
-          class="pa-4"
           size="small"
-          
+          class="font-weight-bold pa-4"
         >
           Exportar
         </v-btn>
@@ -24,48 +23,54 @@
         </v-btn>
       </template>
     </app-bar>
-    <v-container fluid class=" w-100 mx-auto">
+
+    <v-container fluid class="w-100 mx-auto">
       <base-table
+        ref="tableRef"
         title="Directorio de Clientes"
         :headers="headers"
         :items="clientes"
-        itemKey="nit"
-        :page="currentPage"
-        :itemsPerPage="itemsPerPage"
-        :totalItems="clientes.length"
-        @update:page="currentPage = $event"
+        item-key="nit"
+        :loading="loading"
+        :total-items="totalItems"
+        empty-text="No se encontraron clientes"
+        searchable
+        search-placeholder="Buscar por NIT, nombre o ciudad..."
+        @load="fetchData"
       >
-        <template #actions>
-          <div class="text-caption text-grey-darken-1 mr-2 d-none d-sm-block">Filtrar por categoría:</div>
+
+        <!-- Filtros en la barra de búsqueda -->
+        <template #filters>
+
           <v-select
             v-model="categoriaSeleccionada"
-            :items="['Todas las categorías', 'Nuevos', 'Frecuentes']"
+            :items="categorias"
+            label="Categoría"
             density="compact"
             variant="outlined"
             hide-details
-            class="bg-white"
-            style="max-width: 200px;"
-          ></v-select>
+            style="min-width: 160px; max-width: 200px"
+            @update:model-value="onFilterChange"
+          />
+
+          <v-select
+            v-model="estadoSeleccionado"
+            :items="estados"
+            label="Estado"
+            density="compact"
+            variant="outlined"
+            hide-details
+            style="min-width: 130px; max-width: 160px"
+            @update:model-value="onFilterChange"
+          />
+
         </template>
-        
+
         <!-- Columnas personalizadas -->
-        <template #item.nit="{ item }">
-          <span class="text-primary font-weight-medium">#{{ item.nit }}</span>
-        </template>
-        
-        <template #item.nombre="{ item }">
-          <div class="d-flex align-center">
-            <v-avatar color="grey-lighten-4" size="32" class="mr-3">
-              <v-icon size="16" color="grey-darken-2">mdi-account</v-icon>
-            </v-avatar>
-            <span class="font-weight-bold text-grey-darken-4">{{ item.nombre }}</span>
-          </div>
-        </template>
-        
         <template #item.ciudad="{ item }">
           <span class="text-grey-darken-2">{{ item.ciudad }}</span>
         </template>
-        
+
         <template #item.activo="{ item }">
           <v-chip
             :color="item.activo ? 'success' : 'error'"
@@ -73,102 +78,98 @@
             class="font-weight-medium"
             variant="tonal"
           >
-            {{ item.activo ? "Activo" : "Inactivo" }}
+            {{ item.activo ? 'Activo' : 'Inactivo' }}
           </v-chip>
         </template>
-        
-        <template #item.acciones>
-          <v-btn icon="mdi-pencil" variant="text" size="small" color="grey-darken-1"></v-btn>
+
+        <template #item.acciones="{ item }">
+          <v-btn
+            icon="mdi-pencil"
+            variant="text"
+            size="small"
+            color="grey-darken-1"
+            @click="editarCliente(item)"
+          />
         </template>
+
       </base-table>
     </v-container>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import AppBar from "@/shared/ui/AppBar.vue";
-import BaseTable from "@/shared/ui/BaseTable.vue";
+import { ref } from 'vue'
+import AppBar    from '@/shared/ui/AppBar.vue'
+import BaseTable from '@/shared/ui/BaseTable.vue'
 
-const currentPage = ref(1);
-const itemsPerPage = ref(1);
-const categoriaSeleccionada = ref("Todas las categorías");
+const tableRef = ref()
 
 const headers = [
-  { title: "NIT", key: "nit", align: "left" },
-  { title: "NOMBRE", key: "nombre", align: "left" },
-  { title: "CIUDAD", key: "ciudad", align: "left" },
-  { title: "TELÉFONO", key: "telefono", align: "left" },
-  { title: "ESTADO", key: "activo", align: "center" },
-  { title: "ACCIONES", key: "acciones", align: "center" },
-];
+  { title: 'NIT',      key: 'nit',      sortable: true                    },
+  { title: 'Nombre',   key: 'nombre',   sortable: true                    },
+  { title: 'Ciudad',   key: 'ciudad',   sortable: true                    },
+  { title: 'Teléfono', key: 'telefono', sortable: false                   },
+  { title: 'Estado',   key: 'activo',   sortable: false, align: 'center'  },
+  { title: 'Acciones', key: 'acciones', sortable: false, align: 'center'  },
+]
 
-const stats = [
-  {
-    label: "Total Clientes",
-    value: "248",
-    icon: "mdi-account-group-outline",
-    iconColor: "primary",
-    color: "",
-  },
-  {
-    label: "Activos",
-    value: "231",
-    icon: "mdi-account-check-outline",
-    iconColor: "success",
-    color: "text-success",
-  },
-  {
-    label: "Inactivos",
-    value: "17",
-    icon: "mdi-account-off-outline",
-    iconColor: "error",
-    color: "text-error",
-  },
-  {
-    label: "Nuevos este mes",
-    value: "12",
-    icon: "mdi-account-plus-outline",
-    iconColor: "info",
-    color: "",
-  },
-];
+const categorias            = ['Todas', 'Nuevos', 'Frecuentes']
+const estados               = ['Todos', 'Activo', 'Inactivo'  ]
+const categoriaSeleccionada = ref('Todas')
+const estadoSeleccionado    = ref('Todos')
 
-const clientes = [
-  {
-    nit: "900.123.456-1",
-    nombre: "Clínica San Rafael",
-    ciudad: "Bucaramanga",
-    telefono: "316 800 0001",
-    activo: true,
-  },
-  {
-    nit: "800.234.567-2",
-    nombre: "Droguería Central",
-    ciudad: "Medellín",
-    telefono: "300 900 0002",
-    activo: true,
-  },
-  {
-    nit: "700.345.678-3",
-    nombre: "Hospital Universitario",
-    ciudad: "Bogotá",
-    telefono: "321 700 0003",
-    activo: false,
-  },
-  {
-    nit: "600.456.789-4",
-    nombre: "Farmacia del Norte",
-    ciudad: "Barranquilla",
-    telefono: "314 600 0004",
-    activo: true,
-  },
-  {
-    nit: "500.567.890-5",
-    nombre: "IPS Salud Total",
-    ciudad: "Cali",
-    telefono: "318 500 0005",
-    activo: true,
-  },
-];
+const clientes   = ref([])
+const totalItems = ref(0)
+const loading    = ref(false)
+
+const DATA = [
+  { nit: '900.123.456-1', nombre: 'Clínica San Rafael',     ciudad: 'Bucaramanga',  telefono: '316 800 0001', activo: true  },
+  { nit: '800.234.567-2', nombre: 'Droguería Central',      ciudad: 'Medellín',     telefono: '300 900 0002', activo: true  },
+  { nit: '700.345.678-3', nombre: 'Hospital Universitario', ciudad: 'Bogotá',       telefono: '321 700 0003', activo: false },
+  { nit: '600.456.789-4', nombre: 'Farmacia del Norte',     ciudad: 'Barranquilla', telefono: '314 600 0004', activo: true  },
+  { nit: '500.567.890-5', nombre: 'IPS Salud Total',        ciudad: 'Cali',         telefono: '318 500 0005', activo: true  },
+]
+
+async function fetchData({ page, itemsPerPage, sortBy, search }) {
+  loading.value = true
+  await new Promise((r) => setTimeout(r, 400))
+
+  let resultado = [...DATA]
+
+  if (search) {
+    const q = search.toLowerCase()
+    resultado = resultado.filter(
+      (c) => c.nit.toLowerCase().includes(q) ||
+             c.nombre.toLowerCase().includes(q) ||
+             c.ciudad.toLowerCase().includes(q),
+    )
+  }
+
+  if (categoriaSeleccionada.value === 'Nuevos')     resultado = resultado.slice(0, 2)
+  if (categoriaSeleccionada.value === 'Frecuentes') resultado = resultado.slice(2)
+  if (estadoSeleccionado.value    === 'Activo')     resultado = resultado.filter((c) =>  c.activo)
+  if (estadoSeleccionado.value    === 'Inactivo')   resultado = resultado.filter((c) => !c.activo)
+
+  if (sortBy?.key) {
+    resultado.sort((a, b) => {
+      const cmp = typeof a[sortBy.key] === 'string'
+        ? a[sortBy.key].localeCompare(b[sortBy.key], 'es')
+        : a[sortBy.key] - b[sortBy.key]
+      return sortBy.order === 'asc' ? cmp : -cmp
+    })
+  }
+
+  const start      = (page - 1) * itemsPerPage
+  clientes.value   = resultado.slice(start, start + itemsPerPage)
+  totalItems.value = resultado.length
+  loading.value    = false
+}
+
+function onFilterChange() {
+  tableRef.value?.reset()
+}
+
+function editarCliente(item) {
+  console.log('Editar:', item)
+}
 </script>

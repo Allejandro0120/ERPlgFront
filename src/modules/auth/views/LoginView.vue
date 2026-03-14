@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="fill-height bg-background pa-0">
-    <v-row no-gutters class="fill-height" align="center" justify="center">
+    <v-row  class="fill-height" align="center" justify="center" density="compact">
       <v-col cols="12" sm="8" md="6" lg="4" class="px-4">
         <!-- Tarjeta de Login -->
         <v-card
@@ -163,7 +163,7 @@ const handleLogin = async () => {
     }
   } catch (error) {
     // Los errores ya se manejan en el interceptor de axios
-    console.error("Error en login:", error);
+    // console.error("Error en login:", error);
   } finally {
     loading.value = false;
   }

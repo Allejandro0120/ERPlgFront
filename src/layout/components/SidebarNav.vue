@@ -6,7 +6,7 @@
           <v-tooltip
             :text="group.Nombre"
             location="end"
-            content-class="sidebar-tooltip"
+            content-class="tooltip"
           >
             <template #activator="{ props: tooltipProps }">
               <v-list-item
@@ -28,7 +28,7 @@
             :text="seccion.Nombre"
             location="end"
             :disabled="rail"
-            content-class="sidebar-tooltip"
+            content-class="tooltip"
           >
             <template #activator="{ props: tooltipProps }">
               <v-list-item
@@ -62,80 +62,88 @@ const menu = computed(() => authStore.orderedMenu);
 const openedGroups = computed(() => {
   // Si hay un módulo activo establecido, ese debe estar abierto
   if (uiStore.activeModule) {
-    return [uiStore.activeModule]
+    return [uiStore.activeModule];
   }
   // Si no hay módulo activo pero hay menú, abrir el primero
   if (menu.value.length > 0) {
-    return [getGroupAlias(menu.value[0])]
+    return [getGroupAlias(menu.value[0])];
   }
-  return []
-})
+  return [];
+});
 
 function getGroupAlias(group) {
-  return group.Alias || group.Nombre?.toLowerCase()
+  return group.Alias || group.Nombre?.toLowerCase();
 }
 
 function isGroupActive(group) {
-  const groupAlias = getGroupAlias(group)
+  const groupAlias = getGroupAlias(group);
   return group.secciones.some((seccion) =>
     route.path.startsWith(`/${groupAlias}${seccion.Ruta}`),
   );
 }
 
 // Actualizar el módulo activo cuando cambia la ruta
-watch(() => route.path, (newPath) => {
-  // Encontrar qué grupo contiene la ruta actual
-  const activeGroup = menu.value.find(group => {
-    const groupAlias = getGroupAlias(group)
-    return group.secciones.some(seccion => 
-      newPath.startsWith(`/${groupAlias}${seccion.Ruta}`)
-    )
-  })
-  
-  if (activeGroup) {
-    uiStore.setActiveModule(getGroupAlias(activeGroup))
-  } else if (menu.value.length > 0 && !newPath.startsWith('/auth')) {
-    // Si no se encuentra grupo activo pero hay menú y no estamos en auth
-    // No cambiar el módulo activo - el router se encargará de redirigir
-    // Esto evita seleccionar un módulo incorrecto cuando se pierde acceso
-  }
-}, { immediate: true })
+watch(
+  () => route.path,
+  (newPath) => {
+    // Encontrar qué grupo contiene la ruta actual
+    const activeGroup = menu.value.find((group) => {
+      const groupAlias = getGroupAlias(group);
+      return group.secciones.some((seccion) =>
+        newPath.startsWith(`/${groupAlias}${seccion.Ruta}`),
+      );
+    });
+
+    if (activeGroup) {
+      uiStore.setActiveModule(getGroupAlias(activeGroup));
+    } else if (menu.value.length > 0 && !newPath.startsWith("/auth")) {
+      // Si no se encuentra grupo activo pero hay menú y no estamos en auth
+      // No cambiar el módulo activo - el router se encargará de redirigir
+      // Esto evita seleccionar un módulo incorrecto cuando se pierde acceso
+    }
+  },
+  { immediate: true },
+);
 
 // Verificar módulo activo cuando cambia el menú (por cambios de permisos)
-watch(() => menu.value, (newMenu) => {
-  if (newMenu.length === 0) {
-    // Si el menú se vacía, limpiar el módulo activo
-    uiStore.setActiveModule(null)
-    return
-  }
-  
-  // Verificar si el módulo activo actual existe en el nuevo menú
-  const currentModuleExists = newMenu.some(group => 
-    getGroupAlias(group) === uiStore.activeModule
-  )
-  
-  // Verificar si la ruta actual existe en el nuevo menú
-  const currentRouteInMenu = newMenu.some(group => {
-    const groupAlias = getGroupAlias(group)
-    return group.secciones.some(seccion => 
-      route.path.startsWith(`/${groupAlias}${seccion.Ruta}`)
-    )
-  })
-  
-  // Si el módulo activo ya no existe O la ruta actual no está en el menú
-  if (!currentModuleExists || !currentRouteInMenu) {
-    // El router se encargará de redirigir, solo actualizar el módulo
-    const firstGroup = newMenu[0]
-    if (firstGroup) {
-      uiStore.setActiveModule(getGroupAlias(firstGroup))
+watch(
+  () => menu.value,
+  (newMenu) => {
+    if (newMenu.length === 0) {
+      // Si el menú se vacía, limpiar el módulo activo
+      uiStore.setActiveModule(null);
+      return;
     }
-  }
-}, { deep: true })
+
+    // Verificar si el módulo activo actual existe en el nuevo menú
+    const currentModuleExists = newMenu.some(
+      (group) => getGroupAlias(group) === uiStore.activeModule,
+    );
+
+    // Verificar si la ruta actual existe en el nuevo menú
+    const currentRouteInMenu = newMenu.some((group) => {
+      const groupAlias = getGroupAlias(group);
+      return group.secciones.some((seccion) =>
+        route.path.startsWith(`/${groupAlias}${seccion.Ruta}`),
+      );
+    });
+
+    // Si el módulo activo ya no existe O la ruta actual no está en el menú
+    if (!currentModuleExists || !currentRouteInMenu) {
+      // El router se encargará de redirigir, solo actualizar el módulo
+      const firstGroup = newMenu[0];
+      if (firstGroup) {
+        uiStore.setActiveModule(getGroupAlias(firstGroup));
+      }
+    }
+  },
+  { deep: true },
+);
 
 // Al montar el componente, establecer el primer módulo como activo si no hay uno
 onMounted(() => {
   if (!uiStore.activeModule && menu.value.length > 0) {
-    uiStore.setActiveModule(getGroupAlias(menu.value[0]))
+    uiStore.setActiveModule(getGroupAlias(menu.value[0]));
   }
-})
+});
 </script>

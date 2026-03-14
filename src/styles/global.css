@@ -4,7 +4,7 @@
   font-family: 'Poppins', sans-serif !important;
 }
 
-.sidebar-tooltip {
+.tooltip {
   background: rgba(var(--v-theme-on-surface), 0.85) !important;
   color: rgb(var(--v-theme-surface)) !important;
   font-size: 0.8rem !important;
