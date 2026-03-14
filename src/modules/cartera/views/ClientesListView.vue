@@ -39,9 +39,8 @@
         @load="fetchData"
       >
 
-        <!-- Filtros en la barra de búsqueda -->
+        <!-- Filtros DESKTOP: en la misma fila que el buscador -->
         <template #filters>
-
           <v-select
             v-model="categoriaSeleccionada"
             :items="categorias"
@@ -52,7 +51,6 @@
             style="min-width: 160px; max-width: 200px"
             @update:model-value="onFilterChange"
           />
-
           <v-select
             v-model="estadoSeleccionado"
             :items="estados"
@@ -63,7 +61,28 @@
             style="min-width: 130px; max-width: 160px"
             @update:model-value="onFilterChange"
           />
+        </template>
 
+        <!-- Filtros MÓVIL: cada uno en su propia línea (full width) -->
+        <template #filters-mobile>
+          <v-select
+            v-model="categoriaSeleccionada"
+            :items="categorias"
+            label="Categoría"
+            density="compact"
+            variant="outlined"
+            hide-details
+            @update:model-value="onFilterChange"
+          />
+          <v-select
+            v-model="estadoSeleccionado"
+            :items="estados"
+            label="Estado"
+            density="compact"
+            variant="outlined"
+            hide-details
+            @update:model-value="onFilterChange"
+          />
         </template>
 
         <!-- Columnas personalizadas -->
@@ -128,6 +147,7 @@ const DATA = [
   { nit: '700.345.678-3', nombre: 'Hospital Universitario', ciudad: 'Bogotá',       telefono: '321 700 0003', activo: false },
   { nit: '600.456.789-4', nombre: 'Farmacia del Norte',     ciudad: 'Barranquilla', telefono: '314 600 0004', activo: true  },
   { nit: '500.567.890-5', nombre: 'IPS Salud Total',        ciudad: 'Cali',         telefono: '318 500 0005', activo: true  },
+  { nit: '500.567.890-6', nombre: 'IPS Salud Total',        ciudad: 'Cali',         telefono: '318 500 0005', activo: true  },
 ]
 
 async function fetchData({ page, itemsPerPage, sortBy, search }) {
