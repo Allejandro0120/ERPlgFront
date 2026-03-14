@@ -105,7 +105,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
-import { authService } from "@/modules/auth/services/authservice";
+import { authService } from "@/api/services/authService";
 import Logo from "@/assets/sanamos_logo_horizontal.jpg";
 
 const router = useRouter();
