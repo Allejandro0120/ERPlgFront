@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/auth.store'
+import { useUiStore } from '@/stores/ui.store'
 import router from '@/router'
 
 /**
@@ -6,12 +7,14 @@ import router from '@/router'
  */
 export async function handleAuthError(error) {
   const authStore = useAuthStore()
+  const uiStore = useUiStore()
   
   const message = error.response?.data?.message || 'La sesión ha expirado'
   window.$toast.error(message)
   
   // Limpiar autenticación y redirigir al login
   authStore.clearAuth()
+  uiStore.setActiveModule(null)
   
   if (router.currentRoute.value.name !== 'login') {
     await router.push('/auth/login')

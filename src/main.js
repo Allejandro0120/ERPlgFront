@@ -12,6 +12,7 @@ import toast from "./plugins/toast";
 import loadingPlugin from "@/plugins/loading/loading";
 import confirmPlugin from "@/plugins/confirm/confirm";
 import { useAuthStore } from "@/stores/auth.store";
+import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/modules/auth/services/authservice";
 
 const app = createApp(App);
@@ -25,6 +26,7 @@ app.use(confirmPlugin);
 
 // Verificar sesión antes de montar la app
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 
 async function initializeAuth() {
   try {
@@ -33,8 +35,18 @@ async function initializeAuth() {
     const profileData = response.data.data;
     
     // Guardar usuario y menú en el store
-    authStore.setAuth(profileData.user || { authenticated: true });
+    authStore.setAuth({
+      Nombre: profileData.nombre,
+      Rol: profileData.rol,
+      authenticated: true
+    });
     authStore.setProfile(profileData);
+    
+    // Establecer el primer módulo como activo
+    const firstRoute = authStore.firstRoute;
+    if (firstRoute) {
+      uiStore.setActiveModule(firstRoute.module);
+    }
   } catch (error) {
     // No hay sesión válida, limpiar el store
     authStore.clearAuth();

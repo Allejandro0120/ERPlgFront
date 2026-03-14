@@ -3,17 +3,14 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
 import carteraRoutes from "@/modules/cartera/index.js";
 import mercanciaRoutes from "@/modules/mercancia/index.js";
+import facturacionRoutes from "@/modules/facturacion/index.js";
 
 // Función helper para obtener la primera ruta del menú del usuario
 function getFirstUserRoute() {
   const authStore = useAuthStore();
-  const firstGroup = authStore.orderedMenu[0];
-  const firstRoute = firstGroup?.secciones[0]?.Ruta;
-  const firstAlias = firstGroup?.Alias;
+  const firstRoute = authStore.firstRoute;
   
-  return firstRoute && firstAlias 
-    ? `/${firstAlias}${firstRoute}` 
-    : "/auth/login"; // Fallback solo por seguridad
+  return firstRoute?.path || "/auth/login";
 }
 
 const routes = [
@@ -28,6 +25,7 @@ const routes = [
       },
       ...carteraRoutes,
       ...mercanciaRoutes,
+      ...facturacionRoutes,
     ],
   },
   {
@@ -68,6 +66,29 @@ router.beforeEach((to, from, next) => {
   } else if (to.name === 'login' && isAuthenticated) {
     // Usuario autenticado intentando ir al login -> redirigir a su primera ruta
     next({ path: getFirstUserRoute() });
+  } else if (requiresAuth && isAuthenticated && to.path !== '/') {
+    // Solo validamos acceso mediante las secciones que trae el perfil
+    const hasAccessToRoute = authStore.orderedMenu.some(group => {
+      const groupAlias = group.Alias || group.Nombre?.toLowerCase();
+      // Verificamos si la ruta a la que intenta acceder está dentro de las secciones permitidas
+      return group.secciones.some(seccion => 
+        to.path.startsWith(`/${groupAlias}${seccion.Ruta}`) || to.path === `/${groupAlias}`
+      );
+    });
+    
+    if (!hasAccessToRoute) {
+      // Si tiene una primera ruta disponible (basada en sus secciones), lo redirigimos a ella
+      if (authStore.firstRoute) {
+        next({ path: authStore.firstRoute.path });
+      } else {
+        // Si no tiene menú disponible, cerramos sesión
+        authStore.clearAuth();
+        next({ name: 'login' });
+      }
+    } else {
+      // Está en sus secciones -> permitir
+      next();
+    }
   } else {
     // Permitir navegación
     next();

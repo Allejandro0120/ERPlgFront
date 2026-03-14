@@ -1,10 +1,11 @@
 <template>
-  <v-navigation-drawer 
-    v-model="drawer" 
-    :rail="rail" 
+  <v-navigation-drawer
+    v-model="drawer"
+    :rail="rail"
     :temporary="isMobile"
     border="r"
     elevation="0"
+    @click="uiStore.rail = false"
   >
     <SidebarHeader :rail="rail" />
     <SidebarNav />
@@ -49,7 +50,7 @@ const currentUser = computed(() => {
       avatar: null,
     };
   }
-  
+
   return {
     name: user.Nombre || user.name || "Usuario",
     role: user.Rol || user.role || "Usuario",
@@ -79,13 +80,15 @@ async function handleLogout() {
   try {
     await authService.logout();
     authStore.clearAuth();
-    window.$toast.success('Sesión cerrada correctamente');
-    router.push({ name: 'login' });
+    uiStore.setActiveModule(null);
+    window.$toast.success("Sesión cerrada correctamente");
+    router.push({ name: "login" });
   } catch (error) {
-    console.error('Error al cerrar sesión:', error);
+    console.error("Error al cerrar sesión:", error);
     // Incluso si el backend falla, limpiamos la sesión local
     authStore.clearAuth();
-    router.push({ name: 'login' });
+    uiStore.setActiveModule(null);
+    router.push({ name: "login" });
   }
 }
 

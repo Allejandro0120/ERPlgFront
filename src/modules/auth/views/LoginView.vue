@@ -104,11 +104,13 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
+import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/modules/auth/services/authservice";
 import Logo from "@/assets/sanamos_logo_horizontal.jpg";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const showPassword = ref(false);
 const loading = ref(false);
 const form = ref({
@@ -117,7 +119,10 @@ const form = ref({
 });
 
 const handleLogin = async () => {
-  if (!form.value.Codigo || !form.value.Contrasena) {
+  if (
+    !form.value.Codigo || !form.value.Contrasena ||
+    form.value.Codigo.trim() === "" || form.value.Contrasena.trim() === ""
+  ) {
     window.$toast.error("Por favor completa todos los campos");
     return;
   }
@@ -134,13 +139,28 @@ const handleLogin = async () => {
     
     // Guardar usuario y perfil
     const profileData = profileResponse.data.data;
-    authStore.setAuth(profileData.user || { authenticated: true });
+    authStore.setAuth({
+      Nombre: profileData.nombre,
+      Rol: profileData.rol,
+      authenticated: true
+    });
+    
     authStore.setProfile(profileData);
+    
+    // Establecer el primer módulo como activo
+    const firstRoute = authStore.firstRoute;
+    if (firstRoute) {
+      uiStore.setActiveModule(firstRoute.module);
+    }
     
     window.$toast.success("¡Bienvenido!");
     
-    // Redirigir a "/" - el router determinará automáticamente la primera ruta del menú
-    router.push("/");
+    // Redirigir a la primera ruta del menú
+    if (firstRoute) {
+      router.push(firstRoute.path);
+    } else {
+      router.push("/");
+    }
   } catch (error) {
     // Los errores ya se manejan en el interceptor de axios
     console.error("Error en login:", error);

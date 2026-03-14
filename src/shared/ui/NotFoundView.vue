@@ -2,7 +2,6 @@
   <v-container fluid class="fill-height bg-background pa-0">
     <v-row no-gutters class="fill-height" align="center" justify="center">
       <v-col cols="12" sm="10" md="8" lg="6" class="px-4 text-center">
-        <!-- Ilustración 404 -->
         <div class="illustration-container mb-6">
           <div class="number-404">
             <span class="digit text-primary">4</span>
@@ -17,7 +16,6 @@
           </div>
         </div>
 
-        <!-- Contenido -->
         <div class="mb-8">
           <h1 class="text-h5 text-md-h4 font-weight-bold text-brand-grey-1 mb-3">
             ¡Oops! Página no encontrada
@@ -27,7 +25,6 @@
           </p>
         </div>
 
-        <!-- Acción -->
         <div class="d-flex justify-center">
           <v-btn
             color="primary"

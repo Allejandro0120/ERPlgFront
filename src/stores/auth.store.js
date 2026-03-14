@@ -22,6 +22,22 @@ export const useAuthStore = defineStore('auth', () => {
       }))
   })
 
+  // Obtiene la primera ruta del menú del usuario
+  const firstRoute = computed(() => {
+    const firstGroup = orderedMenu.value[0]
+    if (!firstGroup || !firstGroup.secciones || firstGroup.secciones.length === 0) {
+      return null
+    }
+    const firstSection = firstGroup.secciones[0]
+    return {
+      path: `/${firstGroup.Alias}${firstSection.Ruta}`,
+      module: firstGroup.Alias,
+      moduleNombre: firstGroup.Nombre,
+      section: firstSection.Ruta,
+      sectionNombre: firstSection.Nombre
+    }
+  })
+
   const setAuth = (userData) => {
     user.value = userData
   }
@@ -47,6 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
     permisos,
     isAuthenticated,
     orderedMenu,
+    firstRoute,
     setAuth,
     setProfile,
     clearAuth,
