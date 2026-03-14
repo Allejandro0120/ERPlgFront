@@ -35,7 +35,7 @@
             <div class="mb-6">
              
               <v-text-field
-                v-model="form.email"
+                v-model="form.Codigo"
                 placeholder="Usuario"
                 prepend-inner-icon="mdi-account-outline"
                 label="Usuario"
@@ -47,7 +47,7 @@
             <div class="mb-6">
              
               <v-text-field
-                v-model="form.password"
+                v-model="form.Contrasena"
                 placeholder="••••••••"
                 prepend-inner-icon="mdi-lock-outline"
                 :append-inner-icon="
@@ -80,7 +80,8 @@
               color="primary"
               block
               height="48"
-              class=""
+              :loading="loading"
+              :disabled="loading"
             >
               Iniciar Sesión
               <v-icon end icon="mdi-login" class="ml-2" />
@@ -101,17 +102,71 @@
 
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUiStore } from "@/stores/ui.store";
+import { authService } from "@/modules/auth/services/authservice";
 import Logo from "@/assets/sanamos_logo_horizontal.jpg";
 
+const router = useRouter();
+const authStore = useAuthStore();
+const uiStore = useUiStore();
 const showPassword = ref(false);
+const loading = ref(false);
 const form = ref({
-  email: "",
-  password: "",
+  Codigo: "",
+  Contrasena: "",
 });
 
-const handleLogin = () => {
-  // Lógica de autenticación
-  console.log("Login attempt:", form.value);
+const handleLogin = async () => {
+  if (
+    !form.value.Codigo || !form.value.Contrasena ||
+    form.value.Codigo.trim() === "" || form.value.Contrasena.trim() === ""
+  ) {
+    window.$toast.error("Por favor completa todos los campos");
+    return;
+  }
+
+  try {
+    loading.value = true;
+    
+    // Realizar login (backend devuelve cookie HTTP Only)
+    await authService.login(form.value);
+    
+    // Obtener perfil del usuario (menú y permisos)
+    // La cookie se envía automáticamente
+    const profileResponse = await authService.profile();
+    
+    // Guardar usuario y perfil
+    const profileData = profileResponse.data.data;
+    authStore.setAuth({
+      Nombre: profileData.nombre,
+      Rol: profileData.rol,
+      authenticated: true
+    });
+    
+    authStore.setProfile(profileData);
+    
+    // Establecer el primer módulo como activo
+    const firstRoute = authStore.firstRoute;
+    if (firstRoute) {
+      uiStore.setActiveModule(firstRoute.module);
+    }
+    
+    window.$toast.success("¡Bienvenido!");
+    
+    // Redirigir a la primera ruta del menú
+    if (firstRoute) {
+      router.push(firstRoute.path);
+    } else {
+      router.push("/");
+    }
+  } catch (error) {
+    // Los errores ya se manejan en el interceptor de axios
+    console.error("Error en login:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const year = new Date().getFullYear();

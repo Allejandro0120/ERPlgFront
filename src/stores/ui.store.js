@@ -9,6 +9,9 @@ export const useUiStore = defineStore('ui', () => {
   // Controla el modo "solo iconos" en desktop
   const rail = ref(true)
 
+  // Rastrear el módulo actual activo (el grupo del sidebar que debe estar expandido)
+  const activeModule = ref(null)
+
   function toggleDrawer() {
     drawer.value = !drawer.value
   }
@@ -17,5 +20,9 @@ export const useUiStore = defineStore('ui', () => {
     rail.value = !rail.value
   }
 
-  return { drawer, rail, toggleDrawer, toggleRail }
+  function setActiveModule(module) {
+    activeModule.value = module
+  }
+
+  return { drawer, rail, activeModule, toggleDrawer, toggleRail, setActiveModule }
 })
