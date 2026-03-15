@@ -65,32 +65,31 @@ function hasAccessToRoute(to, authStore) {
  * Middleware principal. Se registra en router.beforeEach().
  */
 export async function authMiddleware(to, from) {
-    console.log("authMiddleware called")
-  const authStore = useAuthStore()
-  const requiresAuth = to.matched.some(r => r.meta.requiresAuth !== false)
+  const authStore = useAuthStore();
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth !== false);
 
   if (!requiresAuth) {
     if (to.name === "login" && authStore.isAuthenticated) {
-      const firstRoute = authStore.firstRoute
-      return firstRoute ? { path: firstRoute.path } : { name: "login" }
+      const firstRoute = authStore.firstRoute;
+      return firstRoute ? { path: firstRoute.path } : { name: "login" };
     }
-    return true
+    return true;
   }
 
   if (!authStore.isAuthenticated) {
-    const loaded = await loadProfile()
-    if (!loaded) return { name: "login" }
+    const loaded = await loadProfile();
+    if (!loaded) return { name: "login" };
   }
 
   if (to.path !== "/") {
     if (!hasAccessToRoute(to, authStore)) {
-      const firstRoute = authStore.firstRoute
-      if (firstRoute) return { path: firstRoute.path }
+      const firstRoute = authStore.firstRoute;
+      if (firstRoute) return { path: firstRoute.path };
 
-      authStore.clearAuth()
-      return { name: "login" }
+      authStore.clearAuth();
+      return { name: "login" };
     }
   }
 
-  return true
+  return true;
 }
