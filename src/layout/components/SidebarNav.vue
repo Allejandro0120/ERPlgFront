@@ -3,11 +3,7 @@
     <template v-for="group in menu" :key="getGroupAlias(group)">
       <v-list-group :value="getGroupAlias(group)">
         <template #activator="{ props, isOpen }">
-          <v-tooltip
-            :text="group.Nombre"
-            location="end"
-            content-class="tooltip"
-          >
+          <v-tooltip :text="group.Nombre" location="end">
             <template #activator="{ props: tooltipProps }">
               <v-list-item
                 v-bind="{ ...props, ...tooltipProps }"
@@ -28,7 +24,6 @@
             :text="seccion.Nombre"
             location="end"
             :disabled="rail"
-            content-class="tooltip"
           >
             <template #activator="{ props: tooltipProps }">
               <v-list-item

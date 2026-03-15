@@ -33,13 +33,13 @@
         item-key="nit"
         :loading="loading"
         :total-items="totalItems"
+        :row-actions="rowActions"
         empty-text="No se encontraron clientes"
         searchable
         search-placeholder="Buscar por NIT, nombre o ciudad..."
         @load="fetchData"
       >
-
-        <!-- Filtros DESKTOP: en la misma fila que el buscador -->
+        <!-- Filtros desktop -->
         <template #filters>
           <v-select
             v-model="categoriaSeleccionada"
@@ -63,7 +63,7 @@
           />
         </template>
 
-        <!-- Filtros MÓVIL: cada uno en su propia línea (full width) -->
+        <!-- Filtros móvil -->
         <template #filters-mobile>
           <v-select
             v-model="categoriaSeleccionada"
@@ -85,11 +85,6 @@
           />
         </template>
 
-        <!-- Columnas personalizadas -->
-        <template #item.ciudad="{ item }">
-          <span class="text-grey-darken-2">{{ item.ciudad }}</span>
-        </template>
-
         <template #item.activo="{ item }">
           <v-chip
             :color="item.activo ? 'success' : 'error'"
@@ -97,99 +92,160 @@
             class="font-weight-medium"
             variant="tonal"
           >
-            {{ item.activo ? 'Activo' : 'Inactivo' }}
+            {{ item.activo ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
-
-        <template #item.acciones="{ item }">
-          <v-btn
-            icon="mdi-pencil"
-            variant="text"
-            size="small"
-            color="grey-darken-1"
-            @click="editarCliente(item)"
-          />
-        </template>
-
       </base-table>
     </v-container>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import AppBar    from '@/shared/ui/AppBar.vue'
-import BaseTable from '@/shared/ui/BaseTable.vue'
+import { ref } from "vue";
+import AppBar from "@/shared/ui/AppBar.vue";
+import BaseTable from "@/shared/ui/BaseTable.vue";
 
-const tableRef = ref()
+const tableRef = ref();
 
+// ── Headers — sin columna acciones, BaseTable la agrega automáticamente ───────
 const headers = [
-  { title: 'NIT',      key: 'nit',      sortable: true                    },
-  { title: 'Nombre',   key: 'nombre',   sortable: true                    },
-  { title: 'Ciudad',   key: 'ciudad',   sortable: true                    },
-  { title: 'Teléfono', key: 'telefono', sortable: false                   },
-  { title: 'Estado',   key: 'activo',   sortable: false, align: 'center'  },
-  { title: 'Acciones', key: 'acciones', sortable: false, align: 'center'  },
-]
+  { title: "NIT", key: "nit", sortable: true },
+  { title: "Nombre", key: "nombre", sortable: true },
+  { title: "Ciudad", key: "ciudad", sortable: true },
+  { title: "Teléfono", key: "telefono", sortable: false },
+  { title: "Estado", key: "activo", sortable: false, align: "center" },
+];
 
-const categorias            = ['Todas', 'Nuevos', 'Frecuentes']
-const estados               = ['Todos', 'Activo', 'Inactivo'  ]
-const categoriaSeleccionada = ref('Todas')
-const estadoSeleccionado    = ref('Todos')
+// ── Acciones por fila ─────────────────────────────────────────────────────────
+const rowActions = [
+  {
+    label: "Editar",
+    icon: "mdi-pencil",
+    action: (item) => editarCliente(item),
+  },
+  {
+    label: "Ver detalle",
+    icon: "mdi-eye",
+    color: "amber-darken-2",
+    action: (item) => verDetalle(item)
+  },
+  {
+    label: "Eliminar",
+    icon: "mdi-delete",
+    color: "error",
+    action: (item) => eliminarCliente(item),
+  },
+];
 
-const clientes   = ref([])
-const totalItems = ref(0)
-const loading    = ref(false)
+// ── Filtros ───────────────────────────────────────────────────────────────────
+const categorias = ["Todas", "Nuevos", "Frecuentes"];
+const estados = ["Todos", "Activo", "Inactivo"];
+const categoriaSeleccionada = ref("Todas");
+const estadoSeleccionado = ref("Todos");
+
+// ── Estado de la tabla ────────────────────────────────────────────────────────
+const clientes = ref([]);
+const totalItems = ref(0);
+const loading = ref(false);
 
 const DATA = [
-  { nit: '900.123.456-1', nombre: 'Clínica San Rafael',     ciudad: 'Bucaramanga',  telefono: '316 800 0001', activo: true  },
-  { nit: '800.234.567-2', nombre: 'Droguería Central',      ciudad: 'Medellín',     telefono: '300 900 0002', activo: true  },
-  { nit: '700.345.678-3', nombre: 'Hospital Universitario', ciudad: 'Bogotá',       telefono: '321 700 0003', activo: false },
-  { nit: '600.456.789-4', nombre: 'Farmacia del Norte',     ciudad: 'Barranquilla', telefono: '314 600 0004', activo: true  },
-  { nit: '500.567.890-5', nombre: 'IPS Salud Total',        ciudad: 'Cali',         telefono: '318 500 0005', activo: true  },
-  { nit: '500.567.890-6', nombre: 'IPS Salud Total',        ciudad: 'Cali',         telefono: '318 500 0005', activo: true  },
-]
+  {
+    nit: "900.123.456-1",
+    nombre: "Clínica San Rafael",
+    ciudad: "Bucaramanga",
+    telefono: "316 800 0001",
+    activo: true,
+  },
+  {
+    nit: "800.234.567-2",
+    nombre: "Droguería Central",
+    ciudad: "Medellín",
+    telefono: "300 900 0002",
+    activo: true,
+  },
+  {
+    nit: "700.345.678-3",
+    nombre: "Hospital Universitario",
+    ciudad: "Bogotá",
+    telefono: "321 700 0003",
+    activo: false,
+  },
+  {
+    nit: "600.456.789-4",
+    nombre: "Farmacia del Norte",
+    ciudad: "Barranquilla",
+    telefono: "314 600 0004",
+    activo: true,
+  },
+  {
+    nit: "500.567.890-5",
+    nombre: "IPS Salud Total",
+    ciudad: "Cali",
+    telefono: "318 500 0005",
+    activo: true,
+  },
+  {
+    nit: "500.567.890-5",
+    nombre: "IPS Salud Total",
+    ciudad: "Cali",
+    telefono: "318 500 0005",
+    activo: true,
+  },
+];
 
 async function fetchData({ page, itemsPerPage, sortBy, search }) {
-  loading.value = true
-  await new Promise((r) => setTimeout(r, 400))
+  loading.value = true;
+  await new Promise((r) => setTimeout(r, 400));
 
-  let resultado = [...DATA]
+  let resultado = [...DATA];
 
   if (search) {
-    const q = search.toLowerCase()
+    const q = search.toLowerCase();
     resultado = resultado.filter(
-      (c) => c.nit.toLowerCase().includes(q) ||
-             c.nombre.toLowerCase().includes(q) ||
-             c.ciudad.toLowerCase().includes(q),
-    )
+      (c) =>
+        c.nit.toLowerCase().includes(q) ||
+        c.nombre.toLowerCase().includes(q) ||
+        c.ciudad.toLowerCase().includes(q),
+    );
   }
 
-  if (categoriaSeleccionada.value === 'Nuevos')     resultado = resultado.slice(0, 2)
-  if (categoriaSeleccionada.value === 'Frecuentes') resultado = resultado.slice(2)
-  if (estadoSeleccionado.value    === 'Activo')     resultado = resultado.filter((c) =>  c.activo)
-  if (estadoSeleccionado.value    === 'Inactivo')   resultado = resultado.filter((c) => !c.activo)
+  if (categoriaSeleccionada.value === "Nuevos")
+    resultado = resultado.slice(0, 2);
+  if (categoriaSeleccionada.value === "Frecuentes")
+    resultado = resultado.slice(2);
+  if (estadoSeleccionado.value === "Activo")
+    resultado = resultado.filter((c) => c.activo);
+  if (estadoSeleccionado.value === "Inactivo")
+    resultado = resultado.filter((c) => !c.activo);
 
   if (sortBy?.key) {
     resultado.sort((a, b) => {
-      const cmp = typeof a[sortBy.key] === 'string'
-        ? a[sortBy.key].localeCompare(b[sortBy.key], 'es')
-        : a[sortBy.key] - b[sortBy.key]
-      return sortBy.order === 'asc' ? cmp : -cmp
-    })
+      const cmp =
+        typeof a[sortBy.key] === "string"
+          ? a[sortBy.key].localeCompare(b[sortBy.key], "es")
+          : a[sortBy.key] - b[sortBy.key];
+      return sortBy.order === "asc" ? cmp : -cmp;
+    });
   }
 
-  const start      = (page - 1) * itemsPerPage
-  clientes.value   = resultado.slice(start, start + itemsPerPage)
-  totalItems.value = resultado.length
-  loading.value    = false
+  const start = (page - 1) * itemsPerPage;
+  clientes.value = resultado.slice(start, start + itemsPerPage);
+  totalItems.value = resultado.length;
+  loading.value = false;
 }
 
 function onFilterChange() {
-  tableRef.value?.reset()
+  tableRef.value?.reset();
 }
 
+// ── Handlers de acciones ──────────────────────────────────────────────────────
 function editarCliente(item) {
-  console.log('Editar:', item)
+  console.log("Editar:", item);
+}
+function verDetalle(item) {
+  console.log("Ver detalle:", item);
+}
+function eliminarCliente(item) {
+  console.log("Eliminar:", item);
 }
 </script>

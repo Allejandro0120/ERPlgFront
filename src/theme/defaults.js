@@ -44,9 +44,8 @@ export const VUETIFY_DEFAULTS = {
   // ─── Tooltip ────────────────────────────────────────────────────────────────
   VTooltip: {
     location: "top",
-    contentClass: "text-caption",
+    contentClass: "tooltip",
     transition: "fade-transition",
-    
   },
 
   // ─── TextField ──────────────────────────────────────────────────────────────
@@ -118,7 +117,6 @@ export const VUETIFY_DEFAULTS = {
   // ─── Menus & Listas ─────────────────────────────────────────────────────────
   VMenu: {
     rounded: "lg",
-    elevation: 3,
     transition: "fade-transition",
   },
 
