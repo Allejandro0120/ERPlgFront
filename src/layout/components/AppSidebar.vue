@@ -6,6 +6,7 @@
     border="r"
     elevation="0"
     @click="uiStore.rail = false"
+    style="background-color: #0D2A46;"
   >
     <SidebarHeader :rail="rail" />
     <SidebarNav />

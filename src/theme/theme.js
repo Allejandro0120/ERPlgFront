@@ -12,7 +12,7 @@ export const LIGHT_THEME = {
     warning: "#F97316",
 
     // 🖥 Fondos
-    background: "#F6F7F8",
+    background: "#F0F0F0",
     surface: "#FFFFFF",
     "surface-variant": "#F1F5F9",
 

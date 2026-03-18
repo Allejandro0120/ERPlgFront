@@ -1,8 +1,8 @@
 <!-- src/layouts/DefaultLayout.vue -->
 <template>
   <AppSidebar />
-  <v-main>
-    <v-container fluid class="pa-6">
+  <v-main class="">
+    <v-container fluid class="pa-2">
       <router-view />
     </v-container>
   </v-main>

@@ -9,9 +9,10 @@
                 v-bind="{ ...props, ...tooltipProps }"
                 :title="group.Nombre"
                 :prepend-icon="group.Icono"
-                :color="isGroupActive(group) ? 'primary' : ''"
+                :color="isGroupActive(group) ? 'white' : ''"
                 :active="isGroupActive(group)"
                 slim
+                base-color="#DDD8D8"
               />
             </template>
           </v-tooltip>
@@ -31,8 +32,9 @@
                 :title="seccion.Nombre"
                 :prepend-icon="seccion.Icono"
                 :to="`/${getGroupAlias(group)}${seccion.Ruta}`"
-                color="primary"
+                color="white"
                 slim
+                base-color="#DDD8D8"
               />
             </template>
           </v-tooltip>

@@ -25,6 +25,12 @@ api.interceptors.response.use(
     if (isSessionClosing()) return Promise.reject(error); // ← agregar
     error._handled = true;
 
+    if (!error.response) {
+      window.$toast.error(
+        "No se pudo conectar con el servidor. Verifica tu conexión.",
+      );
+      return Promise.reject(error);
+    }
     const status = error.response?.status;
     const code = error.response?.data?.code ?? error.response?.data?.error;
     const message = error.response?.data?.message;

@@ -6,18 +6,18 @@
     <!-- Contenedor usuario -->
     <div class="d-flex align-center px-3 mb-2" style="height: 65px">
       <!-- Avatar siempre visible -->
-      <v-avatar size="36" class="flex-shrink-0">
-        <v-img :src="avatarSrc" :alt="user.name" cover />
+      <v-avatar size="36" class="flex-shrink-0 bg-white text-primary font-weight-bold">
+        {{ getUserInitials(user.name) }}
       </v-avatar>
       <div v-if="!rail" class="ml-2 mt-n2">
         <p
-          class="mb-0 font-weight-bold text-truncate"
+          class="mb-0 font-weight-bold text-truncate text-white"
           style="font-size: 0.8rem; line-height: 1.3"
         >
           {{ user.name }}
         </p>
         <p
-          class="mb-0 mt-0 text-truncate"
+          class="mb-0 mt-0 text-truncate  text-white"
           style="font-size: 0.7rem; opacity: 0.55"
         >
           {{ user.role }}
@@ -33,7 +33,7 @@
             icon="mdi-dots-vertical"
             variant="text"
             size="small"
-            class="ml-auto flex-shrink-0"
+            class="ml-auto flex-shrink-0  text-white"
           />
         </template>
 
@@ -67,7 +67,7 @@
       <v-chip
         :size="rail ? 'x-small' : 'small'"
         variant="tonal"
-        color="primary"
+        color="white"
         label
         rounded="xl"
         class="font-weight-medium"
@@ -80,8 +80,7 @@
 
 <script setup>
 import { computed } from "vue";
-import avatarMujer from "@/assets/avatar_mujer.jpg";
-import avatarHombre from "@/assets/avatar_hombre.jpg";
+
 const props = defineProps({
   rail: { type: Boolean, default: false },
   user: {
@@ -98,10 +97,14 @@ const props = defineProps({
 
 defineEmits(["logout", "change-password"]);
 
-const avatarSrc = computed(() => {
-  if (props.user.avatar) return props.user.avatar;
-  return props.user.gender === "m" ? avatarHombre : avatarMujer;
-});
+function getUserInitials(name) {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
 </script>
 
 <style scoped></style>

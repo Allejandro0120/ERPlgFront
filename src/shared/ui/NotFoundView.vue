@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="fill-height bg-background pa-0">
-    <v-row no-gutters class="fill-height" align="center" justify="center">
+    <v-row  density="compact"class="fill-height" align="center" justify="center">
       <v-col cols="12" sm="10" md="8" lg="6" class="px-4 text-center">
         <div class="illustration-container mb-6">
           <div class="number-404">

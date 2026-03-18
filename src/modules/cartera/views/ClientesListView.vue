@@ -1,6 +1,6 @@
 <!-- src/modules/cartera/views/ClientesListView.vue -->
 <template>
-  <div>
+  <div >
     <app-bar title="Gestión de Clientes">
       <template #actions>
         <v-btn
@@ -24,7 +24,7 @@
       </template>
     </app-bar>
 
-    <v-container fluid class="w-100 mx-auto">
+    <v-container fluid class="w-100 mx-auto ">
       <base-table
         ref="tableRef"
         title="Directorio de Clientes"
@@ -39,52 +39,33 @@
         search-placeholder="Buscar por NIT, nombre o ciudad..."
         @load="fetchData"
       >
-        <!-- Filtros desktop -->
+        <!-- Filtros: cols="12" en móvil, cols="auto" en sm+ -->
         <template #filters>
-          <v-select
-            v-model="categoriaSeleccionada"
-            :items="categorias"
-            label="Categoría"
-            density="compact"
-            variant="outlined"
-            hide-details
-            style="min-width: 160px; max-width: 200px"
-            @update:model-value="onFilterChange"
-          />
-          <v-select
-            v-model="estadoSeleccionado"
-            :items="estados"
-            label="Estado"
-            density="compact"
-            variant="outlined"
-            hide-details
-            style="min-width: 130px; max-width: 160px"
-            @update:model-value="onFilterChange"
-          />
+          <v-col cols="12" md="2">
+            <v-select
+              v-model="categoriaSeleccionada"
+              :items="categorias"
+              label="Categoría"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="onFilterChange"
+            />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-select
+              v-model="estadoSeleccionado"
+              :items="estados"
+              label="Estado"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="onFilterChange"
+            />
+          </v-col>
         </template>
 
-        <!-- Filtros móvil -->
-        <template #filters-mobile>
-          <v-select
-            v-model="categoriaSeleccionada"
-            :items="categorias"
-            label="Categoría"
-            density="compact"
-            variant="outlined"
-            hide-details
-            @update:model-value="onFilterChange"
-          />
-          <v-select
-            v-model="estadoSeleccionado"
-            :items="estados"
-            label="Estado"
-            density="compact"
-            variant="outlined"
-            hide-details
-            @update:model-value="onFilterChange"
-          />
-        </template>
-
+        <!-- Estado -->
         <template #item.activo="{ item }">
           <v-chip
             :color="item.activo ? 'success' : 'error'"
@@ -107,7 +88,6 @@ import BaseTable from "@/shared/ui/BaseTable.vue";
 
 const tableRef = ref();
 
-// ── Headers — sin columna acciones, BaseTable la agrega automáticamente ───────
 const headers = [
   { title: "NIT", key: "nit", sortable: true },
   { title: "Nombre", key: "nombre", sortable: true },
@@ -116,7 +96,6 @@ const headers = [
   { title: "Estado", key: "activo", sortable: false, align: "center" },
 ];
 
-// ── Acciones por fila ─────────────────────────────────────────────────────────
 const rowActions = [
   {
     label: "Editar",
@@ -127,7 +106,7 @@ const rowActions = [
     label: "Ver detalle",
     icon: "mdi-eye",
     color: "amber-darken-2",
-    action: (item) => verDetalle(item)
+    action: (item) => verDetalle(item),
   },
   {
     label: "Eliminar",
@@ -137,13 +116,11 @@ const rowActions = [
   },
 ];
 
-// ── Filtros ───────────────────────────────────────────────────────────────────
 const categorias = ["Todas", "Nuevos", "Frecuentes"];
 const estados = ["Todos", "Activo", "Inactivo"];
 const categoriaSeleccionada = ref("Todas");
 const estadoSeleccionado = ref("Todos");
 
-// ── Estado de la tabla ────────────────────────────────────────────────────────
 const clientes = ref([]);
 const totalItems = ref(0);
 const loading = ref(false);
@@ -185,10 +162,10 @@ const DATA = [
     activo: true,
   },
   {
-    nit: "500.567.890-5",
-    nombre: "IPS Salud Total",
+    nit: "400.678.901-6",
+    nombre: "Centro Médico Sur",
     ciudad: "Cali",
-    telefono: "318 500 0005",
+    telefono: "310 400 0006",
     activo: true,
   },
 ];
@@ -237,8 +214,6 @@ async function fetchData({ page, itemsPerPage, sortBy, search }) {
 function onFilterChange() {
   tableRef.value?.reset();
 }
-
-// ── Handlers de acciones ──────────────────────────────────────────────────────
 function editarCliente(item) {
   console.log("Editar:", item);
 }

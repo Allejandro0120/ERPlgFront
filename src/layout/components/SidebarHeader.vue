@@ -23,13 +23,13 @@
         style="white-space: nowrap"
       >
         <p
-          class="mb-0 font-weight-bold text-brand-grey-1 text-title-medium"
+          class="mb-0 font-weight-bold text-white text-title-medium"
           style=" line-height: 1.3"
         >
           Sanamos<br />Santander
         </p>
         <p
-          class="mb-0 mt-1 text-brand-grey-2 font-weight-medium text-body-small" 
+          class="mb-0 mt-1 text-white font-weight-medium text-body-small" 
          
         >
           Sistema de Gestión
