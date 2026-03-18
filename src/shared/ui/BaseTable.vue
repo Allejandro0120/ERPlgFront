@@ -132,23 +132,40 @@
         #[`item.${actionsKey}`]="{ item }"
       >
         <!-- Desktop: botones con tooltip -->
-        <div class="d-none d-md-flex align-center justify-center ga-2">
-          <template v-for="accion in visibleRowActions" :key="accion.label">
-            <v-tooltip :text="accion.label" location="top">
-              <template #activator="{ props: tooltipProps }">
-                <v-btn
-                  v-bind="tooltipProps"
-                  :icon="accion.icon"
-                  :color="accion.color ?? 'primary'"
-                  variant="tonal"
-                  size="x-small"
-                  rounded="xl"
-                  @click="accion.action(item)"
-                />
-              </template>
-            </v-tooltip>
-          </template>
-        </div>
+    <!-- Desktop: botones con tooltip -->
+<div class="d-none d-md-flex align-center justify-center ga-2">
+  <template v-for="accion in visibleRowActions" :key="accion.label">
+    <v-tooltip :text="accion.label" location="top" :disabled="accion.showLabel">
+      <template #activator="{ props: tooltipProps }">
+        <!-- Solo icono -->
+        <v-btn
+          v-if="!accion.showLabel && accion.icon"
+          v-bind="tooltipProps"
+          :icon="accion.icon"
+          :color="accion.color ?? 'primary'"
+          :variant="accion.variant ?? 'tonal'"
+          size="x-small"
+          rounded="xl"
+          @click="accion.action(item)"
+        />
+        <!-- Icono + texto o solo texto -->
+        <v-btn
+          v-else
+          v-bind="tooltipProps"
+          :prepend-icon="accion.icon ?? undefined"
+          :color="accion.color ?? 'primary'"
+          :variant="accion.variant ?? 'tonal'"
+          size="small"
+          rounded="xl"
+          class="text-none"
+          @click="accion.action(item)"
+        >
+          {{ accion.label }}
+        </v-btn>
+      </template>
+    </v-tooltip>
+  </template>
+</div>
         <!-- Móvil: menú 3 puntos -->
         <div class="d-flex d-md-none justify-end">
           <v-menu location="bottom end">

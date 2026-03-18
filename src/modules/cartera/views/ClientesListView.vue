@@ -104,12 +104,6 @@ const rowActions = [
     color: "amber-darken-2",
     action: (item) => verDetalle(item),
   },
-  {
-    label: "Eliminar",
-    icon: "mdi-delete",
-    color: "error",
-    action: (item) => eliminarCliente(item),
-  },
 ];
 
 const estados = ["Todos", "Activo", "Inactivo"];
