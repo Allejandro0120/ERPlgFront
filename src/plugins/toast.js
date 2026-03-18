@@ -1,4 +1,6 @@
 import { toast } from "vue-sonner";
+import 'vue-sonner/style.css'
+
 
 // Defaults que se aplican a todos los toasts
 const defaults = {

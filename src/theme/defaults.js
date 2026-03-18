@@ -5,7 +5,7 @@ export const VUETIFY_DEFAULTS = {
     elevation: 0,
     variant: "flat",
     size: "default",
-    style: " letter-spacing: 0.025em; text-transform: none; ",
+    class: "custom-btn",
   },
 
   VBtnGroup: {
@@ -20,11 +20,11 @@ export const VUETIFY_DEFAULTS = {
   },
 
   VCardTitle: {
-    style: "font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;",
+    class: "custom-card-title",
   },
 
   VCardSubtitle: {
-    style: " font-size: 0.8125rem;",
+    class: "custom-card-subtitle",
   },
 
   // ─── Chips ──────────────────────────────────────────────────────────────────
@@ -38,7 +38,6 @@ export const VUETIFY_DEFAULTS = {
   VSwitch: {
     color: "primary",
     inset: true,
-    hideDetails: "auto",
   },
 
   // ─── Tooltip ────────────────────────────────────────────────────────────────
@@ -54,11 +53,8 @@ export const VUETIFY_DEFAULTS = {
     variant: "outlined",
     density: "comfortable",
     rounded: "lg",
-    hideDetails: "auto",
     color: "primary",
-    style: `
-      --v-field-focused-icon-color: rgb(var(--v-theme-primary));
-    `,
+    class: "custom-field",
   },
 
   // ─── Textarea ───────────────────────────────────────────────────────────────
@@ -66,13 +62,10 @@ export const VUETIFY_DEFAULTS = {
     variant: "outlined",
     density: "comfortable",
     rounded: "lg",
-    hideDetails: "auto",
     color: "primary",
     autoGrow: true,
     rows: 3,
-    style: `
-      --v-field-focused-icon-color: rgb(var(--v-theme-primary));
-    `,
+    class: "custom-field",
   },
 
   // ─── VSelect ────────────────────────────────────────────────────────────────
@@ -80,12 +73,9 @@ export const VUETIFY_DEFAULTS = {
     variant: "outlined",
     density: "comfortable",
     rounded: "lg",
-    hideDetails: "auto",
     color: "primary",
     menuProps: { rounded: "lg", elevation: 3 },
-    style: `
-      --v-field-focused-icon-color: rgb(var(--v-theme-primary));
-    `,
+    class: "custom-field",
   },
 
   // ─── VAutocomplete ──────────────────────────────────────────────────────────
@@ -93,12 +83,9 @@ export const VUETIFY_DEFAULTS = {
     variant: "outlined",
     density: "comfortable",
     rounded: "lg",
-    hideDetails: "auto",
     color: "primary",
     menuProps: { rounded: "lg", elevation: 3 },
-    style: `
-      --v-field-focused-icon-color: rgb(var(--v-theme-primary));
-    `,
+    class: "custom-field",
   },
 
   // ─── VCombobox ──────────────────────────────────────────────────────────────
@@ -106,12 +93,9 @@ export const VUETIFY_DEFAULTS = {
     variant: "outlined",
     density: "comfortable",
     rounded: "lg",
-    hideDetails: "auto",
     color: "primary",
     menuProps: { rounded: "lg", elevation: 3 },
-    style: `
-      --v-field-focused-icon-color: rgb(var(--v-theme-primary));
-    `,
+    class: "custom-field",
   },
 
   // ─── Menus & Listas ─────────────────────────────────────────────────────────

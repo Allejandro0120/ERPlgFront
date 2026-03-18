@@ -7,7 +7,7 @@
     >
       <div
         v-if="$slots.title || title"
-        class="text-h6 font-weight-bold text-grey-darken-4"
+        class="text-h6 font-weight-medium text-grey-darken-4"
       >
         <slot name="title">{{ title }}</slot>
       </div>

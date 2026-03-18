@@ -1,28 +1,30 @@
-import { createVuetify } from "vuetify";
+/**
+ * plugins/vuetify.js
+ *
+ * Framework documentation: https://vuetifyjs.com
+ */
 
-import * as components from "vuetify/components";
-import * as directives from "vuetify/directives";
-import { aliases, mdi } from "vuetify/iconsets/mdi";
-import { LIGHT_THEME } from "../theme/theme";
-import { VUETIFY_DEFAULTS } from "../theme/defaults";
+// Composables
+import { createVuetify } from 'vuetify'
+
+// Theme and defaults
+import { LIGHT_THEME } from '@/theme/theme'
+import { VUETIFY_DEFAULTS } from '@/theme/defaults'
+
+// Styles
+import '@mdi/font/css/materialdesignicons.css'
+import 'vuetify/styles'
 import "@/styles/global.css"; 
 
+
+// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
-  components,
-  directives,
-  icons: {
-    defaultSet: "mdi",
-    aliases,
-    sets: { mdi },
-  },
+  defaults: VUETIFY_DEFAULTS,
+  
   theme: {
-    defaultTheme: "light",
+    defaultTheme: 'light',
     themes: {
       light: LIGHT_THEME,
     },
   },
-  defaults: VUETIFY_DEFAULTS,
-  display: {
-    mobileBreakpoint: "md",
-  },
-});
+})

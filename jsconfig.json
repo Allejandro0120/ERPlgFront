@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "types": ["vuetify"]
-  },
-  "exclude": ["node_modules", "dist"]
-}
