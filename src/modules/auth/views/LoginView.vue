@@ -123,7 +123,7 @@ const handleLogin = async () => {
     !form.value.Codigo || !form.value.Contrasena ||
     form.value.Codigo.trim() === "" || form.value.Contrasena.trim() === ""
   ) {
-    window.$toast.error("Por favor completa todos los campos");
+    $toast.error("Por favor completa todos los campos");
     return;
   }
 
@@ -153,7 +153,7 @@ const handleLogin = async () => {
       uiStore.setActiveModule(firstRoute.module);
     }
     
-    window.$toast.success("¡Bienvenido!");
+    $toast.success("¡Bienvenido!");
     
     // Redirigir a la primera ruta del menú
     if (firstRoute) {

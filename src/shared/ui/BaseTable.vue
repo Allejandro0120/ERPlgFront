@@ -18,7 +18,7 @@
 
     <!-- Barra: buscador + filtros + botones -->
     <v-card-text v-if="searchable || $slots.filters" class="py-3 px-4 border-b">
-      <v-row dense align="center">
+      <v-row align="center" density="comfortable">
         <!-- Buscador -->
         <v-col v-if="searchable" cols="12" sm="6" md="4" lg="3">
           <v-text-field
@@ -28,6 +28,7 @@
             density="compact"
             variant="outlined"
             hide-details
+            :disabled="loading"
             clearable
             @keyup.enter="onSearch"
             @click:clear="onClear"
@@ -49,6 +50,7 @@
               density="compact"
               variant="outlined"
               hide-details
+              :disabled="loading"
               clearable
               @update:model-value="onMobileSortChange"
             />
@@ -83,6 +85,7 @@
             class="text-none flex-1-1 flex-sm-0-0"
             prepend-icon="mdi-magnify"
             :loading="loading"
+            :disabled="loading"
             @click="onSearch"
           >
             Buscar
@@ -93,6 +96,7 @@
             class="text-none flex-1-1 flex-sm-0-0"
             prepend-icon="mdi-refresh"
             :loading="loading"
+            :disabled="loading"
             @click="onRefresh"
           >
             Refrescar
@@ -105,7 +109,7 @@
     <v-data-table-server
       v-bind="$attrs"
       :headers="computedHeaders"
-      :items="items"
+      :items="filteredItems"
       :items-length="totalItems"
       :loading="loading"
       :loading-text="loadingText"
@@ -175,7 +179,7 @@
       <template #bottom>
         <v-divider />
         <v-container fluid class="px-4 py-3">
-          <v-row align="center" no-gutters class="ga-2 ga-md-0">
+          <v-row align="center" density="compact" class="ga-2 ga-md-0">
             <v-col cols="12" md="4" class="d-flex align-center ga-2">
               <span class="text-caption text-grey-darken-1 text-no-wrap"
                 >Filas por página:</span
@@ -183,6 +187,7 @@
               <v-select
                 v-model="tableOptions.itemsPerPage"
                 :items="rowsPerPageOptions"
+                :disabled="loading"
                 density="compact"
                 variant="outlined"
                 hide-details
@@ -324,7 +329,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -344,6 +349,7 @@ const props = defineProps({
   searchPlaceholder: { type: String, default: "Buscar..." },
   rowActions: { type: Array, default: () => [] },
   actionsKey: { type: String, default: "acciones" },
+  autoLoad: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["load"]);
@@ -382,8 +388,27 @@ const tableOptions = ref({
   sortBy: [],
 });
 const searchQuery = ref("");
+const appliedSearch = ref(""); // término que se mandó a la API
 const mobileSortKey = ref(null);
 const mobileSortOrder = ref("asc");
+
+// ── Filtro local optimizado: solo campos "searchable" ───────────────────────
+const filteredItems = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return props.items;
+
+  const keys = props.headers.filter((h) => h.searchable).map((h) => h.key);
+
+  if (!keys.length) return props.items;
+
+  return props.items.filter((item) =>
+    keys.some((key) =>
+      String(item[key] ?? "")
+        .toLowerCase()
+        .includes(q),
+    ),
+  );
+});
 
 // ── Paginación ────────────────────────────────────────────────────────────────
 const totalPages = computed(
@@ -433,7 +458,6 @@ function onItemsPerPageChange() {
   emitLoad();
 }
 
-// Sort móvil — dropdown propio, ignora el nativo de Vuetify
 function onMobileSortChange() {
   const sortBy = mobileSortKey.value
     ? [{ key: mobileSortKey.value, order: mobileSortOrder.value }]
@@ -446,32 +470,46 @@ function emitLoad() {
   emit("load", {
     page: tableOptions.value.page,
     itemsPerPage: tableOptions.value.itemsPerPage,
-    sortBy: tableOptions.value.sortBy?.[0] ?? null,
-    search: searchQuery.value?.trim() || null,
+    sortByField: tableOptions.value.sortBy?.[0]?.key || "",
+    sortOrder: tableOptions.value.sortBy?.[0]?.order || "asc",
+    search: appliedSearch.value || null,
   });
 }
 
+let initialized = false;
+
 function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
-  if (mdAndUp.value) {
-    // Desktop: sort nativo de los headers
-    tableOptions.value = { page, itemsPerPage, sortBy: sortBy ?? [] };
-  } else {
-    // Móvil: solo page e itemsPerPage — el sort lo maneja el dropdown
-    tableOptions.value = { ...tableOptions.value, page, itemsPerPage };
+  if (!initialized) {
+    initialized = true;
+    return;
   }
-  // Siempre emitimos — tanto en desktop como en móvil necesitamos cargar los datos
-  emitLoad();
+
+  if (props.loading) return; // ← bloquea si está cargando
+
+  const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
+  const changed =
+    page !== tableOptions.value.page ||
+    itemsPerPage !== tableOptions.value.itemsPerPage ||
+    JSON.stringify(newSortBy) !== JSON.stringify(tableOptions.value.sortBy);
+
+  tableOptions.value = { page, itemsPerPage, sortBy: newSortBy };
+
+  if (changed) emitLoad();
 }
 
 function onSearch() {
+  appliedSearch.value = searchQuery.value.trim(); // ← confirma el término
   tableOptions.value = { ...tableOptions.value, page: 1 };
   emitLoad();
 }
+
 function onClear() {
   searchQuery.value = "";
+  appliedSearch.value = "";
   tableOptions.value = { ...tableOptions.value, page: 1 };
   emitLoad();
 }
+
 function onRefresh() {
   emitLoad();
 }
@@ -485,14 +523,18 @@ function reset() {
   mobileSortKey.value = null;
   mobileSortOrder.value = "asc";
   searchQuery.value = "";
+  appliedSearch.value = "";
   emitLoad();
 }
 
-defineExpose({ reset });
+defineExpose({ reset, load: emitLoad });
+
+onMounted(() => {
+  if (props.autoLoad) emitLoad();
+});
 </script>
 
 <style scoped>
-/* Oculta el "Sort by" nativo de Vuetify en móvil */
 :deep(.v-data-table-headers--mobile) {
   display: none !important;
 }

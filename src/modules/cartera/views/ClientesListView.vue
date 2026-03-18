@@ -1,6 +1,6 @@
 <!-- src/modules/cartera/views/ClientesListView.vue -->
 <template>
-  <div >
+  <div>
     <app-bar title="Gestión de Clientes">
       <template #actions>
         <v-btn
@@ -24,34 +24,23 @@
       </template>
     </app-bar>
 
-    <v-container fluid class="w-100 mx-auto ">
+    <v-container fluid class="w-100 mx-auto">
       <base-table
         ref="tableRef"
         title="Directorio de Clientes"
         :headers="headers"
         :items="clientes"
-        item-key="nit"
+        item-key="IdCliente"
         :loading="loading"
         :total-items="totalItems"
         :row-actions="rowActions"
         empty-text="No se encontraron clientes"
         searchable
-        search-placeholder="Buscar por NIT, nombre o ciudad..."
+        search-placeholder="Buscar por identificación, nombre o municipio..."
         @load="fetchData"
       >
         <!-- Filtros: cols="12" en móvil, cols="auto" en sm+ -->
         <template #filters>
-          <v-col cols="12" md="2">
-            <v-select
-              v-model="categoriaSeleccionada"
-              :items="categorias"
-              label="Categoría"
-              density="compact"
-              variant="outlined"
-              hide-details
-              @update:model-value="onFilterChange"
-            />
-          </v-col>
           <v-col cols="12" md="2">
             <v-select
               v-model="estadoSeleccionado"
@@ -59,6 +48,7 @@
               label="Estado"
               density="compact"
               variant="outlined"
+              :disabled="loading"
               hide-details
               @update:model-value="onFilterChange"
             />
@@ -66,14 +56,14 @@
         </template>
 
         <!-- Estado -->
-        <template #item.activo="{ item }">
+        <template #item.Habilitado="{ item }">
           <v-chip
-            :color="item.activo ? 'success' : 'error'"
+            :color="item.Habilitado ? 'success' : 'error'"
             size="small"
             class="font-weight-medium"
             variant="tonal"
           >
-            {{ item.activo ? "Activo" : "Inactivo" }}
+            {{ item.Habilitado ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
       </base-table>
@@ -85,15 +75,21 @@
 import { ref } from "vue";
 import AppBar from "@/shared/ui/AppBar.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
+import { clienteService } from "@/api/services/clienteService";
 
 const tableRef = ref();
 
 const headers = [
-  { title: "NIT", key: "nit", sortable: true },
-  { title: "Nombre", key: "nombre", sortable: true },
-  { title: "Ciudad", key: "ciudad", sortable: true },
-  { title: "Teléfono", key: "telefono", sortable: false },
-  { title: "Estado", key: "activo", sortable: false, align: "center" },
+  {
+    title: "Identificación",
+    key: "NumeroIdentificacion",
+    sortable: true,
+    searchable: true,
+  },
+  { title: "Tipo Documento", key: "TipoDocumento", sortable: false },
+  { title: "Nombre", key: "Nombre", sortable: true, searchable: true },
+  { title: "Municipio", key: "Municipio", sortable: true, searchable: true },
+  { title: "Estado", key: "Habilitado", sortable: false, align: "center" },
 ];
 
 const rowActions = [
@@ -116,99 +112,48 @@ const rowActions = [
   },
 ];
 
-const categorias = ["Todas", "Nuevos", "Frecuentes"];
 const estados = ["Todos", "Activo", "Inactivo"];
-const categoriaSeleccionada = ref("Todas");
 const estadoSeleccionado = ref("Todos");
 
 const clientes = ref([]);
 const totalItems = ref(0);
 const loading = ref(false);
 
-const DATA = [
-  {
-    nit: "900.123.456-1",
-    nombre: "Clínica San Rafael",
-    ciudad: "Bucaramanga",
-    telefono: "316 800 0001",
-    activo: true,
-  },
-  {
-    nit: "800.234.567-2",
-    nombre: "Droguería Central",
-    ciudad: "Medellín",
-    telefono: "300 900 0002",
-    activo: true,
-  },
-  {
-    nit: "700.345.678-3",
-    nombre: "Hospital Universitario",
-    ciudad: "Bogotá",
-    telefono: "321 700 0003",
-    activo: false,
-  },
-  {
-    nit: "600.456.789-4",
-    nombre: "Farmacia del Norte",
-    ciudad: "Barranquilla",
-    telefono: "314 600 0004",
-    activo: true,
-  },
-  {
-    nit: "500.567.890-5",
-    nombre: "IPS Salud Total",
-    ciudad: "Cali",
-    telefono: "318 500 0005",
-    activo: true,
-  },
-  {
-    nit: "400.678.901-6",
-    nombre: "Centro Médico Sur",
-    ciudad: "Cali",
-    telefono: "310 400 0006",
-    activo: true,
-  },
-];
-
-async function fetchData({ page, itemsPerPage, sortBy, search }) {
+async function fetchData({
+  page,
+  itemsPerPage,
+  sortByField,
+  sortOrder,
+  search,
+}) {
   loading.value = true;
-  await new Promise((r) => setTimeout(r, 400));
+  try {
+    const filters = {};
+    if (estadoSeleccionado.value !== "Todos") {
+      filters.Habilitado = estadoSeleccionado.value === "Activo";
+    }
 
-  let resultado = [...DATA];
-
-  if (search) {
-    const q = search.toLowerCase();
-    resultado = resultado.filter(
-      (c) =>
-        c.nit.toLowerCase().includes(q) ||
-        c.nombre.toLowerCase().includes(q) ||
-        c.ciudad.toLowerCase().includes(q),
+    const response = await clienteService.getClientes(
+      page,
+      itemsPerPage,
+      search,
+      sortByField,
+      sortOrder,
+      filters,
     );
+
+    if (response.data?.success) {
+      const { items = [], totalItems: total = 0 } = response.data.data || {};
+      clientes.value = items;
+      totalItems.value = total;
+    }
+  } catch (error) {
+    console.error("Error al obtener clientes:", error);
+    clientes.value = [];
+    totalItems.value = 0;
+  } finally {
+    loading.value = false;
   }
-
-  if (categoriaSeleccionada.value === "Nuevos")
-    resultado = resultado.slice(0, 2);
-  if (categoriaSeleccionada.value === "Frecuentes")
-    resultado = resultado.slice(2);
-  if (estadoSeleccionado.value === "Activo")
-    resultado = resultado.filter((c) => c.activo);
-  if (estadoSeleccionado.value === "Inactivo")
-    resultado = resultado.filter((c) => !c.activo);
-
-  if (sortBy?.key) {
-    resultado.sort((a, b) => {
-      const cmp =
-        typeof a[sortBy.key] === "string"
-          ? a[sortBy.key].localeCompare(b[sortBy.key], "es")
-          : a[sortBy.key] - b[sortBy.key];
-      return sortBy.order === "asc" ? cmp : -cmp;
-    });
-  }
-
-  const start = (page - 1) * itemsPerPage;
-  clientes.value = resultado.slice(start, start + itemsPerPage);
-  totalItems.value = resultado.length;
-  loading.value = false;
 }
 
 function onFilterChange() {

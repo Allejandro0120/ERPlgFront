@@ -26,7 +26,7 @@ api.interceptors.response.use(
     error._handled = true;
 
     if (!error.response) {
-      window.$toast.error(
+      $toast.error(
         "No se pudo conectar con el servidor. Verifica tu conexión.",
       );
       return Promise.reject(error);
@@ -51,17 +51,17 @@ api.interceptors.response.use(
       }
 
       if (action === "logout") {
-        window.$toast.error(message);
+        $toast.error(message);
         await closeSession();
         return Promise.reject(error);
       }
 
       // action === "none": solo mostrar el error
-      window.$toast.error(message);
+      $toast.error(message);
       return Promise.reject(error);
     }
 
-    window.$toast.error(message);
+    $toast.error(message);
     return Promise.reject(error);
   },
 );
