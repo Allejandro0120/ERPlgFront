@@ -6,7 +6,7 @@
     border="r"
     elevation="0"
     @click="uiStore.rail = false"
-    style="background-color: #0D2A46;"
+    style="background-color: #0d2a46"
   >
     <SidebarHeader :rail="rail" />
     <SidebarNav />
@@ -79,6 +79,7 @@ watch(isMobile, (nowMobile) => {
 
 async function handleLogout() {
   try {
+    $loading.show("Cerrando sesión...");
     await authService.logout();
     authStore.clearAuth();
     uiStore.setActiveModule(null);
@@ -90,6 +91,8 @@ async function handleLogout() {
     authStore.clearAuth();
     uiStore.setActiveModule(null);
     router.push({ name: "login" });
+  } finally {
+    $loading.hide();
   }
 }
 

@@ -1,9 +1,10 @@
 import { fileURLToPath, URL } from "node:url";
-import { readFileSync } from 'node:fs'
+import { readFileSync } from "node:fs";
 import Vue from "@vitejs/plugin-vue";
 import Fonts from "unplugin-fonts/vite";
 import { defineConfig } from "vite";
 import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
 export default defineConfig({
@@ -11,6 +12,7 @@ export default defineConfig({
     Vue({
       template: { transformAssetUrls },
     }),
+    vueDevTools(),
     Vuetify({
       autoImport: true,
       styles: {

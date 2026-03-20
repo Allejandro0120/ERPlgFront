@@ -23,6 +23,7 @@ async function loadProfile() {
   const uiStore = useUiStore();
 
   try {
+    $loading.show();
     const response = await authService.profile();
     const profileData = response.data.data;
 
@@ -44,6 +45,8 @@ async function loadProfile() {
     // El interceptor de axios ya habrá mostrado el toast si aplica.
     authStore.clearAuth();
     return false;
+  } finally {
+    $loading.hide();
   }
 }
 

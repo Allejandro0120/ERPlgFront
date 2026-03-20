@@ -12,19 +12,24 @@
         >
           Exportar
         </v-btn>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-plus"
-          variant="flat"
-          size="small"
-          class="py-4"
-        >
-          Añadir Cliente
-        </v-btn>
       </template>
     </app-bar>
 
+    <!-- Modal para crear cliente -->
+    <clientes-form-dialog v-model="dialogOpen" @submit="crearCliente" />
+
     <v-container fluid class="w-100 mx-auto">
+      <div class="d-flex justify-end mb-3">
+        <v-btn
+          v-if="hasPermission('Clientes.ADD')"
+          color="primary"
+          prepend-icon="mdi-plus"
+          variant="flat"
+          @click="abrirDialogo ()"
+        >
+          Añadir Cliente
+        </v-btn>
+      </div>
       <base-table
         ref="tableRef"
         title="Directorio de Clientes"
@@ -75,8 +80,12 @@
 import { ref } from "vue";
 import AppBar from "@/shared/ui/AppBar.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
+import ClientesFormDialog from "@/modules/cartera/components/ClientesFormDialog.vue";
 import { clienteService } from "@/api/services/clienteService";
+import { useAuthStore } from "@/stores/auth.store";
 
+const authStore = useAuthStore();
+const hasPermission = (permiso) => authStore.hasPermission(permiso);
 const tableRef = ref();
 
 const headers = [
@@ -112,6 +121,8 @@ const estadoSeleccionado = ref("Todos");
 const clientes = ref([]);
 const totalItems = ref(0);
 const loading = ref(false);
+
+const dialogOpen = ref(false);
 
 async function fetchData({
   page,
@@ -153,13 +164,34 @@ async function fetchData({
 function onFilterChange() {
   tableRef.value?.reset();
 }
+
+function refrescarTabla() {
+  tableRef.value?.reset();
+}
+
 function editarCliente(item) {
   console.log("Editar:", item);
 }
 function verDetalle(item) {
   console.log("Ver detalle:", item);
 }
-function eliminarCliente(item) {
-  console.log("Eliminar:", item);
+function abrirDialogo () {
+  dialogOpen.value = true;
+}
+
+// ─── Crear Cliente (captura datos del diálogo) ───────────────────────────────
+async function crearCliente(clienteData) {
+  $loading.show();
+  try {
+    await clienteService.createCliente (clienteData);
+    $toast.success("Cliente creado exitosamente");
+    dialogOpen.value = false;
+    refrescarTabla();
+  } catch (error) {
+    console.error("Error al crear cliente:", error);
+    $toast.error("Error al crear cliente: " + error.message);
+  } finally {
+    $loading.hide();
+  }
 }
 </script>

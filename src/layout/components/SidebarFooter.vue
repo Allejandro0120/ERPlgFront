@@ -11,7 +11,7 @@
       </v-avatar>
       <div v-if="!rail" class="ml-2 mt-n2">
         <p
-          class="mb-0 font-weight-bold text-truncate text-white"
+          class="mb-0 font-weight-semibold text-truncate text-white"
           style="font-size: 0.8rem; line-height: 1.3"
         >
           {{ user.name }}

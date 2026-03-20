@@ -9,7 +9,7 @@
         <v-progress-circular
           indeterminate
           size="64"
-          width="6"
+          width="4"
           color="primary"
           class="mb-4"
         />

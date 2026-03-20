@@ -164,6 +164,6 @@ export const VUETIFY_DEFAULTS = {
   },
 
   VNavigationDrawer: {
-  color: 'surface',
-},
+    color: "surface",
+  },
 };

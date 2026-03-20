@@ -1,11 +1,14 @@
 <template>
   <v-container fluid class="fill-height bg-background pa-0">
-    <v-row align="center" justify="center" density="compact" class="fill-height">
+    <v-row
+      align="center"
+      justify="center"
+      density="compact"
+      class="fill-height"
+    >
       <v-col cols="12" sm="8" md="6" lg="4" class="px-4">
-
         <!-- Tarjeta de Login -->
         <v-card class="px-10 py-14 mx-auto rounded-xl" max-width="440" border>
-
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <v-img
@@ -29,7 +32,6 @@
 
           <!-- Formulario -->
           <v-form ref="formRef" @submit.prevent="handleLogin">
-
             <!-- Usuario -->
             <div class="mb-3">
               <v-text-field
@@ -49,7 +51,9 @@
                 label="Contraseña"
                 placeholder="••••••••"
                 prepend-inner-icon="mdi-lock-outline"
-                :append-inner-icon="showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+                :append-inner-icon="
+                  showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
+                "
                 :type="showPassword ? 'text' : 'password'"
                 required
                 :rules="[rules.requiredPassword]"
@@ -63,8 +67,8 @@
               color="primary"
               block
               height="48"
-              :loading="loading"
-              :disabled="loading"
+              :loading="loadingLogin"
+              :disabled="loadingLogin"
             >
               Iniciar Sesión
               <v-icon end icon="mdi-login" class="ml-2" />
@@ -79,7 +83,6 @@
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
-
           </v-form>
         </v-card>
 
@@ -89,7 +92,6 @@
             © {{ year }} Sanamos Santander. Todos los derechos reservados.
           </span>
         </div>
-
       </v-col>
     </v-row>
   </v-container>
@@ -104,29 +106,29 @@ import { authService } from "@/api/services/authService";
 import Logo from "@/assets/sanamos_logo_horizontal.jpg";
 
 // ─── Composables ─────────────────────────────────────────────────────────────
-const router    = useRouter();
+const router = useRouter();
 const authStore = useAuthStore();
-const uiStore   = useUiStore();
+const uiStore = useUiStore();
 
 // ─── Estado ──────────────────────────────────────────────────────────────────
-const formRef      = ref(null);
+const formRef = ref(null);
 const showPassword = ref(false);
-const loading      = ref(false);
+const loadingLogin = ref(false);
 
 const form = ref({
-  Codigo:     "",
+  Codigo: "",
   Contrasena: "",
 });
 
 // ─── Reglas de validación ────────────────────────────────────────────────────
 const rules = {
   /** Valida que el campo no esté vacío ni contenga solo espacios (Usuario) */
-  required: (v) =>
-    (v && v.trim().length > 0) || "Este campo es obligatorio",
+  required: (v) => (v && v.trim().length > 0) || "Este campo es obligatorio",
 
   /** Valida que la contraseña no esté vacía; permite espacios en blanco */
   requiredPassword: (v) =>
-    (v !== null && v !== undefined && v.length > 0) || "Este campo es obligatorio",
+    (v !== null && v !== undefined && v.length > 0) ||
+    "Este campo es obligatorio",
 };
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
@@ -139,17 +141,18 @@ const handleLogin = async () => {
   }
 
   try {
-    loading.value = true;
+    $loading.show();
+    loadingLogin.value = true;
 
     await authService.login(form.value);
 
     const profileResponse = await authService.profile();
-    const profileData     = profileResponse.data.data;
+    const profileData = profileResponse.data.data;
 
     authStore.setAuth({
-      Nombre:          profileData.nombre,
-      Rol:             profileData.rol,
-      authenticated:   true,
+      Nombre: profileData.nombre,
+      Rol: profileData.rol,
+      authenticated: true,
     });
 
     authStore.setProfile(profileData);
@@ -162,11 +165,13 @@ const handleLogin = async () => {
 
     $toast.success("¡Bienvenido!");
 
-    router.push(firstRoute?.path || "/");
+    // Navega pero mantén el loading hasta que la ruta se cargue
+    await router.push(firstRoute?.path || "/");
   } catch (error) {
     // El manejo de error se delega al interceptor de axios o al servicio
   } finally {
-    loading.value = false;
+    loadingLogin.value = false;
+    $loading.hide();
   }
 };
 
