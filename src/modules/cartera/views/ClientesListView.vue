@@ -15,8 +15,13 @@
       </template>
     </app-bar>
 
-    <!-- Modal para crear cliente -->
-    <clientes-form-dialog v-model="dialogOpen" @submit="crearCliente" />
+    <!-- Modal para cliente -->
+    <clientes-form-dialog
+      v-model="dialog.open"
+      :mode="dialog.mode"
+      :cliente="dialog.cliente"
+      @submit="onSubmit"
+    />
 
     <v-container fluid class="w-100 mx-auto">
       <div class="d-flex justify-end mb-3">
@@ -25,7 +30,7 @@
           color="primary"
           prepend-icon="mdi-plus"
           variant="flat"
-          @click="abrirDialogo ()"
+          @click="abrirCrear()"
         >
           Añadir Cliente
         </v-btn>
@@ -122,7 +127,7 @@ const clientes = ref([]);
 const totalItems = ref(0);
 const loading = ref(false);
 
-const dialogOpen = ref(false);
+const dialog = ref({ open: false, mode: 'create', cliente: null });
 
 async function fetchData({
   page,
@@ -169,27 +174,55 @@ function refrescarTabla() {
   tableRef.value?.reset();
 }
 
-function editarCliente(item) {
-  console.log("Editar:", item);
-}
-function verDetalle(item) {
-  console.log("Ver detalle:", item);
-}
-function abrirDialogo () {
-  dialogOpen.value = true;
+function abrirCrear() {
+  dialog.value = { open: true, mode: 'create', cliente: null };
 }
 
-// ─── Crear Cliente (captura datos del diálogo) ───────────────────────────────
-async function crearCliente(clienteData) {
+async function editarCliente(item) {
   $loading.show();
   try {
-    await clienteService.createCliente (clienteData);
-    $toast.success("Cliente creado exitosamente");
-    dialogOpen.value = false;
+    const res = await clienteService.getClienteById(item.IdCliente);
+    if (res.data?.success) {
+      dialog.value = { open: true, mode: 'edit', cliente: res.data.data };
+    }
+  } catch (e) {
+    $toast.error('Error al obtener cliente: ' + e.message);
+  } finally {
+    $loading.hide();
+  }
+}
+
+async function verDetalle(item) {
+  $loading.show();
+  try {
+    const res = await clienteService.getClienteById(item.IdCliente);
+    if (res.data?.success) {
+      dialog.value = { open: true, mode: 'view', cliente: res.data.data };
+    }
+  } catch (e) {
+    $toast.error('Error al obtener cliente: ' + e.message);
+  } finally {
+    $loading.hide();
+  }
+}
+
+// ─── Submit Cliente (captura datos y modo del diálogo) ───────────────────────
+async function onSubmit({ payload, mode }) {
+  $loading.show();
+  try {
+    if (mode === 'create') {
+      await clienteService.createCliente(payload);
+      $toast.success('Cliente creado exitosamente');
+    } else if (mode === 'edit') {
+      const updateData = { ...payload, IdCliente: dialog.value.cliente.IdCliente };
+      await clienteService.updateCliente(updateData);
+      $toast.success('Cliente actualizado exitosamente');
+    }
+    dialog.value.open = false;
     refrescarTabla();
   } catch (error) {
-    console.error("Error al crear cliente:", error);
-    $toast.error("Error al crear cliente: " + error.message);
+    console.error("Error al guardar cliente:", error);
+    $toast.error("Error al guardar cliente: " + error.message);
   } finally {
     $loading.hide();
   }

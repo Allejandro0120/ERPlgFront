@@ -1,10 +1,11 @@
 <template>
   <base-dialog
     :model-value="modelValue"
-    title="Crear Cliente"
-    icon="mdi-account-plus"
+    :title="dialogTitle"
+    :icon="dialogIcon"
     color="primary"
-    label-confirm="Crear Cliente"
+    :label-confirm="labelConfirm"
+    :show-actions="!isReadonly"
     max-width="1000"
     @update:model-value="emit('update:modelValue', $event)"
     @accept="submitForm"
@@ -62,6 +63,7 @@
                   item-value="Id"
                   prepend-inner-icon="mdi-card-account-details-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -73,6 +75,7 @@
                   label="Número de Identificación"
                   prepend-inner-icon="mdi-numeric"
                   :rules="[rules.required, rules.soloDigitosGuion]"
+                  :readonly="isReadonly"
                   @keydown="bloquear($event, allow.idGuion)"
                 />
               </v-col>
@@ -84,6 +87,7 @@
                   label="Nombre o Razón Social"
                   prepend-inner-icon="mdi-domain"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -97,6 +101,7 @@
                   item-value="Codigo"
                   prepend-inner-icon="mdi-briefcase-outline"
                   clearable
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -108,6 +113,7 @@
                   type="email"
                   prepend-inner-icon="mdi-email-outline"
                   :rules="[rules.required, rules.email]"
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -119,6 +125,7 @@
                   label="Teléfono"
                   prepend-inner-icon="mdi-phone-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                   @keydown="bloquear($event, allow.soloDigitos)"
                 />
               </v-col>
@@ -138,6 +145,7 @@
                   item-value="IdDepartamento"
                   prepend-inner-icon="mdi-map-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                   @update:model-value="onDepartamentoChange"
                 />
               </v-col>
@@ -151,9 +159,10 @@
                   item-title="NombreMunicipio"
                   item-value="IdMunicipio"
                   prepend-inner-icon="mdi-city-variant-outline"
-                  :disabled="!ui.idDepartamento"
+                  :disabled="!ui.idDepartamento || isReadonly"
                   :loading="loadingMunicipios"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                   @update:model-value="onMunicipioChange"
                 />
               </v-col>
@@ -167,9 +176,10 @@
                   item-title="NombreCentroPoblado"
                   item-value="IdCentroPoblado"
                   prepend-inner-icon="mdi-home-group"
-                  :disabled="!ui.idMunicipio"
+                  :disabled="!ui.idMunicipio || isReadonly"
                   :loading="loadingCentrosPoblados"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -180,6 +190,7 @@
                   label="Dirección"
                   prepend-inner-icon="mdi-map-marker-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
             </v-row>
@@ -198,6 +209,7 @@
                   item-value="IdListaPrecio"
                   prepend-inner-icon="mdi-tag-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
 
@@ -209,6 +221,7 @@
                   label="Plazo (días)"
                   prepend-inner-icon="mdi-calendar-clock-outline"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                   @keydown="bloquear($event, allow.soloDigitos)"
                 />
               </v-col>
@@ -222,6 +235,7 @@
                   prepend-inner-icon="mdi-currency-usd"
                   @keydown="bloquear($event, allow.decimal)"
                   :rules="[rules.required]"
+                  :readonly="isReadonly"
                 />
               </v-col>
             </v-row>
@@ -241,9 +255,41 @@ import { formatCOP, parseCOP } from "@/shared/utils/currency";
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
   modelValue: Boolean,
+  mode: {
+    type: String,
+    default: 'create',
+    validator: (v) => ['create', 'edit', 'view'].includes(v)
+  },
+  cliente: {
+    type: Object,
+    default: null
+  }
 });
 
 const emit = defineEmits(["update:modelValue", "submit"]);
+
+// ─── Computed del Modal ───────────────────────────────────────────────────────
+const isReadonly = computed(() => props.mode === 'view');
+const isEditing  = computed(() => props.mode === 'edit');
+const isCreating = computed(() => props.mode === 'create');
+
+const dialogTitle = computed(() => ({
+  create: 'Crear Cliente',
+  edit:   'Editar Cliente',
+  view:   'Detalle del Cliente',
+}[props.mode]));
+
+const dialogIcon = computed(() => ({
+  create: 'mdi-account-plus',
+  edit:   'mdi-account-edit',
+  view:   'mdi-card-account-details-outline',
+}[props.mode]));
+
+const labelConfirm = computed(() => ({
+  create: 'Crear Cliente',
+  edit:   'Guardar Cambios',
+  view:   '',
+}[props.mode]));
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const formRef = ref(null);
@@ -456,6 +502,10 @@ watch(
         cargarActividadCiiu(),
         cargarDepartamentos(),
       ]);
+
+      if (props.cliente && !isCreating.value) {
+        await precargarCliente(props.cliente);
+      }
     } catch (error) {
       console.error("Error al cargar datos del formulario:", error);
     } finally {
@@ -463,6 +513,34 @@ watch(
     }
   },
 );
+
+async function precargarCliente(cliente) {
+  // Primero cargar cascada de ubicación si es que el cliente tiene departamento.
+  // Suponiendo que el cliente viene con IdDepartamento e IdMunicipio
+  if (cliente.IdDepartamento) {
+    ui.value.idDepartamento = cliente.IdDepartamento;
+    await onDepartamentoChange(cliente.IdDepartamento);
+  }
+  if (cliente.IdMunicipio) {
+    ui.value.idMunicipio = cliente.IdMunicipio;
+    await onMunicipioChange(cliente.IdMunicipio);
+  }
+
+  // Luego asignar el resto del form
+  form.value = {
+    IdTipoDocumento:      cliente.IdTipoDocumento,
+    NumeroIdentificacion: cliente.NumeroIdentificacion,
+    Nombre:               cliente.Nombre,
+    CorreoGeneral:        cliente.CorreoGeneral,
+    Telefono:             cliente.Telefono,
+    IdListaPrecio:        cliente.IdListaPrecio,
+    Plazo:                cliente.Plazo,
+    CupoCredito:          formatCOP(cliente.CupoCredito),
+    Direccion:            cliente.Direccion,
+    CIIU:                 cliente.CIIU,
+    IdCentroPoblado:      cliente.IdCentroPoblado,
+  };
+}
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
 const resetForm = () => {
@@ -513,6 +591,6 @@ const submitForm = async () => {
     payload.CupoCredito = parseCOP(payload.CupoCredito);
   }
 
-  emit("submit", payload);
+  emit("submit", { payload, mode: props.mode });
 };
 </script>
