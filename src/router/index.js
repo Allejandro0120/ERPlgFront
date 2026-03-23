@@ -13,20 +13,21 @@ import mercanciaRoutes from "@/modules/mercancia/index.js";
 import facturacionRoutes from "@/modules/facturacion/index.js";
 
 const routes = [
-{
-  path: '/',
-  component: () => import('@/layout/DefaultLayout.vue'),
-  meta: { requiresAuth: true },
-  children: [
-    {
-      path: '',
-      redirect: '/auth/login'
-    },
-    ...carteraRoutes,
-    ...mercanciaRoutes,
-    ...facturacionRoutes,
-  ],
-},
+  {
+    path: '/',
+    redirect: { name: 'login' },
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/',
+    component: () => import('@/layout/DefaultLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      ...carteraRoutes,
+      ...mercanciaRoutes,
+      ...facturacionRoutes,
+    ],
+  },
   {
     path: "/auth",
     component: () => import("@/layout/BlankLayout.vue"),

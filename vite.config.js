@@ -15,9 +15,6 @@ export default defineConfig({
     vueDevTools(),
     Vuetify({
       autoImport: true,
-      styles: {
-        configFile: "src/styles/settings.scss",
-      },
     }),
     Fonts({
       fontsource: {
@@ -39,5 +36,8 @@ export default defineConfig({
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  optimizeDeps: {
+    entries: ["./src/**/*.vue"],
   },
 });
