@@ -7,8 +7,9 @@
     :label-confirm="labelConfirm"
     :show-actions="!isReadonly"
     max-width="1000"
-    @update:model-value="emit('update:modelValue', $event)"
+    @update:model-value="onRequestClose"
     @accept="submitForm"
+    :disable-confirm="isEditing && !hasChanges"
   >
     <template #content>
       <v-form ref="formRef">
@@ -64,6 +65,7 @@
                   prepend-inner-icon="mdi-card-account-details-outline"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -77,6 +79,7 @@
                   :rules="[rules.required, rules.soloDigitosGuion]"
                   :readonly="isReadonly"
                   @keydown="bloquear($event, allow.idGuion)"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -88,6 +91,7 @@
                   prepend-inner-icon="mdi-domain"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -100,7 +104,7 @@
                   item-title="display"
                   item-value="Codigo"
                   prepend-inner-icon="mdi-briefcase-outline"
-                  clearable
+                  :clearable="!isReadonly"
                   :readonly="isReadonly"
                 />
               </v-col>
@@ -114,6 +118,7 @@
                   prepend-inner-icon="mdi-email-outline"
                   :rules="[rules.required, rules.email]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -127,6 +132,7 @@
                   :rules="[rules.required]"
                   :readonly="isReadonly"
                   @keydown="bloquear($event, allow.soloDigitos)"
+                  :clearable="!isReadonly"
                 />
               </v-col>
             </v-row>
@@ -147,6 +153,7 @@
                   :rules="[rules.required]"
                   :readonly="isReadonly"
                   @update:model-value="onDepartamentoChange"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -159,11 +166,12 @@
                   item-title="NombreMunicipio"
                   item-value="IdMunicipio"
                   prepend-inner-icon="mdi-city-variant-outline"
-                  :disabled="!ui.idDepartamento || isReadonly"
+                  :disabled="!ui.idDepartamento"
                   :loading="loadingMunicipios"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
                   @update:model-value="onMunicipioChange"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -176,10 +184,11 @@
                   item-title="NombreCentroPoblado"
                   item-value="IdCentroPoblado"
                   prepend-inner-icon="mdi-home-group"
-                  :disabled="!ui.idMunicipio || isReadonly"
+                  :disabled="!ui.idMunicipio"
                   :loading="loadingCentrosPoblados"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -191,6 +200,7 @@
                   prepend-inner-icon="mdi-map-marker-outline"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
             </v-row>
@@ -210,6 +220,7 @@
                   prepend-inner-icon="mdi-tag-outline"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -223,6 +234,7 @@
                   :rules="[rules.required]"
                   :readonly="isReadonly"
                   @keydown="bloquear($event, allow.soloDigitos)"
+                  :clearable="!isReadonly"
                 />
               </v-col>
 
@@ -236,6 +248,7 @@
                   @keydown="bloquear($event, allow.decimal)"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
+                  :clearable="!isReadonly"
                 />
               </v-col>
             </v-row>
@@ -251,45 +264,55 @@ import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { globalService } from "@/api/services/globalService";
 import { formatCOP, parseCOP } from "@/shared/utils/currency";
+import { $confirm } from "@/plugins/confirm/confirm.js";
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
   modelValue: Boolean,
   mode: {
     type: String,
-    default: 'create',
-    validator: (v) => ['create', 'edit', 'view'].includes(v)
+    default: "create",
+    validator: (v) => ["create", "edit", "view"].includes(v),
   },
   cliente: {
     type: Object,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "submit"]);
 
 // ─── Computed del Modal ───────────────────────────────────────────────────────
-const isReadonly = computed(() => props.mode === 'view');
-const isEditing  = computed(() => props.mode === 'edit');
-const isCreating = computed(() => props.mode === 'create');
+const isReadonly = computed(() => props.mode === "view");
+const isEditing = computed(() => props.mode === "edit");
+const isCreating = computed(() => props.mode === "create");
 
-const dialogTitle = computed(() => ({
-  create: 'Crear Cliente',
-  edit:   'Editar Cliente',
-  view:   'Detalle del Cliente',
-}[props.mode]));
+const dialogTitle = computed(
+  () =>
+    ({
+      create: "Crear Cliente",
+      edit: "Editar Cliente",
+      view: "Detalle del Cliente",
+    })[props.mode],
+);
 
-const dialogIcon = computed(() => ({
-  create: 'mdi-account-plus',
-  edit:   'mdi-account-edit',
-  view:   'mdi-card-account-details-outline',
-}[props.mode]));
+const dialogIcon = computed(
+  () =>
+    ({
+      create: "mdi-account-plus",
+      edit: "mdi-account-edit",
+      view: "mdi-card-account-details-outline",
+    })[props.mode],
+);
 
-const labelConfirm = computed(() => ({
-  create: 'Crear Cliente',
-  edit:   'Guardar Cambios',
-  view:   '',
-}[props.mode]));
+const labelConfirm = computed(
+  () =>
+    ({
+      create: "Crear Cliente",
+      edit: "Guardar Cambios",
+      view: "",
+    })[props.mode],
+);
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const formRef = ref(null);
@@ -302,7 +325,6 @@ const centrosPoblados = ref([]);
 
 const loadingMunicipios = ref(false);
 const loadingCentrosPoblados = ref(false);
-
 
 const formInitial = {
   IdTipoDocumento: null,
@@ -326,6 +348,13 @@ const uiInitial = {
 
 const form = ref({ ...formInitial });
 const ui = ref({ ...uiInitial });
+// Snapshot del form al momento de abrir/precargar
+const formSnapshot = ref(null);
+
+const hasChanges = computed(() => {
+  if (!formSnapshot.value) return false;
+  return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
+});
 
 // ─── Bloqueo de teclas
 const CONTROL_KEYS = new Set([
@@ -485,38 +514,8 @@ const onMunicipioChange = async (idMunicipio) => {
   }
 };
 
-// ─── Watch: cargar datos cuando el modal abre, resetear cuando cierra ─────────
-watch(
-  () => props.modelValue,
-  async (isOpen) => {
-    if (!isOpen) {
-      resetForm();
-      return;
-    }
-
-    $loading.show();
-    try {
-      await Promise.all([
-        cargarTiposDocumentos(),
-        cargarListaPrecios(),
-        cargarActividadCiiu(),
-        cargarDepartamentos(),
-      ]);
-
-      if (props.cliente && !isCreating.value) {
-        await precargarCliente(props.cliente);
-      }
-    } catch (error) {
-      console.error("Error al cargar datos del formulario:", error);
-    } finally {
-      $loading.hide();
-    }
-  },
-);
-
 async function precargarCliente(cliente) {
   // Primero cargar cascada de ubicación si es que el cliente tiene departamento.
-  // Suponiendo que el cliente viene con IdDepartamento e IdMunicipio
   if (cliente.IdDepartamento) {
     ui.value.idDepartamento = cliente.IdDepartamento;
     await onDepartamentoChange(cliente.IdDepartamento);
@@ -528,18 +527,20 @@ async function precargarCliente(cliente) {
 
   // Luego asignar el resto del form
   form.value = {
-    IdTipoDocumento:      cliente.IdTipoDocumento,
+    IdTipoDocumento: cliente.IdTipoDocumento,
     NumeroIdentificacion: cliente.NumeroIdentificacion,
-    Nombre:               cliente.Nombre,
-    CorreoGeneral:        cliente.CorreoGeneral,
-    Telefono:             cliente.Telefono,
-    IdListaPrecio:        cliente.IdListaPrecio,
-    Plazo:                cliente.Plazo,
-    CupoCredito:          formatCOP(cliente.CupoCredito),
-    Direccion:            cliente.Direccion,
-    CIIU:                 cliente.CIIU,
-    IdCentroPoblado:      cliente.IdCentroPoblado,
+    Nombre: cliente.Nombre,
+    CorreoGeneral: cliente.CorreoGeneral,
+    Telefono: cliente.Telefono,
+    IdListaPrecio: cliente.IdListaPrecio,
+    Plazo: cliente.Plazo,
+    CupoCredito: formatCOP(cliente.CupoCredito),
+    Direccion: cliente.Direccion,
+    CIIU: cliente.CIIU,
+    IdCentroPoblado: cliente.IdCentroPoblado,
   };
+  await nextTick();
+  formSnapshot.value = { ...form.value };
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
@@ -548,6 +549,7 @@ const resetForm = () => {
   ui.value = { ...uiInitial };
   municipios.value = [];
   centrosPoblados.value = [];
+  formSnapshot.value = null;
   formRef.value?.resetValidation();
 };
 
@@ -573,9 +575,53 @@ watch(
     if (val !== formatted) {
       form.value.CupoCredito = formatted;
     }
-  }
+  },
 );
 
+// ─── Watch: cargar datos cuando el modal abre, resetear cuando cierra ─────────
+watch(
+  () => props.modelValue,
+  async (isOpen) => {
+    if (!isOpen) {
+      resetForm();
+      return;
+    }
+
+    $loading.show();
+    try {
+      await Promise.all([
+        cargarTiposDocumentos(),
+        cargarListaPrecios(),
+        cargarActividadCiiu(),
+        cargarDepartamentos(),
+      ]);
+
+      if (props.cliente && !isCreating.value) {
+        await precargarCliente(props.cliente);
+      } else {
+        // create: snapshot del form vacío
+        formSnapshot.value = { ...form.value };
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del formulario:", error);
+    } finally {
+      $loading.hide();
+    }
+  },
+);
+
+async function onRequestClose(value) {
+  if (!value && !isReadonly.value && hasChanges.value) {
+    const confirmed = await $confirm.warning({
+      title: "¿Descartar cambios?",
+      message: "Tienes cambios sin guardar. ¿Deseas salir de todas formas?",
+      labelConfirm: "Sí, salir",
+      labelCancel: "Seguir editando",
+    });
+    if (!confirmed) return;
+  }
+  emit("update:modelValue", value);
+}
 // ─── Submit ───────────────────────────────────────────────────────────────────
 const submitForm = async () => {
   const esValido = await validarTodosLosTabs();
@@ -584,6 +630,18 @@ const submitForm = async () => {
     $toast.error("Por favor corrige los errores en los campos marcados");
     return;
   }
+
+  // ─── Confirmación antes de guardar ───────────────────────────────────────
+  const confirmado = await $confirm.confirm({
+    title: isCreating.value ? "¿Crear cliente?" : "¿Guardar cambios?",
+    message: isCreating.value
+      ? "Se registrará un nuevo cliente con los datos ingresados."
+      : `Se actualizará la información de <strong>${form.value.Nombre}</strong>. Esta acción sobreescribirá los datos actuales.`,
+    labelConfirm: isCreating.value ? "Sí, crear" : "Sí, guardar",
+    labelCancel: "Cancelar",
+  });
+
+  if (!confirmado) return;
 
   // Preparar payload: convertir formato moneda a número
   const payload = { ...form.value };

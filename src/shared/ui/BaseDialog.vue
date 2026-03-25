@@ -7,7 +7,6 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card class="pa-4">
-
       <!-- Header -->
       <div class="d-flex align-center ga-3 mb-4" v-if="title || icon">
         <v-avatar
@@ -21,9 +20,15 @@
         </v-avatar>
 
         <div class="flex-grow-1">
-          <v-card-title v-if="title" class="pa-0" style="word-break: break-word">
+          <v-card-title
+            v-if="title"
+            class="pa-0"
+            style="word-break: break-word"
+          >
             <slot name="title">
-              <span class="text-body-large font-weight-semibold">{{ title }}</span>
+              <span class="text-body-large font-weight-semibold">{{
+                title
+              }}</span>
             </slot>
           </v-card-title>
         </div>
@@ -40,7 +45,7 @@
         />
       </div>
 
-      <v-divider class="mb-5" style="opacity: 0.50" />
+      <v-divider class="mb-5" style="opacity: 0.5" />
 
       <!-- Contenido -->
       <v-card-text class="pa-0 pb-4">
@@ -62,12 +67,16 @@
               {{ labelCancel }}
             </span>
           </v-btn>
-          <v-btn variant="flat" :color="color" @click="accept">
+          <v-btn
+            variant="flat"
+            :color="color"
+            :disabled="disableConfirm"
+            @click="accept"
+          >
             {{ labelConfirm }}
           </v-btn>
         </slot>
       </v-card-actions>
-
     </v-card>
   </v-dialog>
 </template>
@@ -84,6 +93,7 @@ defineProps({
   showCancel: { type: Boolean, default: true },
   labelConfirm: { type: String, default: "Confirmar" },
   labelCancel: { type: String, default: "Cancelar" },
+  disableConfirm: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue", "accept", "cancel"]);

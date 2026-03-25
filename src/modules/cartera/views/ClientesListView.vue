@@ -41,7 +41,7 @@
         :headers="headers"
         :items="clientes"
         item-key="IdCliente"
-        :loading="loading"
+        :loading="loadingTable"
         :total-items="totalItems"
         :row-actions="rowActions"
         empty-text="No se encontraron clientes"
@@ -58,7 +58,7 @@
               label="Estado"
               density="compact"
               variant="outlined"
-              :disabled="loading"
+              :disabled="loadingTable"
               hide-details
               @update:model-value="onFilterChange"
             />
@@ -125,7 +125,7 @@ const estadoSeleccionado = ref("Todos");
 
 const clientes = ref([]);
 const totalItems = ref(0);
-const loading = ref(false);
+const loadingTable = ref(false);
 
 const dialog = ref({ open: false, mode: 'create', cliente: null });
 
@@ -136,7 +136,7 @@ async function fetchData({
   sortOrder,
   search,
 }) {
-  loading.value = true;
+  loadingTable.value = true;
   try {
     const filters = {};
     if (estadoSeleccionado.value !== "Todos") {
@@ -162,7 +162,7 @@ async function fetchData({
     clientes.value = [];
     totalItems.value = 0;
   } finally {
-    loading.value = false;
+    loadingTable.value = false;
   }
 }
 
