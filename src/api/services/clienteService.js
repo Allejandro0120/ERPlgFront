@@ -45,4 +45,9 @@ export const clienteService = {
    * @param {object} updateData - Datos a actualizar (debe incluir IdCliente)
    */
   updateCliente: (updateData) => api.put("v1/clients/update", updateData),
+
+  /**
+   * Obtiene los estados posibles de un cliente
+   */
+  getEstados: () => api.get("v1/clients/states"),
 };

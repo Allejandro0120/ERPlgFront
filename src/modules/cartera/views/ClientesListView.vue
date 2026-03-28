@@ -55,6 +55,8 @@
             <v-select
               v-model="estadoSeleccionado"
               :items="estados"
+              item-title="Nombre"
+              item-value="Id"
               label="Estado"
               density="compact"
               variant="outlined"
@@ -66,14 +68,14 @@
         </template>
 
         <!-- Estado -->
-        <template #item.Habilitado="{ item }">
+        <template #item.Estado="{ item }">
           <v-chip
-            :color="item.Habilitado ? 'success' : 'error'"
+            :color="getEstadoColor(item.Estado)"
             size="small"
             class="font-weight-medium"
             variant="tonal"
           >
-            {{ item.Habilitado ? "Activo" : "Inactivo" }}
+            {{ getEstadoNombre(item.Estado) }}
           </v-chip>
         </template>
       </base-table>
@@ -82,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import AppBar from "@/shared/ui/AppBar.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
 import ClientesFormDialog from "@/modules/cartera/components/ClientesFormDialog.vue";
@@ -103,7 +105,7 @@ const headers = [
   { title: "Tipo Documento", key: "TipoDocumento", sortable: false },
   { title: "Nombre", key: "Nombre", sortable: true, searchable: true },
   { title: "Municipio", key: "Municipio", sortable: true, searchable: true },
-  { title: "Estado", key: "Habilitado", sortable: false, align: "center" },
+  { title: "Estado", key: "Estado", sortable: false, align: "center" },
 ];
 
 const rowActions = [
@@ -120,14 +122,43 @@ const rowActions = [
   },
 ];
 
-const estados = ["Todos", "Activo", "Inactivo"];
-const estadoSeleccionado = ref("Todos");
+const estados = ref([]);
+const estadoSeleccionado = ref(null);
+
+const getEstadoNombre = (estadoId) => {
+  const estado = estados.value.find(e => e.Id === estadoId);
+  return estado ? estado.Nombre : 'Desconocido';
+};
+
+const getEstadoColor = (estado) => {
+  const map = { 0: 'error', 1: 'success', 2: 'warning', 3: 'error' };
+  return map[estado] ?? 'grey';
+};
 
 const clientes = ref([]);
 const totalItems = ref(0);
 const loadingTable = ref(false);
 
 const dialog = ref({ open: false, mode: 'create', cliente: null });
+
+async function cargarEstados() {
+  try {
+    const response = await clienteService.getEstados();
+    if (response.data?.success) {
+      estados.value = [
+        { Id: null, Nombre: "Todos" },
+        ...response.data.data
+      ];
+    }
+  } catch (error) {
+    console.error("Error al obtener los estados:", error);
+    estados.value = [{ Id: null, Nombre: "Todos" }];
+  }
+}
+
+onMounted(() => {
+  cargarEstados();
+});
 
 async function fetchData({
   page,
@@ -139,8 +170,8 @@ async function fetchData({
   loadingTable.value = true;
   try {
     const filters = {};
-    if (estadoSeleccionado.value !== "Todos") {
-      filters.Habilitado = estadoSeleccionado.value === "Activo";
+    if (estadoSeleccionado.value !== null) {
+      filters.IdEstado = estadoSeleccionado.value;
     }
 
     const response = await clienteService.getClientes(

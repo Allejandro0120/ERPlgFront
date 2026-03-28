@@ -61,7 +61,7 @@
                   label="Tipo de Documento"
                   :items="tipoDocumentos"
                   item-title="display"
-                  item-value="Id"
+                  item-value="IdTipoDocumento"
                   prepend-inner-icon="mdi-card-account-details-outline"
                   :rules="[rules.required]"
                   :readonly="isReadonly"
@@ -539,7 +539,7 @@ async function precargarCliente(cliente) {
     CIIU: cliente.CIIU,
     IdCentroPoblado: cliente.IdCentroPoblado,
   };
-  await nextTick();
+ // await nextTick();
   formSnapshot.value = { ...form.value };
 }
 
