@@ -135,6 +135,23 @@
                   :clearable="!isReadonly"
                 />
               </v-col>
+
+              <!-- Estado: solo visible en edit y view -->
+              <v-col v-if="isEditing || isReadonly" cols="12" sm="6">
+                <v-select
+                  v-model="form.Estado"
+                  name="Estado"
+                  label="Estado"
+                  :items="estadosCatalogo"
+                  item-title="Nombre"
+                  item-value="Id"
+                  prepend-inner-icon="mdi-circle"
+                  :rules="[rules.required]"
+                  :readonly="isReadonly"
+                  :clearable="!isReadonly"
+                  
+                />
+              </v-col>
             </v-row>
           </v-tabs-window-item>
 
@@ -263,6 +280,7 @@
 import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { globalService } from "@/api/services/globalService";
+import { clienteService } from "@/api/services/clienteService";
 import { formatCOP, parseCOP } from "@/shared/utils/currency";
 import { $confirm } from "@/plugins/confirm/confirm.js";
 
@@ -322,6 +340,7 @@ const actividadesCiiu = ref([]);
 const departamentos = ref([]);
 const municipios = ref([]);
 const centrosPoblados = ref([]);
+const estadosCatalogo = ref([]);
 
 const loadingMunicipios = ref(false);
 const loadingCentrosPoblados = ref(false);
@@ -338,6 +357,7 @@ const formInitial = {
   Direccion: "",
   CIIU: null,
   IdCentroPoblado: null,
+  Estado: null,
 };
 
 const uiInitial = {
@@ -389,6 +409,7 @@ const campoATab = {
   Nombre: "identificacion",
   CorreoGeneral: "identificacion",
   Telefono: "identificacion",
+  Estado: "identificacion",
   idDepartamento: "ubicacion",
   idMunicipio: "ubicacion",
   IdCentroPoblado: "ubicacion",
@@ -470,6 +491,18 @@ const cargarDepartamentos = async () => {
   }
 };
 
+const cargarEstados = async () => {
+  try {
+    const response = await clienteService.getEstados();
+    if (response.data?.success) {
+      estadosCatalogo.value = response.data.data || [];
+    }
+  } catch (error) {
+    console.error("Error al cargar estados:", error);
+    estadosCatalogo.value = [];
+  }
+};
+
 // ─── Handlers de ubicación en cascada ────────────────────────────────────────
 const onDepartamentoChange = async (idDepartamento) => {
   ui.value.idMunicipio = null;
@@ -538,6 +571,7 @@ async function precargarCliente(cliente) {
     Direccion: cliente.Direccion,
     CIIU: cliente.CIIU,
     IdCentroPoblado: cliente.IdCentroPoblado,
+    Estado: cliente.IdEstado,
   };
  // await nextTick();
   formSnapshot.value = { ...form.value };
@@ -594,6 +628,7 @@ watch(
         cargarListaPrecios(),
         cargarActividadCiiu(),
         cargarDepartamentos(),
+        cargarEstados(),
       ]);
 
       if (props.cliente && !isCreating.value) {

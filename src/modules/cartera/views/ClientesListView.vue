@@ -75,6 +75,7 @@
             class="font-weight-medium"
             variant="tonal"
           >
+            <v-icon icon="mdi-circle" size="14" start></v-icon>
             {{ getEstadoNombre(item.Estado) }}
           </v-chip>
         </template>
@@ -126,29 +127,26 @@ const estados = ref([]);
 const estadoSeleccionado = ref(null);
 
 const getEstadoNombre = (estadoId) => {
-  const estado = estados.value.find(e => e.Id === estadoId);
-  return estado ? estado.Nombre : 'Desconocido';
+  const estado = estados.value.find((e) => e.Id === estadoId);
+  return estado ? estado.Nombre : "Desconocido";
 };
 
 const getEstadoColor = (estado) => {
-  const map = { 0: 'error', 1: 'success', 2: 'warning', 3: 'error' };
-  return map[estado] ?? 'grey';
+  const map = { 0: "error", 1: "success", 2: "warning", 3: "grey" };
+  return map[estado] ?? "grey";
 };
 
 const clientes = ref([]);
 const totalItems = ref(0);
 const loadingTable = ref(false);
 
-const dialog = ref({ open: false, mode: 'create', cliente: null });
+const dialog = ref({ open: false, mode: "create", cliente: null });
 
 async function cargarEstados() {
   try {
     const response = await clienteService.getEstados();
     if (response.data?.success) {
-      estados.value = [
-        { Id: null, Nombre: "Todos" },
-        ...response.data.data
-      ];
+      estados.value = [{ Id: null, Nombre: "Todos" }, ...response.data.data];
     }
   } catch (error) {
     console.error("Error al obtener los estados:", error);
@@ -206,7 +204,7 @@ function refrescarTabla() {
 }
 
 function abrirCrear() {
-  dialog.value = { open: true, mode: 'create', cliente: null };
+  dialog.value = { open: true, mode: "create", cliente: null };
 }
 
 async function editarCliente(item) {
@@ -214,10 +212,10 @@ async function editarCliente(item) {
   try {
     const res = await clienteService.getClienteById(item.IdCliente);
     if (res.data?.success) {
-      dialog.value = { open: true, mode: 'edit', cliente: res.data.data };
+      dialog.value = { open: true, mode: "edit", cliente: res.data.data };
     }
   } catch (e) {
-    $toast.error('Error al obtener cliente: ' + e.message);
+    $toast.error("Error al obtener cliente: " + e.message);
   } finally {
     $loading.hide();
   }
@@ -228,10 +226,10 @@ async function verDetalle(item) {
   try {
     const res = await clienteService.getClienteById(item.IdCliente);
     if (res.data?.success) {
-      dialog.value = { open: true, mode: 'view', cliente: res.data.data };
+      dialog.value = { open: true, mode: "view", cliente: res.data.data };
     }
   } catch (e) {
-    $toast.error('Error al obtener cliente: ' + e.message);
+    $toast.error("Error al obtener cliente: " + e.message);
   } finally {
     $loading.hide();
   }
@@ -241,13 +239,16 @@ async function verDetalle(item) {
 async function onSubmit({ payload, mode }) {
   $loading.show();
   try {
-    if (mode === 'create') {
+    if (mode === "create") {
       await clienteService.createCliente(payload);
-      $toast.success('Cliente creado exitosamente');
-    } else if (mode === 'edit') {
-      const updateData = { ...payload, IdCliente: dialog.value.cliente.IdCliente };
+      $toast.success("Cliente creado exitosamente");
+    } else if (mode === "edit") {
+      const updateData = {
+        ...payload,
+        IdCliente: dialog.value.cliente.IdCliente,
+      };
       await clienteService.updateCliente(updateData);
-      $toast.success('Cliente actualizado exitosamente');
+      $toast.success("Cliente actualizado exitosamente");
     }
     dialog.value.open = false;
     refrescarTabla();
