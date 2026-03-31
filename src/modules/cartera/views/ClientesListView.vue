@@ -3,7 +3,7 @@
   <div class="w-100">
     <page-header-actions>
       <v-row density="comfortable">
-        <v-col cols="12" sm="auto">
+        <!-- <v-col cols="12" sm="auto">
           <v-btn
             variant="tonal"
             color="brand-grey-2"
@@ -12,7 +12,7 @@
           >
             Exportar
           </v-btn>
-        </v-col>
+        </v-col> -->
         <v-col cols="12" sm="auto" v-if="hasPermission('Clientes.ADD')">
           <v-btn
             color="primary"
