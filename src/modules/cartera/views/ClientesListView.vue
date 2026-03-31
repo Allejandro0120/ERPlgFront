@@ -16,7 +16,7 @@
     </app-bar>
 
     <!-- Modal para cliente -->
-    <clientes-form-dialog
+    <cliente-dialog
       v-model="dialog.open"
       :mode="dialog.mode"
       :cliente="dialog.cliente"
@@ -88,7 +88,7 @@
 import { ref, onMounted } from "vue";
 import AppBar from "@/shared/ui/AppBar.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
-import ClientesFormDialog from "@/modules/cartera/components/ClientesFormDialog.vue";
+import ClienteDialog from "@/modules/cartera/components/ClienteDialog.vue";
 import { clienteService } from "@/api/services/clienteService";
 import { useAuthStore } from "@/stores/auth.store";
 

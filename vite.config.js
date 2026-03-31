@@ -40,4 +40,11 @@ export default defineConfig({
   optimizeDeps: {
     entries: ["./src/**/*.vue"],
   },
+  server: {
+    hmr: {
+      host: "localhost",
+      port: 5173,
+      protocol: "ws",
+    },
+  },
 });

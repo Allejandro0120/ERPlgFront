@@ -1,14 +1,10 @@
 <template>
   <v-card class="rounded-lg bg-white overflow-hidden" elevation="0">
-    <!-- Header: título + acciones -->
     <v-card-text
       v-if="$slots.title || title || $slots.actions"
       class="d-flex align-center justify-space-between py-4 px-4 border-b"
     >
-      <div
-        v-if="$slots.title || title"
-        class="text-h6 font-weight-medium text-grey-darken-4"
-      >
+      <div v-if="$slots.title || title" class="text-h6 font-weight-medium text-grey-darken-4">
         <slot name="title">{{ title }}</slot>
       </div>
       <div v-if="$slots.actions" class="d-flex align-center ga-2">
@@ -16,10 +12,8 @@
       </div>
     </v-card-text>
 
-    <!-- Barra: buscador + filtros + botones -->
     <v-card-text v-if="searchable || $slots.filters" class="py-3 px-4 border-b">
       <v-row align="center" density="comfortable">
-        <!-- Buscador -->
         <v-col v-if="searchable" cols="12" sm="6" md="4" lg="3">
           <v-text-field
             v-model="searchQuery"
@@ -35,10 +29,8 @@
           />
         </v-col>
 
-        <!-- Filtros: el padre controla el responsive con v-col cols -->
         <slot name="filters" />
 
-        <!-- Ordenar por — solo móvil -->
         <v-col v-if="sortableHeaders.length" cols="12" class="d-sm-none">
           <div class="d-flex ga-2">
             <v-select
@@ -73,10 +65,8 @@
           </div>
         </v-col>
 
-        <!-- Spacer desktop -->
         <v-col class="d-none d-sm-block" />
 
-        <!-- Botones: Buscar + Refrescar -->
         <v-col cols="12" sm="auto" class="d-flex ga-2">
           <v-btn
             v-if="searchable"
@@ -105,68 +95,58 @@
       </v-row>
     </v-card-text>
 
-    <!-- Tabla -->
-    <v-data-table-server
+    <v-data-table
       v-bind="$attrs"
       :headers="computedHeaders"
-      :items="filteredItems"
-      :items-length="totalItems"
-      :loading="loading"
-      :loading-text="loadingText"
+      :items="pagedItems"
       :items-per-page="tableOptions.itemsPerPage"
       :page="tableOptions.page"
       :sort-by="tableOptions.sortBy"
+      :loading="loading"
+      :loading-text="loadingText"
       hover
       class="bg-transparent"
       :no-data-text="emptyText"
       mobile-breakpoint="md"
+      :items-length="sortedItems.length"
       @update:options="onOptionsUpdate"
     >
       <template v-for="(_, name) in $slots" #[name]="slotProps">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>
 
-      <!-- Columna de acciones -->
-      <template
-        v-if="visibleRowActions.length"
-        #[`item.${actionsKey}`]="{ item }"
-      >
-        <!-- Desktop: botones con tooltip -->
-    <!-- Desktop: botones con tooltip -->
-<div class="d-none d-md-flex align-center justify-center ga-2">
-  <template v-for="accion in visibleRowActions" :key="accion.label">
-    <v-tooltip :text="accion.label" location="top" :disabled="accion.showLabel">
-      <template #activator="{ props: tooltipProps }">
-        <!-- Solo icono -->
-        <v-btn
-          v-if="!accion.showLabel && accion.icon"
-          v-bind="tooltipProps"
-          :icon="accion.icon"
-          :color="accion.color ?? 'primary'"
-          :variant="accion.variant ?? 'tonal'"
-          size="x-small"
-          rounded="xl"
-          @click="accion.action(item)"
-        />
-        <!-- Icono + texto o solo texto -->
-        <v-btn
-          v-else
-          v-bind="tooltipProps"
-          :prepend-icon="accion.icon ?? undefined"
-          :color="accion.color ?? 'primary'"
-          :variant="accion.variant ?? 'tonal'"
-          size="small"
-          rounded="xl"
-          class="text-none"
-          @click="accion.action(item)"
-        >
-          {{ accion.label }}
-        </v-btn>
-      </template>
-    </v-tooltip>
-  </template>
-</div>
-        <!-- Móvil: menú 3 puntos -->
+      <template v-if="visibleRowActions.length" #[`item.${actionsKey}`]="{ item }">
+        <div class="d-none d-md-flex align-center justify-center ga-2">
+          <template v-for="accion in visibleRowActions" :key="accion.label">
+            <v-tooltip :text="accion.label" location="top" :disabled="accion.showLabel">
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-if="!accion.showLabel && accion.icon"
+                  v-bind="tooltipProps"
+                  :icon="accion.icon"
+                  :color="accion.color ?? 'primary'"
+                  :variant="accion.variant ?? 'tonal'"
+                  size="x-small"
+                  rounded="xl"
+                  @click="accion.action(item)"
+                />
+                <v-btn
+                  v-else
+                  v-bind="tooltipProps"
+                  :prepend-icon="accion.icon ?? undefined"
+                  :color="accion.color ?? 'primary'"
+                  :variant="accion.variant ?? 'tonal'"
+                  size="small"
+                  rounded="xl"
+                  class="text-none"
+                  @click="accion.action(item)"
+                >
+                  {{ accion.label }}
+                </v-btn>
+              </template>
+            </v-tooltip>
+          </template>
+        </div>
         <div class="d-flex d-md-none justify-end">
           <v-menu location="bottom end">
             <template #activator="{ props: menuProps }">
@@ -192,15 +172,12 @@
         </div>
       </template>
 
-      <!-- Footer -->
       <template #bottom>
         <v-divider />
         <v-container fluid class="px-4 py-3">
           <v-row align="center" density="compact" class="ga-2 ga-md-0">
             <v-col cols="12" md="4" class="d-flex align-center ga-2">
-              <span class="text-caption text-grey-darken-1 text-no-wrap"
-                >Filas por página:</span
-              >
+              <span class="text-caption text-grey-darken-1 text-no-wrap">Filas por página:</span>
               <v-select
                 v-model="tableOptions.itemsPerPage"
                 :items="rowsPerPageOptions"
@@ -215,16 +192,10 @@
             </v-col>
 
             <v-col cols="12" class="d-flex d-md-none justify-center">
-              <span class="text-caption text-grey-darken-1">{{
-                paginationInfo
-              }}</span>
+              <span class="text-caption text-grey-darken-1">{{ paginationInfo }}</span>
             </v-col>
 
-            <v-col
-              v-if="totalPages > 1"
-              md="4"
-              class="d-none d-md-flex align-center justify-center ga-1"
-            >
+            <v-col v-if="totalPages > 1" md="4" class="d-none d-md-flex align-center justify-center ga-1">
               <v-btn
                 icon="mdi-page-first"
                 variant="text"
@@ -242,9 +213,7 @@
                 @click="goToPage(tableOptions.page - 1)"
               />
               <template v-for="p in visiblePages" :key="p">
-                <span v-if="p === '...'" class="text-caption text-grey px-1"
-                  >…</span
-                >
+                <span v-if="p === '...'" class="text-caption text-grey px-1">…</span>
                 <v-btn
                   v-else
                   :variant="p === tableOptions.page ? 'flat' : 'text'"
@@ -254,8 +223,9 @@
                   style="min-width: 32px"
                   :disabled="loading"
                   @click="goToPage(p)"
-                  >{{ p }}</v-btn
                 >
+                  {{ p }}
+                </v-btn>
               </template>
               <v-btn
                 icon="mdi-chevron-right"
@@ -278,14 +248,9 @@
 
             <v-col cols="12" md="4">
               <div class="d-none d-md-flex justify-end">
-                <span class="text-caption text-grey-darken-1">{{
-                  paginationInfo
-                }}</span>
+                <span class="text-caption text-grey-darken-1">{{ paginationInfo }}</span>
               </div>
-              <div
-                v-if="totalPages > 1"
-                class="d-flex d-md-none align-center justify-center ga-1"
-              >
+              <div v-if="totalPages > 1" class="d-flex d-md-none align-center justify-center ga-1">
                 <v-btn
                   icon="mdi-page-first"
                   variant="text"
@@ -303,22 +268,19 @@
                   @click="goToPage(tableOptions.page - 1)"
                 />
                 <template v-for="p in visiblePages" :key="p">
-                  <span v-if="p === '...'" class="text-caption text-grey px-1"
-                    >…</span
-                  >
+                  <span v-if="p === '...'" class="text-caption text-grey px-1">…</span>
                   <v-btn
                     v-else
                     :variant="p === tableOptions.page ? 'flat' : 'text'"
-                    :color="
-                      p === tableOptions.page ? 'primary' : 'grey-darken-2'
-                    "
+                    :color="p === tableOptions.page ? 'primary' : 'grey-darken-2'"
                     size="small"
                     class="px-2"
                     style="min-width: 32px"
                     :disabled="loading"
                     @click="goToPage(p)"
-                    >{{ p }}</v-btn
                   >
+                    {{ p }}
+                  </v-btn>
                 </template>
                 <v-btn
                   icon="mdi-chevron-right"
@@ -341,12 +303,12 @@
           </v-row>
         </v-container>
       </template>
-    </v-data-table-server>
+    </v-data-table>
   </v-card>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -359,17 +321,13 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   emptyText: { type: String, default: "No hay registros para mostrar." },
   loadingText: { type: String, default: "Cargando..." },
-  totalItems: { type: Number, default: 0 },
   itemsPerPage: { type: Number, default: 10 },
   rowsPerPageOptions: { type: Array, default: () => [5, 10, 25, 50] },
   searchable: { type: Boolean, default: false },
   searchPlaceholder: { type: String, default: "Buscar..." },
   rowActions: { type: Array, default: () => [] },
   actionsKey: { type: String, default: "acciones" },
-  autoLoad: { type: Boolean, default: true },
 });
-
-const emit = defineEmits(["load"]);
 
 const authStore = useAuthStore();
 const { mdAndUp } = useDisplay();
@@ -392,62 +350,54 @@ const computedHeaders = computed(() => {
   if (!visibleRowActions.value.length || hasActionsCol) return visibleHeaders;
   return [
     ...visibleHeaders,
-    {
-      title: "Acciones",
-      key: props.actionsKey,
-      sortable: false,
-      align: "center",
-    },
+    { title: "Acciones", key: props.actionsKey, sortable: false, align: "center" },
   ];
 });
 
-const sortableHeaders = computed(() =>
-  props.headers.filter((h) => isVisible(h) && h.sortable !== false),
-);
+const sortableHeaders = computed(() => props.headers.filter((h) => isVisible(h) && h.sortable !== false));
 
-// ── Estado central ────────────────────────────────────────────────────────────
-const tableOptions = ref({
-  page: 1,
-  itemsPerPage: props.itemsPerPage,
-  sortBy: [],
-});
+const tableOptions = ref({ page: 1, itemsPerPage: props.itemsPerPage, sortBy: [] });
 const searchQuery = ref("");
-const appliedSearch = ref(""); // término que se mandó a la API
+const appliedSearch = ref("");
 const mobileSortKey = ref(null);
 const mobileSortOrder = ref("asc");
 
-// ── Filtro local optimizado: solo campos "searchable" ───────────────────────
 const filteredItems = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase();
+  const q = appliedSearch.value.trim().toLowerCase();
   if (!q) return props.items;
-
   const keys = props.headers.filter((h) => h.searchable).map((h) => h.key);
-
   if (!keys.length) return props.items;
-
-  return props.items.filter((item) =>
-    keys.some((key) =>
-      String(item[key] ?? "")
-        .toLowerCase()
-        .includes(q),
-    ),
-  );
+  return props.items.filter((item) => keys.some((key) => String(item[key] ?? "").toLowerCase().includes(q)));
 });
 
-// ── Paginación ────────────────────────────────────────────────────────────────
-const totalPages = computed(
-  () => Math.ceil(props.totalItems / tableOptions.value.itemsPerPage) || 1,
-);
+const sortedItems = computed(() => {
+  const sortBy = tableOptions.value.sortBy?.[0];
+  if (!sortBy) return filteredItems.value;
+  const { key, order } = sortBy;
+  const factor = order === "desc" ? -1 : 1;
+  return [...filteredItems.value].sort((a, b) => {
+    const va = a?.[key];
+    const vb = b?.[key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return -1 * factor;
+    if (vb == null) return 1 * factor;
+    if (typeof va === "number" && typeof vb === "number") return (va - vb) * factor;
+    return String(va).localeCompare(String(vb)) * factor;
+  });
+});
+
+const pagedItems = computed(() => {
+  const start = (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage;
+  return sortedItems.value.slice(start, start + tableOptions.value.itemsPerPage);
+});
+
+const totalPages = computed(() => Math.max(1, Math.ceil(sortedItems.value.length / tableOptions.value.itemsPerPage)));
 
 const paginationInfo = computed(() => {
-  if (props.totalItems === 0) return "Sin registros";
-  const start =
-    (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1;
-  const end = Math.min(
-    tableOptions.value.page * tableOptions.value.itemsPerPage,
-    props.totalItems,
-  );
-  return `${start}–${end} de ${props.totalItems}`;
+  if (sortedItems.value.length === 0) return "Sin registros";
+  const start = (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1;
+  const end = Math.min(tableOptions.value.page * tableOptions.value.itemsPerPage, sortedItems.value.length);
+  return `${start}–${end} de ${sortedItems.value.length}`;
 });
 
 const visiblePages = computed(() => {
@@ -457,11 +407,7 @@ const visiblePages = computed(() => {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const delta = 1;
   const range = [];
-  for (
-    let i = Math.max(2, current - delta);
-    i <= Math.min(total - 1, current + delta);
-    i++
-  ) {
+  for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
     range.push(i);
   }
   if (range[0] > 2) range.unshift("...");
@@ -469,93 +415,70 @@ const visiblePages = computed(() => {
   return [1, ...range, total];
 });
 
-// ── Navegación ────────────────────────────────────────────────────────────────
+watch(
+  () => totalPages.value,
+  (total) => {
+    if (tableOptions.value.page > total) {
+      tableOptions.value = { ...tableOptions.value, page: total };
+    }
+  },
+);
+
 function goToPage(page) {
-  if (page < 1 || page > totalPages.value || page === tableOptions.value.page)
-    return;
+  if (page < 1 || page > totalPages.value || page === tableOptions.value.page) return;
   tableOptions.value = { ...tableOptions.value, page };
-  emitLoad();
 }
 
 function onItemsPerPageChange() {
   tableOptions.value = { ...tableOptions.value, page: 1 };
-  emitLoad();
 }
 
 function onMobileSortChange() {
-  const sortBy = mobileSortKey.value
-    ? [{ key: mobileSortKey.value, order: mobileSortOrder.value }]
-    : [];
+  const sortBy = mobileSortKey.value ? [{ key: mobileSortKey.value, order: mobileSortOrder.value }] : [];
   tableOptions.value = { ...tableOptions.value, page: 1, sortBy };
-  emitLoad();
-}
-
-function emitLoad() {
-  emit("load", {
-    page: tableOptions.value.page,
-    itemsPerPage: tableOptions.value.itemsPerPage,
-    sortByField: tableOptions.value.sortBy?.[0]?.key || "",
-    sortOrder: tableOptions.value.sortBy?.[0]?.order || "asc",
-    search: appliedSearch.value || null,
-  });
 }
 
 let initialized = false;
-
 function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
   if (!initialized) {
     initialized = true;
     return;
   }
-
-  if (props.loading) return; // ← bloquea si está cargando
-
-  const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
+  const newSortBy = mdAndUp.value ? sortBy ?? [] : tableOptions.value.sortBy;
   const changed =
     page !== tableOptions.value.page ||
     itemsPerPage !== tableOptions.value.itemsPerPage ||
     JSON.stringify(newSortBy) !== JSON.stringify(tableOptions.value.sortBy);
-
   tableOptions.value = { page, itemsPerPage, sortBy: newSortBy };
-
-  if (changed) emitLoad();
+  if (changed) {
+    // No emit needed; state drives table
+  }
 }
 
 function onSearch() {
-  appliedSearch.value = searchQuery.value.trim(); // ← confirma el término
+  appliedSearch.value = searchQuery.value.trim();
   tableOptions.value = { ...tableOptions.value, page: 1 };
-  emitLoad();
 }
 
 function onClear() {
   searchQuery.value = "";
   appliedSearch.value = "";
   tableOptions.value = { ...tableOptions.value, page: 1 };
-  emitLoad();
 }
 
 function onRefresh() {
-  emitLoad();
+  tableOptions.value = { ...tableOptions.value };
 }
 
 function reset() {
-  tableOptions.value = {
-    page: 1,
-    itemsPerPage: props.itemsPerPage,
-    sortBy: [],
-  };
+  tableOptions.value = { page: 1, itemsPerPage: props.itemsPerPage, sortBy: [] };
   mobileSortKey.value = null;
   mobileSortOrder.value = "asc";
   searchQuery.value = "";
   appliedSearch.value = "";
-  emitLoad();
 }
 
-defineExpose({ reset, load: emitLoad });
-
-onMounted(() => {
-  if (props.autoLoad) emitLoad();
-});
+defineExpose({ reset });
 </script>
 
 <style scoped>
