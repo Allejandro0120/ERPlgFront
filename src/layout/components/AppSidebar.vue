@@ -14,10 +14,9 @@
     <template #append>
       <SidebarFooter
         :rail="rail"
-        :user="currentUser"
+   
         :version="version"
-        @logout="handleLogout"
-        @change-password="handleChangePassword"
+   
       />
     </template>
   </v-navigation-drawer>

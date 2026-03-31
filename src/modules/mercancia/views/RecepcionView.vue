@@ -1,33 +1,10 @@
 <!-- src/modules/cartera/views/ClientesListView.vue -->
 <template>
-  <div>
-    <app-bar title="Gestion de Recepcion de mercancia">
-      <template #actions>
-        <v-btn
-          variant="tonal"
-          color="brand-grey-2 font-weight-bold"
-          prepend-icon="mdi-tray-arrow-down"
-          class="pa-4"
-          size="small"
-          
-        >
-          Exportar
-        </v-btn>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-plus"
-          variant="flat"
-          size="small"
-          class="py-4"
-        >
-          Añadir Recepcion
-        </v-btn>
-      </template>
-    </app-bar>
-    
-  </div>
+    <v-sheet rounded="lg" class="pa-6">
+      <p class="text-subtitle-1 font-weight-medium mb-0">
+        Vista de recepciones en construcción.
+      </p>
+    </v-sheet>
 </template>
 
-<script setup>
-import AppBar from "@/shared/ui/AppBar.vue";
-</script>
+<script setup></script>

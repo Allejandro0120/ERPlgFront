@@ -1,19 +1,30 @@
 <!-- src/modules/cartera/views/ClientesListView.vue -->
 <template>
-  <div>
-    <app-bar title="Gestión de Clientes">
-      <template #actions>
-        <v-btn
-          variant="tonal"
-          color="brand-grey-2"
-          prepend-icon="mdi-tray-arrow-down"
-          size="small"
-          class="font-weight-bold pa-4"
-        >
-          Exportar
-        </v-btn>
-      </template>
-    </app-bar>
+  <div class="w-100">
+    <page-header-actions>
+      <v-row density="comfortable">
+        <v-col cols="12" sm="auto">
+          <v-btn
+            variant="tonal"
+            color="brand-grey-2"
+            prepend-icon="mdi-tray-arrow-down"
+            class="text-none w-100"
+          >
+            Exportar
+          </v-btn>
+        </v-col>
+        <v-col cols="12" sm="auto" v-if="hasPermission('Clientes.ADD')">
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-plus"
+            @click="abrirCrear()"
+            class="text-none w-100"
+          >
+            Añadir Cliente
+          </v-btn>
+        </v-col>
+      </v-row>
+    </page-header-actions>
 
     <!-- Modal para cliente -->
     <cliente-dialog
@@ -23,70 +34,62 @@
       @submit="onSubmit"
     />
 
-    <v-container fluid class="w-100 mx-auto">
-      <div class="d-flex justify-end mb-3">
-        <v-btn
-          v-if="hasPermission('Clientes.ADD')"
-          color="primary"
-          prepend-icon="mdi-plus"
-          variant="flat"
-          @click="abrirCrear()"
-        >
-          Añadir Cliente
-        </v-btn>
-      </div>
-      <base-table
-        ref="tableRef"
-        title="Directorio de Clientes"
-        :headers="headers"
-        :items="clientes"
-        item-key="IdCliente"
-        :loading="loadingTable"
-        :total-items="totalItems"
-        :row-actions="rowActions"
-        empty-text="No se encontraron clientes"
-        searchable
-        search-placeholder="Buscar por identificación, nombre o municipio..."
-        @load="fetchData"
-      >
-        <!-- Filtros: cols="12" en móvil, cols="auto" en sm+ -->
-        <template #filters>
-          <v-col cols="12" md="2">
-            <v-select
-              v-model="estadoSeleccionado"
-              :items="estados"
-              item-title="Nombre"
-              item-value="Id"
-              label="Estado"
-              density="compact"
-              variant="outlined"
-              :disabled="loadingTable"
-              hide-details
-              @update:model-value="onFilterChange"
-            />
-          </v-col>
-        </template>
+    <base-table
+      ref="tableRef"
+      title="Directorio de Clientes"
+      :headers="headers"
+      :items="clientes"
+      item-key="IdCliente"
+      :loading="loadingTable"
+      :total-items="totalItems"
+      :row-actions="rowActions"
+      empty-text="No se encontraron clientes"
+      searchable
+      search-placeholder="Buscar por identificación, nombre o municipio..."
+      @load="fetchData"
+    >
+      <!-- Filtros: cols="12" en móvil, cols="auto" en sm+ -->
+      <template #filters>
+        <v-col cols="12" md="2">
+          <v-select
+            v-model="estadoSeleccionado"
+            :items="estados"
+            item-title="Nombre"
+            item-value="Id"
+            label="Estado"
+            density="compact"
+            variant="outlined"
+            :disabled="loadingTable"
+            hide-details
+            @update:model-value="onFilterChange"
+          />
+        </v-col>
+      </template>
 
-        <!-- Estado -->
-       <template #item.Estado="{ item }">
-          <v-chip
-            :color="getEstadoColor(getEstadoNombre(item.Estado), DOMINIOS_ESTADO.CLIENTE)"
-            size="small"
-            class="font-weight-medium"
-            variant="tonal"
-          >
-            <v-icon icon="mdi-circle" size="14" start></v-icon>
-            {{ getEstadoNombre(item.Estado) }}
-          </v-chip>
-        </template>
-      </base-table>
-    </v-container>
+      <!-- Estado -->
+      <template #item.Estado="{ item }">
+        <v-chip
+          :color="
+            getEstadoColor(
+              getEstadoNombre(item.Estado),
+              DOMINIOS_ESTADO.CLIENTE,
+            )
+          "
+          size="small"
+          class="font-weight-medium"
+          variant="tonal"
+        >
+          <v-icon icon="mdi-circle" size="14" start></v-icon>
+          {{ getEstadoNombre(item.Estado) }}
+        </v-chip>
+      </template>
+    </base-table>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import AppBar from "@/shared/ui/AppBar.vue";
+import PageHeaderActions from "@/shared/ui/PageHeaderActions.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
 import ClienteDialog from "@/modules/cartera/components/ClienteDialog.vue";
 import { clienteService } from "@/api/services/clienteService";

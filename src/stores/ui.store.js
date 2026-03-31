@@ -12,6 +12,9 @@ export const useUiStore = defineStore('ui', () => {
   // Rastrear el módulo actual activo (el grupo del sidebar que debe estar expandido)
   const activeModule = ref(null)
 
+  // Acciones opcionales a la derecha del encabezado de página
+  const headerActions = ref([])
+
   function toggleDrawer() {
     drawer.value = !drawer.value
   }
@@ -24,5 +27,13 @@ export const useUiStore = defineStore('ui', () => {
     activeModule.value = module
   }
 
-  return { drawer, rail, activeModule, toggleDrawer, toggleRail, setActiveModule }
+  function setHeaderActions(actions) {
+    headerActions.value = actions || []
+  }
+
+  function clearHeaderActions() {
+    headerActions.value = []
+  }
+
+  return { drawer, rail, activeModule, headerActions, toggleDrawer, toggleRail, setActiveModule, setHeaderActions, clearHeaderActions }
 })
