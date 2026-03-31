@@ -4,6 +4,7 @@
  */
 
 import api from "@/api/axios";
+import { withCache } from "@/api/utils/cache";
 
 export const clienteService = {
   /**
@@ -15,7 +16,14 @@ export const clienteService = {
    * @param {string} sortOrder - Orden (asc/desc)
    * @param {object} filters - Filtros adicionales
    */
-  getClientes: (page = 1, limit = 10, search = "", sortBy = "", sortOrder = "asc", filters = {}) => {
+  getClientes: (
+    page = 1,
+    limit = 10,
+    search = "",
+    sortBy = "",
+    sortOrder = "asc",
+    filters = {},
+  ) => {
     const params = new URLSearchParams({
       page,
       limit,
@@ -47,7 +55,8 @@ export const clienteService = {
   updateCliente: (updateData) => api.put("v1/clients/update", updateData),
 
   /**
-   * Obtiene los estados posibles de un cliente
+   * Obtiene los estados posibles de un cliente (Petición Cacheada de manera Global)
    */
-  getEstados: () => api.get("v1/clients/states"),
+  getEstados: () =>
+    withCache("clientes_estados", () => api.get("v1/clients/states")),
 };

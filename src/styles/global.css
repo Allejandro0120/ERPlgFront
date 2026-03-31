@@ -49,3 +49,9 @@
 .v-field--error .v-icon {
   color: rgb(var(--v-theme-error)) !important;
 }
+
+/* Evita que el focus de campos cambie el color de íconos dentro de chips (estado) */
+.estado-chip .v-icon {
+  color: inherit !important;
+ 
+}

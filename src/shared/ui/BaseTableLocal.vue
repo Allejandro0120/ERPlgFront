@@ -327,6 +327,7 @@ const props = defineProps({
   searchPlaceholder: { type: String, default: "Buscar..." },
   rowActions: { type: Array, default: () => [] },
   actionsKey: { type: String, default: "acciones" },
+  actionsWidth: { type: String, default: "150px" },
 });
 
 const authStore = useAuthStore();
@@ -350,7 +351,7 @@ const computedHeaders = computed(() => {
   if (!visibleRowActions.value.length || hasActionsCol) return visibleHeaders;
   return [
     ...visibleHeaders,
-    { title: "Acciones", key: props.actionsKey, sortable: false, align: "center" },
+    { title: "Acciones", key: props.actionsKey, sortable: false, align: "center", width: props.actionsWidth },
   ];
 });
 

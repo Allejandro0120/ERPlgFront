@@ -42,16 +42,24 @@
 </template>
 
 <script setup>
-import { toRefs } from "vue";
+import { toRefs, watch } from "vue";
+import { formatCOP } from "@/shared/utils/currency";
+import { rules } from "@/shared/utils/formRules";
+import { allow, bloquear } from "@/shared/utils/inputHelpers";
 
 const props = defineProps({
   form: { type: Object, required: true },
   listaPrecios: { type: Array, default: () => [] },
-  rules: { type: Object, required: true },
   isReadonly: { type: Boolean, default: false },
-  allow: { type: Object, required: true },
-  bloquear: { type: Function, required: true },
 });
 
-const { form, listaPrecios, rules, isReadonly, allow, bloquear } = toRefs(props);
+const { form, listaPrecios, isReadonly } = toRefs(props);
+
+watch(
+  () => form.value.CupoCredito,
+  (val) => {
+    const formatted = formatCOP(val);
+    if (val !== formatted) form.value.CupoCredito = formatted;
+  }
+);
 </script>

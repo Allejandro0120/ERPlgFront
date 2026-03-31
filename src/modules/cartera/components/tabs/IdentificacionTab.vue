@@ -79,33 +79,73 @@
         v-model="form.Estado"
         name="Estado"
         label="Estado"
-        :items="estadosCatalogo"
+        :items="estadosConColor"
         item-title="Nombre"
         item-value="Id"
-        prepend-inner-icon="mdi-circle"
+        prepend-inner-icon="mdi-account-badge-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
-      />
+      >
+        <template #selection="{ item }">
+          <v-chip label class="estado-chip" :color="item.color" variant="tonal">
+            <v-icon
+              icon="mdi-circle"
+              :color="item.color"
+              start
+              size="10"
+              class="ml-1"
+            />
+            {{ item.Nombre }}
+          </v-chip>
+        </template>
+
+        <template #item="{ item, props: itemProps }">
+          <v-list-item v-bind="itemProps" title="">
+            <v-chip label :color="item.color" variant="tonal">
+              <v-icon
+                icon="mdi-circle"
+                :color="item.color"
+                start
+                size="10"
+                class="ml-1"
+              />
+              {{ item.Nombre }}
+            </v-chip>
+          </v-list-item>
+        </template>
+      </v-select>
     </v-col>
   </v-row>
 </template>
 
 <script setup>
-import { toRefs } from "vue";
+import { computed, toRefs } from "vue";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { rules } from "@/shared/utils/formRules";
+import { allow, bloquear } from "@/shared/utils/inputHelpers";
 
 const props = defineProps({
   form: { type: Object, required: true },
   tipoDocumentos: { type: Array, default: () => [] },
   ciuuConNa: { type: Array, default: () => [] },
   estadosCatalogo: { type: Array, default: () => [] },
-  rules: { type: Object, required: true },
   isReadonly: { type: Boolean, default: false },
   showEstado: { type: Boolean, default: false },
-  allow: { type: Object, required: true },
-  bloquear: { type: Function, required: true },
 });
+const {
+  form,
+  tipoDocumentos,
+  ciuuConNa,
+  estadosCatalogo,
+  isReadonly,
+  showEstado,
+} = toRefs(props);
 
-const { form, tipoDocumentos, ciuuConNa, estadosCatalogo, rules, isReadonly, showEstado, allow, bloquear } =
-  toRefs(props);
+const estadosConColor = computed(() =>
+  (estadosCatalogo.value || []).map((estado) => ({
+    ...estado,
+    color: getEstadoColor(estado.Nombre, DOMINIOS_ESTADO.CLIENTE),
+  })),
+);
 </script>

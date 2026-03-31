@@ -6,7 +6,7 @@
     color="primary"
     :label-confirm="labelConfirm"
     :show-actions="!isReadonly"
-    max-width="1200"
+    max-width="1300"
     @update:model-value="onRequestClose"
     @accept="submitForm"
     :disable-confirm="isEditing && !hasChanges"
@@ -80,11 +80,8 @@
               :tipo-documentos="tipoDocumentos"
               :ciuu-con-na="ciuuConNa"
               :estados-catalogo="estadosCatalogo"
-              :rules="rules"
               :is-readonly="isReadonly"
               :show-estado="isEditing || isReadonly"
-              :allow="allow"
-              :bloquear="bloquear"
             />
           </v-tabs-window-item>
 
@@ -96,7 +93,6 @@
               :departamentos="departamentos"
               :municipios="municipios"
               :centros-poblados="centrosPoblados"
-              :rules="rules"
               :is-readonly="isReadonly"
               :loading-municipios="loadingMunicipios"
               :loading-centros-poblados="loadingCentrosPoblados"
@@ -110,10 +106,7 @@
             <comercial-tab
               :form="form"
               :lista-precios="listaPrecios"
-              :rules="rules"
               :is-readonly="isReadonly"
-              :allow="allow"
-              :bloquear="bloquear"
             />
           </v-tabs-window-item>
 
@@ -331,10 +324,12 @@ function onSucursalSubmit({ payload, mode }) {
 
 // ─── Headers y acciones para tabla de sucursales ────────────────────────────
 const sucursalesHeaders = computed(() => [
-  { title: "#", key: "indice", sortable: false, align: "left", width: "40px" },
-  { title: "Sucursal", key: "NombreSucursal", sortable: false },
-  { title: "Contacto", key: "Contacto", sortable: false },
-  { title: "Estado", key: "Habilitada", sortable: false, align: "center", width: "120px" },
+  { title: "#", key: "indice", sortable: false, align: "left" },
+  { title: "Nombre", key: "NombreSucursal", sortable: false },
+  { title: "Dirección", key: "Direccion", sortable: false },
+  { title: "Teléfono", key: "Telefono", sortable: false },
+  { title: "Correo", key: "CorreoGeneral", sortable: false },
+  { title: "Estado", key: "Habilitada", sortable: false, align: "center" },
 ]);
 
 const sucursalRowActions = [
@@ -434,44 +429,6 @@ const ciuuConNa = computed(() => [
   { display: "N/A", Codigo: null },
   ...actividadesCiiu.value,
 ]);
-
-// ─── Reglas ───────────────────────────────────────────────────────────────────
-const rules = {
-  required: (v) => {
-    if (typeof v === "string")
-      return (v && v.trim().length > 0) || "Este campo es obligatorio";
-    return (
-      (v !== null && v !== undefined && v !== "") || "Este campo es obligatorio"
-    );
-  },
-  email: (v) => /.+@.+\..+/.test(v) || "Correo no válido",
-  soloDigitosGuion: (v) =>
-    !v || /^[0-9\-]+$/.test(v) || "Solo se permiten números y guion ( - )",
-};
-
-// ─── Bloqueo de teclas ────────────────────────────────────────────────────────────
-const CONTROL_KEYS = new Set([
-  "Backspace",
-  "Delete",
-  "Tab",
-  "Escape",
-  "Enter",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
-  "ArrowDown",
-  "Home",
-  "End",
-]);
-const allow = {
-  soloDigitos: /^[0-9]$/,
-  idGuion: /^[0-9\-]$/,
-  decimal: /^[0-9.,]$/,
-};
-const bloquear = (event, pattern) => {
-  if (CONTROL_KEYS.has(event.key) || event.ctrlKey || event.metaKey) return;
-  if (!pattern.test(event.key)) event.preventDefault();
-};
 
 // ─── Carga de catálogos ───────────────────────────────────────────────────────
 const cargarTiposDocumentos = async () => {
@@ -591,15 +548,6 @@ const resetForm = () => {
   sucursalesSnapshot.value = null;
   formRef.value?.resetValidation();
 };
-
-// ─── Watch CupoCredito ────────────────────────────────────────────────────────
-watch(
-  () => form.value.CupoCredito,
-  (val) => {
-    const formatted = formatCOP(val);
-    if (val !== formatted) form.value.CupoCredito = formatted;
-  },
-);
 
 // ─── Watch apertura ───────────────────────────────────────────────────────────
 watch(

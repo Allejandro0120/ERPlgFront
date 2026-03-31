@@ -366,6 +366,7 @@ const props = defineProps({
   searchPlaceholder: { type: String, default: "Buscar..." },
   rowActions: { type: Array, default: () => [] },
   actionsKey: { type: String, default: "acciones" },
+  actionsWidth: { type: String, default: "150px" },
   autoLoad: { type: Boolean, default: true },
 });
 
@@ -397,6 +398,7 @@ const computedHeaders = computed(() => {
       key: props.actionsKey,
       sortable: false,
       align: "center",
+      width: props.actionsWidth,
     },
   ];
 });

@@ -64,6 +64,7 @@
 
 <script setup>
 import { toRefs } from "vue";
+import { rules } from "@/shared/utils/formRules";
 
 const emit = defineEmits(["departamento-change", "municipio-change"]);
 
@@ -73,7 +74,6 @@ const props = defineProps({
   departamentos: { type: Array, default: () => [] },
   municipios: { type: Array, default: () => [] },
   centrosPoblados: { type: Array, default: () => [] },
-  rules: { type: Object, required: true },
   isReadonly: { type: Boolean, default: false },
   loadingMunicipios: { type: Boolean, default: false },
   loadingCentrosPoblados: { type: Boolean, default: false },
@@ -85,7 +85,6 @@ const {
   departamentos,
   municipios,
   centrosPoblados,
-  rules,
   isReadonly,
   loadingMunicipios,
   loadingCentrosPoblados,

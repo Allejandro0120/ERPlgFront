@@ -68,9 +68,9 @@
         </template>
 
         <!-- Estado -->
-        <template #item.Estado="{ item }">
+       <template #item.Estado="{ item }">
           <v-chip
-            :color="getEstadoColor(item.Estado)"
+            :color="getEstadoColor(getEstadoNombre(item.Estado), DOMINIOS_ESTADO.CLIENTE)"
             size="small"
             class="font-weight-medium"
             variant="tonal"
@@ -91,6 +91,7 @@ import BaseTable from "@/shared/ui/BaseTable.vue";
 import ClienteDialog from "@/modules/cartera/components/ClienteDialog.vue";
 import { clienteService } from "@/api/services/clienteService";
 import { useAuthStore } from "@/stores/auth.store";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 
 const authStore = useAuthStore();
 const hasPermission = (permiso) => authStore.hasPermission(permiso);
@@ -131,11 +132,6 @@ const getEstadoNombre = (estadoId) => {
   return estado ? estado.Nombre : "Desconocido";
 };
 
-const getEstadoColor = (estado) => {
-  const map = { 0: "error", 1: "success", 2: "warning", 3: "grey" };
-  return map[estado] ?? "grey";
-};
-
 const clientes = ref([]);
 const totalItems = ref(0);
 const loadingTable = ref(false);
@@ -146,6 +142,7 @@ async function cargarEstados() {
   try {
     const response = await clienteService.getEstados();
     if (response.data?.success) {
+      // ✅ Ya NO usas withEstadoColor, solo asignas directamente
       estados.value = [{ Id: null, Nombre: "Todos" }, ...response.data.data];
     }
   } catch (error) {

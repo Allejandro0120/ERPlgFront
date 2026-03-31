@@ -27,19 +27,7 @@
             />
           </v-col>
 
-          <!-- Estado (solo edición / vista) -->
-          <v-col v-if="isEditing || isReadonly" cols="12">
-            <v-select
-              v-model="form.Habilitada"
-              name="Habilitada"
-              label="Estado"
-              :items="opcionesEstado"
-              item-title="label"
-              item-value="value"
-              prepend-inner-icon="mdi-circle"
-              :readonly="isReadonly"
-            />
-          </v-col>
+        
 
           <!-- Teléfono -->
           <v-col cols="12" sm="6">
@@ -135,6 +123,52 @@
               :clearable="!isReadonly"
             />
           </v-col>
+            <!-- Estado (solo edición / vista) -->
+          <v-col v-if="isEditing || isReadonly" cols="12" sm="6" >
+            <v-select
+              v-model="form.Habilitada"
+              name="Habilitada"
+              label="Estado"
+              :items="opcionesEstado"
+              item-title="label"
+              item-value="value"
+              prepend-inner-icon="mdi-domain"
+              :readonly="isReadonly"
+            >
+              <template #selection="{ item }">
+                <v-chip
+                  label
+                  class="estado-chip"
+                  :color="item.color"
+                  variant="tonal"
+                >
+                  <v-icon
+                    icon="mdi-circle"
+                    :color="item.color"
+                    start
+                    size="10"
+                    class="ml-1"
+                  />
+                  {{ item.label }}
+                </v-chip>
+              </template>
+
+              <template #item="{ item, props: itemProps }">
+                <v-list-item v-bind="itemProps" title="">
+                  <v-chip label :color="item.color" variant="tonal">
+                    <v-icon
+                      icon="mdi-circle"
+                      :color="item.color"
+                      start
+                      size="10"
+                      class="ml-1"
+                    />
+                    {{ item.label }}
+                  </v-chip>
+                </v-list-item>
+              </template>
+            </v-select>
+          </v-col>
         </v-row>
       </v-form>
     </template>
@@ -146,7 +180,9 @@ import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { globalService } from "@/api/services/globalService";
 import { $confirm } from "@/plugins/confirm/confirm.js";
-
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { rules } from "@/shared/utils/formRules";
+import { allow, bloquear } from "@/shared/utils/inputHelpers";
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
   modelValue: Boolean,
@@ -201,11 +237,15 @@ const centrosPoblados = ref([]);
 const loadingMunicipios = ref(false);
 const loadingCentrosPoblados = ref(false);
 
-const opcionesEstado = [
-  { label: "Habilitada", value: true },
-  { label: "Deshabilitada", value: false },
-];
-
+const opcionesEstado = computed(() =>
+  [
+    { label: "Habilitada", value: true },
+    { label: "Deshabilitada", value: false },
+  ].map((op) => ({
+    ...op,
+    color: getEstadoColor(op.value, DOMINIOS_ESTADO.SUCURSAL),
+  })),
+);
 const formInitial = {
   NombreSucursal: "",
   Telefono: "",
@@ -228,39 +268,6 @@ const hasChanges = computed(() => {
   if (!formSnapshot.value) return false;
   return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
 });
-
-// ─── Teclado ──────────────────────────────────────────────────────────────────
-const CONTROL_KEYS = new Set([
-  "Backspace",
-  "Delete",
-  "Tab",
-  "Escape",
-  "Enter",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
-  "ArrowDown",
-  "Home",
-  "End",
-]);
-const allow = { soloDigitos: /^[0-9]$/ };
-
-const bloquear = (event, pattern) => {
-  if (CONTROL_KEYS.has(event.key) || event.ctrlKey || event.metaKey) return;
-  if (!pattern.test(event.key)) event.preventDefault();
-};
-
-// ─── Reglas ───────────────────────────────────────────────────────────────────
-const rules = {
-  required: (v) => {
-    if (typeof v === "string")
-      return (v && v.trim().length > 0) || "Este campo es obligatorio";
-    return (
-      (v !== null && v !== undefined && v !== "") || "Este campo es obligatorio"
-    );
-  },
-  email: (v) => /.+@.+\..+/.test(v) || "Correo no válido",
-};
 
 // ─── Cascada ubicación ────────────────────────────────────────────────────────
 const onDepartamentoChange = async (idDepartamento) => {
