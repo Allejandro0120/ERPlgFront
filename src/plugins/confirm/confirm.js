@@ -1,13 +1,12 @@
-import { mdiAlertCircleOutline, mdiAlertOutline, mdiCheckCircleOutline, mdiCloseCircleOutline, mdiHelpCircleOutline, mdiInformationOutline } from "@mdi/js";
 import { reactive } from "vue";
 
 const TYPES = {
-  success: { color: "success", icon: mdiCheckCircleOutline,  actions: false },
-  error:   { color: "error",   icon: mdiCloseCircleOutline,  actions: false },
-  warning: { color: "warning", icon: mdiAlertOutline,         actions: true  },
-  info:    { color: "info",    icon: mdiInformationOutline,   actions: false },
-  confirm: { color: "primary", icon: mdiHelpCircleOutline,   actions: true  },
-  danger:  { color: "error",   icon: mdiAlertCircleOutline,  actions: true  },
+  success: { color: "success", icon: 'mdi-check-circle-outline',  actions: false },
+  error:   { color: "error",   icon: 'mdi-close-circle-outline',  actions: false },
+  warning: { color: "warning", icon: 'mdi-alert-outline',         actions: true  },
+  info:    { color: "info",    icon: 'mdi-information-outline',   actions: false },
+  confirm: { color: "primary", icon: 'mdi-help-circle-outline',   actions: true  },
+  danger:  { color: "error",   icon: 'mdi-alert-circle-outline',  actions: true  },
 };
 
 const state = reactive({

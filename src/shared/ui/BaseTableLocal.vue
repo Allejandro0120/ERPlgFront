@@ -27,6 +27,9 @@
             hide-details
             :disabled="loading"
             clearable
+            id="search-input-local"
+            name="searchQuery"
+            aria-label="Buscar"
             @keyup.enter="onSearch"
             @click:clear="onClear"
           />
@@ -47,6 +50,8 @@
               hide-details
               :disabled="loading"
               clearable
+              id="mobile-sort-key-local"
+              name="mobileSortKey"
               @update:model-value="onMobileSortChange"
             />
             <v-btn-toggle
@@ -59,10 +64,10 @@
               @update:model-value="onMobileSortChange"
             >
               <v-btn value="asc" size="small">
-                <v-icon size="18">{{ mdiArrowUp }}</v-icon>
+                <v-icon size="18">{{ "mdi-arrow-up" }}</v-icon>
               </v-btn>
               <v-btn value="desc" size="small">
-                <v-icon size="18">{{ mdiArrowDown }}</v-icon>
+                <v-icon size="18">{{ "mdi-arrow-down" }}</v-icon>
               </v-btn>
             </v-btn-toggle>
           </div>
@@ -87,7 +92,7 @@
             color="primary"
             variant="tonal"
             class="text-none flex-1-1 flex-sm-0-0"
-            :prepend-icon="mdiRefresh"
+            prepend-icon="mdi-refresh"
             :loading="loading"
             :disabled="loading"
             @click="onRefresh"
@@ -128,6 +133,7 @@
               :text="accion.label"
               location="top"
               :disabled="accion.showLabel"
+              :aria-label="accion.label"
             >
               <template #activator="{ props: tooltipProps }">
                 <v-btn
@@ -138,6 +144,7 @@
                   :variant="accion.variant ?? 'tonal'"
                   size="x-small"
                   rounded="xl"
+                  :aria-label="accion.label"
                   @click="accion.action(item)"
                 />
                 <v-btn
@@ -149,6 +156,7 @@
                   size="small"
                   rounded="xl"
                   class="text-none"
+                  :aria-label="accion.label"
                   @click="accion.action(item)"
                 >
                   {{ accion.label }}
@@ -162,10 +170,11 @@
             <template #activator="{ props: menuProps }">
               <v-btn
                 v-bind="menuProps"
-                :icon="mdiDotsVertical"
+                icon="mdi-dots-vertical"
                 variant="text"
                 size="small"
                 color="primary"
+                aria-label="Opciones"
               />
             </template>
             <v-list density="compact" min-width="160" elevation="8">
@@ -199,6 +208,9 @@
                 hide-details
                 class="flex-grow-0"
                 style="min-width: 75px; max-width: 90px"
+                aria-label="Filas por página"
+                id="items-per-page-local"
+                name="itemsPerPage"
                 @update:model-value="onItemsPerPageChange"
               />
             </v-col>
@@ -215,19 +227,21 @@
               class="d-none d-md-flex align-center justify-center ga-1"
             >
               <v-btn
-                :icon="mdiPageFirst"
+                icon="mdi-page-first"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
                 :disabled="tableOptions.page === 1 || loading"
+                aria-label="Primera página"
                 @click="goToPage(1)"
               />
               <v-btn
-                :icon="mdiChevronLeft"
+                icon="mdi-chevron-left"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
                 :disabled="tableOptions.page === 1 || loading"
+                aria-label="Página anterior"
                 @click="goToPage(tableOptions.page - 1)"
               />
               <template v-for="p in visiblePages" :key="p">
@@ -242,25 +256,28 @@
                   class="px-2"
                   style="min-width: 32px"
                   :disabled="loading"
+                  :aria-label="`Ir a la página ${p}`"
                   @click="goToPage(p)"
                 >
                   {{ p }}
                 </v-btn>
               </template>
               <v-btn
-                :icon="mdiChevronRight"
+                icon="mdi-chevron-right"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
                 :disabled="tableOptions.page === totalPages || loading"
+                aria-label="Página siguiente"
                 @click="goToPage(tableOptions.page + 1)"
               />
               <v-btn
-                :icon="mdiPageLast"
+                icon="mdi-page-last"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
                 :disabled="tableOptions.page === totalPages || loading"
+                aria-label="Última página"
                 @click="goToPage(totalPages)"
               />
             </v-col>
@@ -277,19 +294,21 @@
                 class="d-flex d-md-none align-center justify-center ga-1"
               >
                 <v-btn
-                  :icon="mdiPageFirst"
+                  icon="mdi-page-first"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
                   :disabled="tableOptions.page === 1 || loading"
+                  aria-label="Primera página"
                   @click="goToPage(1)"
                 />
                 <v-btn
-                  :icon="mdiChevronLeft"
+                  icon="mdi-chevron-left"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
                   :disabled="tableOptions.page === 1 || loading"
+                  aria-label="Página anterior"
                   @click="goToPage(tableOptions.page - 1)"
                 />
                 <template v-for="p in visiblePages" :key="p">
@@ -306,25 +325,28 @@
                     class="px-2"
                     style="min-width: 32px"
                     :disabled="loading"
+                    :aria-label="`Ir a la página ${p}`"
                     @click="goToPage(p)"
                   >
                     {{ p }}
                   </v-btn>
                 </template>
                 <v-btn
-                  :icon="mdiChevronRight"
+                  icon="mdi-chevron-right"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
                   :disabled="tableOptions.page === totalPages || loading"
+                  aria-label="Página siguiente"
                   @click="goToPage(tableOptions.page + 1)"
                 />
                 <v-btn
-                  :icon="mdiPageLast"
+                  icon="mdi-page-last"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
                   :disabled="tableOptions.page === totalPages || loading"
+                  aria-label="Última página"
                   @click="goToPage(totalPages)"
                 />
               </div>
@@ -337,16 +359,6 @@
 </template>
 
 <script setup>
-import {
-  mdiArrowUp,
-  mdiArrowDown,
-  mdiRefresh,
-  mdiDotsVertical,
-  mdiPageFirst,
-  mdiChevronLeft,
-  mdiChevronRight,
-  mdiPageLast,
-} from "@mdi/js";
 import { ref, computed, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";

@@ -4,11 +4,12 @@
       <v-select
         v-model="form.IdTipoDocumento"
         name="IdTipoDocumento"
+        id="IdTipoDocumento"
         label="Tipo de Documento"
         :items="tipoDocumentos"
         item-title="display"
         item-value="IdTipoDocumento"
-        :prepend-inner-icon="mdiCardAccountDetailsOutline"
+        prepend-inner-icon="mdi-card-account-details-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -18,8 +19,9 @@
       <v-text-field
         v-model="form.NumeroIdentificacion"
         name="NumeroIdentificacion"
+        id="NumeroIdentificacion"
         label="Número de Identificación"
-        :prepend-inner-icon="mdiNumeric"
+        prepend-inner-icon="mdi-numeric"
         :rules="[rules.required, rules.soloDigitosGuion]"
         :readonly="isReadonly"
         @keydown="bloquear($event, allow.idGuion)"
@@ -30,8 +32,9 @@
       <v-text-field
         v-model="form.Nombre"
         name="Nombre"
+        id="Nombre"
         label="Nombre o Razón Social"
-        :prepend-inner-icon="mdiDomain"
+        prepend-inner-icon="mdi-domain"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -41,11 +44,12 @@
       <v-autocomplete
         v-model="form.CIIU"
         name="CIIU"
+        id="CIIU"
         label="Actividad CIIU"
         :items="ciuuConNa"
         item-title="display"
         item-value="Codigo"
-        :prepend-inner-icon="mdiBriefcaseOutline"
+        prepend-inner-icon="mdi-briefcase-outline"
         :clearable="!isReadonly"
         :readonly="isReadonly"
       />
@@ -54,9 +58,10 @@
       <v-text-field
         v-model="form.CorreoGeneral"
         name="CorreoGeneral"
+        id="CorreoGeneral"
         label="Correo Electrónico"
         type="email"
-        :prepend-inner-icon="mdiEmailOutline"
+        prepend-inner-icon="mdi-email-outline"
         :rules="[rules.required, rules.email]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -66,8 +71,9 @@
       <v-text-field
         v-model="form.Telefono"
         name="Telefono"
+        id="Telefono"
         label="Teléfono"
-        :prepend-inner-icon="mdiPhoneOutline"
+        prepend-inner-icon="mdi-phone-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         @keydown="bloquear($event, allow.soloDigitos)"
@@ -78,11 +84,12 @@
       <v-select
         v-model="form.Estado"
         name="Estado"
+        id="Estado"
         label="Estado"
         :items="estadosConColor"
         item-title="Nombre"
         item-value="Id"
-        :prepend-inner-icon="mdiAccountBadgeOutline"
+        prepend-inner-icon="mdi-account-badge-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -124,7 +131,6 @@ import { computed, toRefs } from "vue";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";
-import { mdiCardAccountDetailsOutline, mdiNumeric, mdiDomain, mdiBriefcaseOutline, mdiEmailOutline, mdiPhoneOutline, mdiAccountBadgeOutline } from "@mdi/js";
 
 const props = defineProps({
   form: { type: Object, required: true },

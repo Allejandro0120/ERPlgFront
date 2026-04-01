@@ -33,7 +33,7 @@
           size="small"
           class="font-weight-medium"
         >
-          <v-icon :icon="mdiTag" start size="14" />
+          <v-icon icon="mdi-tag" start size="14" />
           {{ item.EstadoActa }}
         </v-chip>
       </template>
@@ -53,7 +53,6 @@
 </template>
 
 <script setup>
-import { mdiTag } from "@mdi/js";
 import { ref, computed } from "vue";
 import PageHeaderActions from "@/shared/ui/PageHeaderActions.vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";

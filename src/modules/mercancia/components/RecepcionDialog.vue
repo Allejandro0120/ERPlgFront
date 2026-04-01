@@ -2,7 +2,7 @@
   <base-dialog
     :model-value="modelValue"
     :title="dialogTitle"
-    :icon="dialogIcon"
+    icon="dialogIcon"
     color="primary"
     :label-confirm="labelConfirm"
     :show-actions="!isReadonly"
@@ -20,7 +20,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-              :prepend-inner-icon="mdiFile"
+              prepend-inner-icon="mdi-file"
             />
           </v-col>
           <v-col cols="12" sm="6">
@@ -33,7 +33,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-              :prepend-inner-icon="mdiNoteCheck"
+              prepend-inner-icon="mdi-note-check"
             >
               <template #selection="{ item }">
                 <v-chip
@@ -43,7 +43,7 @@
                   :color="estadoColor(item.value)"
                 >
                   <v-icon
-                    :icon="mdiTag"
+                    icon="mdi-tag"
                     :color="estadoColor(item.value)"
                     start
                     size="12"
@@ -56,7 +56,7 @@
                 <v-list-item v-bind="props">
                   <template #prepend>
                     <v-icon
-                      :icon="mdiTag"
+                      icon="mdi-tag"
                       :color="estadoColor(item.value)"
                       size="12"
                       class="ml-1"
@@ -76,7 +76,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-              :prepend-inner-icon="mdiTruck"
+              prepend-inner-icon="mdi-truck"
             />
           </v-col>
 
@@ -87,7 +87,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-              :prepend-inner-icon="mdiInvoiceOutline"
+              prepend-inner-icon="mdi-invoice-outline"
 
             />
           </v-col>
@@ -98,7 +98,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-             :prepend-inner-icon="mdiInvoiceTextOutline"
+             prepend-inner-icon="mdi-invoice-text-outline"
             />
           </v-col>
           <v-col cols="12" sm="6">
@@ -109,7 +109,7 @@
               density="compact"
               variant="outlined"
               :readonly="isReadonly"
-              :prepend-inner-icon="mdiCalendar"
+              prepend-inner-icon="mdi-calendar"
             />
           </v-col>
           <v-col cols="12" sm="6">
@@ -119,7 +119,7 @@
               type="date"
               density="compact"
               variant="outlined"
-              :prepend-inner-icon="mdiCalendar"
+              prepend-inner-icon="mdi-calendar"
               :readonly="isReadonly"
             />
           </v-col>
@@ -161,7 +161,6 @@
 </template>
 
 <script setup>
-import { mdiFile, mdiNoteCheck, mdiTag, mdiTruck, mdiInvoiceOutline, mdiInvoiceTextOutline, mdiCalendar, mdiFilePlus, mdiFileEdit, mdiFileEye } from "@mdi/js";
 import { reactive, computed, watch, ref } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
@@ -239,9 +238,9 @@ const dialogTitle = computed(
 const dialogIcon = computed(
   () =>
     ({
-      create: mdiFilePlus,
-      edit: mdiFileEdit,
-      view: mdiFileEye,
+      create: 'mdi-file-plus',
+      edit: 'mdi-file-edit',
+      view: 'mdi-file-eye',
     })[props.mode],
 );
 const labelConfirm = computed(

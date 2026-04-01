@@ -4,11 +4,12 @@
       <v-select
         v-model="form.IdListaPrecio"
         name="IdListaPrecio"
+        id="IdListaPrecio"
         label="Lista de Precios"
         :items="listaPrecios"
         item-title="display"
         item-value="IdListaPrecio"
-        :prepend-inner-icon="mdiTagOutline"
+        prepend-inner-icon="mdi-tag-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -18,8 +19,9 @@
       <v-text-field
         v-model.number="form.Plazo"
         name="Plazo"
+        id="Plazo"
         label="Plazo (días)"
-        :prepend-inner-icon="mdiCalendarClockOutline"
+        prepend-inner-icon="mdi-calendar-clock-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         @keydown="bloquear($event, allow.soloDigitos)"
@@ -30,8 +32,9 @@
       <v-text-field
         v-model="form.CupoCredito"
         name="CupoCredito"
+        id="CupoCredito"
         label="Cupo Crédito"
-        :prepend-inner-icon="mdiCurrencyUsd"
+        prepend-inner-icon="mdi-currency-usd"
         @keydown="bloquear($event, allow.decimal)"
         :rules="[rules.required]"
         :readonly="isReadonly"
@@ -46,11 +49,6 @@ import { toRefs, watch } from "vue";
 import { formatCOP } from "@/shared/utils/currency";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";
-import {
-  mdiTagOutline,
-  mdiCalendarClockOutline,
-  mdiCurrencyUsd,
-} from "@mdi/js";
 
 const props = defineProps({
   form: { type: Object, required: true },

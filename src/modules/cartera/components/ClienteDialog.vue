@@ -2,7 +2,7 @@
   <base-dialog
     :model-value="modelValue"
     :title="dialogTitle"
-    :icon="dialogIcon"
+    icon="dialogIcon"
     color="primary"
     :label-confirm="labelConfirm"
     :show-actions="!isReadonly"
@@ -25,7 +25,7 @@
         <!-- ── Tabs ──────────────────────────────────────────────── -->
         <v-tabs v-model="ui.tab" color="primary" class="mb-6">
           <v-tab value="identificacion">
-            <v-icon start :icon="mdiCardAccountDetailsOutline" />
+            <v-icon start icon="mdi-card-account-details-outline" />
             Identificación
             <v-badge
               v-if="tabErrors.identificacion"
@@ -36,7 +36,7 @@
             />
           </v-tab>
           <v-tab value="ubicacion">
-            <v-icon start :icon="mdiMapMarkerOutline" />
+            <v-icon start icon="mdi-map-marker-outline" />
             Ubicación
             <v-badge
               v-if="tabErrors.ubicacion"
@@ -47,7 +47,7 @@
             />
           </v-tab>
           <v-tab value="comercial">
-            <v-icon start :icon="mdiTagOutline" />
+            <v-icon start icon="mdi-tag-outline" />
             Comercial
             <v-badge
               v-if="tabErrors.comercial"
@@ -58,7 +58,7 @@
             />
           </v-tab>
           <v-tab value="sucursales">
-            <v-icon start :icon="mdiStoreOutline" />
+            <v-icon start icon="mdi-store-outline" />
             Sucursales
             <v-chip
               v-if="sucursales.length"
@@ -139,14 +139,6 @@ import IdentificacionTab from "./tabs/IdentificacionTab.vue";
 import UbicacionTab from "./tabs/UbicacionTab.vue";
 import ComercialTab from "./tabs/ComercialTab.vue";
 import SucursalesTab from "./tabs/SucursalesTab.vue";
-import {
-  mdiCardAccountDetailsOutline,
-  mdiMapMarkerOutline,
-  mdiTagOutline,
-  mdiStoreOutline,
-  mdiAccountPlus,
-  mdiAccountEdit,
-} from "@mdi/js";
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -177,9 +169,9 @@ const dialogTitle = computed(
 const dialogIcon = computed(
   () =>
     ({
-      create: mdiAccountPlus,
-      edit: mdiAccountEdit,
-      view: mdiCardAccountDetailsOutline,
+      create: 'mdi-account-plus',
+      edit: 'mdi-account-edit',
+      view: 'mdi-card-account-details-outline',
     })[props.mode],
 );
 const labelConfirm = computed(

@@ -22,7 +22,7 @@
       "
     >
       <v-icon size="44" color="grey-lighten-1" class="mb-3">{{
-        mdiStoreOffOutline
+        'mdi-store-off-outline'
       }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">
         Sin sucursales registradas
@@ -66,7 +66,6 @@
 </template>
 
 <script setup>
-import { mdiPlus, mdiStoreOffOutline } from "@mdi/js";
 import { computed, toRefs } from "vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";

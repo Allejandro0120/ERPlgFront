@@ -1,13 +1,18 @@
 <template>
   <v-container fluid class="fill-height bg-background pa-0">
-    <v-row  density="compact"class="fill-height" align="center" justify="center">
+    <v-row
+      density="compact"
+      class="fill-height"
+      align="center"
+      justify="center"
+    >
       <v-col cols="12" sm="10" md="8" lg="6" class="px-4 text-center">
         <div class="illustration-container mb-6">
           <div class="number-404">
             <span class="digit text-primary">4</span>
             <div class="circle-icon">
               <v-icon
-                :icon="mdiCompassOffOutline"
+                icon="mdi-compass-off-outline"
                 size="48"
                 color="primary"
               />
@@ -17,11 +22,14 @@
         </div>
 
         <div class="mb-8">
-          <h1 class="text-h5 text-md-h4 font-weight-bold text-brand-grey-1 mb-3">
+          <h1
+            class="text-h5 text-md-h4 font-weight-bold text-brand-grey-1 mb-3"
+          >
             ¡Oops! Página no encontrada
           </h1>
           <p class="text-body-1 text-brand-grey-3 mb-0 px-md-6">
-            La página que estás buscando no existe, fue movida o no tienes permisos para acceder a ella.
+            La página que estás buscando no existe, fue movida o no tienes
+            permisos para acceder a ella.
           </p>
         </div>
 
@@ -31,7 +39,7 @@
             size="large"
             min-width="160"
             height="48"
-            :prepend-icon="mdiArrowLeft"
+            prepend-icon="mdi-arrow-left"
             @click="goBack"
           >
             Regresar
@@ -42,7 +50,8 @@
   </v-container>
 </template>
 
-<script setup>import { mdiCompassOffOutline, mdiArrowLeft } from "@mdi/js";import { useRouter } from 'vue-router';
+<script setup>
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
@@ -50,7 +59,7 @@ function goBack() {
   if (window.history.length > 1) {
     router.back();
   } else {
-    router.push('/');
+    router.push("/");
   }
 }
 </script>
@@ -88,7 +97,8 @@ function goBack() {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -102,7 +112,7 @@ function goBack() {
   .digit {
     font-size: 7rem;
   }
-  
+
   .circle-icon {
     width: 100px;
     height: 100px;

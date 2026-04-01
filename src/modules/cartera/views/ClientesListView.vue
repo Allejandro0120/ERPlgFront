@@ -7,7 +7,7 @@
           <v-btn
             variant="tonal"
             color="brand-grey-2"
-            :prepend-icon="mdiTrayArrowDown"
+            prepend-icon="mdi-tray-arrow-down"
             class="text-none w-100"
           >
             Exportar
@@ -61,6 +61,8 @@
             variant="outlined"
             :disabled="loadingTable"
             hide-details
+            id="filtro-estado"
+            name="estadoFiltro"
             @update:model-value="onFilterChange"
           />
         </v-col>

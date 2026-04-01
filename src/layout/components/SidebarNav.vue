@@ -1,14 +1,14 @@
 <template>
-  <v-list density="compact" nav class="sidebar-nav" :opened="openedGroups">
+  <v-list density="compact" nav class="sidebar-nav" :opened="openedGroups" role="listbox" aria-label="Menú principal">
     <template v-for="group in menu" :key="getGroupAlias(group)">
       <v-list-group :value="getGroupAlias(group)">
         <template #activator="{ props, isOpen }">
-          <v-tooltip :text="group.Nombre" location="end">
+          <v-tooltip :text="group.Nombre" location="end" :aria-label="group.Nombre">
             <template #activator="{ props: tooltipProps }">
               <v-list-item
                 v-bind="{ ...props, ...tooltipProps }"
                 :title="group.Nombre"
-                :prepend-icon="getIconByName(group.Icono)"
+                :prepend-icon="group.Icono"
                 :color="isGroupActive(group) ? 'white' : ''"
                 :active="isGroupActive(group)"
                 slim
@@ -25,6 +25,7 @@
             :text="seccion.Nombre"
             location="end"
             :disabled="rail"
+            :aria-label="seccion.Nombre"
           >
             <template #activator="{ props: tooltipProps }">
               <v-list-item
@@ -48,7 +49,7 @@ import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getIconByName } from "@/shared/utils/iconMap";
+
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();

@@ -2,24 +2,14 @@
 import { createVuetify } from "vuetify";
 
 // Theme and defaults
-import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
-import {
-  mdiPlus,
-  mdiPencil,
-  mdiEye,
-  mdiDelete,
-  mdiMagnify,
-  mdiAccount,
-  mdiClose,
-  mdiCheck,
-  mdiCircle
-} from "@mdi/js";
+import { aliases, mdi } from "vuetify/iconsets/mdi";
 
 import { LIGHT_THEME } from "@/theme/theme";
 import { VUETIFY_DEFAULTS } from "@/theme/defaults";
 
 // Styles
 import "vuetify/styles";
+import "@mdi/font/css/materialdesignicons.css";
 import "@/styles/global.css";
 
 export default createVuetify({
@@ -28,16 +18,15 @@ export default createVuetify({
     defaultSet: "mdi",
     aliases: {
       ...aliases,
-      // Aquí agregas los íconos globales o más usados que quieras
-      plus: mdiPlus,
-      pencil: mdiPencil,
-      eye: mdiEye,
-      delete: mdiDelete,
-      search: mdiMagnify,
-      account: mdiAccount,
-      close: mdiClose,
-      check: mdiCheck,
-      circle: mdiCircle,
+      plus: "mdi-plus",
+      pencil: "mdi-pencil",
+      eye: "mdi-eye",
+      delete: "mdi-delete",
+      search: "mdi-magnify",
+      account: "mdi-account",
+      close: "mdi-close",
+      check: "mdi-check",
+      circle: "mdi-circle",
     },
     sets: { mdi },
   },

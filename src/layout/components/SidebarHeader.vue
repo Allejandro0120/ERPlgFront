@@ -13,7 +13,7 @@
           height 0.2s;
       "
     >
-      <v-img :src="logo" alt="Sanamos logo" cover />
+      <v-img :src="logo" alt="Sanamos logo" cover height="36" width="36" />
     </v-avatar>
 
     <Transition name="header-text">
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import logo from "@/assets/sanamos_logo.jpg";
+import logo from "@/assets/sanamos_logo.webp";
 
 defineProps({
   rail: { type: Boolean, default: false },

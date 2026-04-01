@@ -69,14 +69,12 @@
 </template>
 
 <script setup>
-import { mdiHelpCircleOutline } from '@mdi/js';
-
 defineProps({
   modelValue: Boolean,
   title: { type: String, default: "" },
   message: { type: String, default: "" },
   color: { type: String, default: "primary" },
-  icon: { type: String, default: mdiHelpCircleOutline },
+  icon: { type: String, default: 'mdi-help-circle-outline' },
   actions: { type: Boolean, default: true },
   persistent: { type: Boolean, default: false },
   labelConfirm: { type: String, default: "Confirmar" },

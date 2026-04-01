@@ -11,14 +11,13 @@
         <v-card class="px-10 py-14 mx-auto rounded-xl" max-width="440" border>
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
-            <v-img
+            <img
               :src="Logo"
               alt="Sanamos Santander"
-              max-width="180"
+              width="180"
               height="100"
-              contain
+              style="object-fit: contain"
               fetchpriority="high"
-              :eager="true"
             />
           </div>
 
@@ -41,7 +40,7 @@
                 v-model="form.Codigo"
                 label="Usuario"
                 placeholder="Usuario"
-                :prepend-inner-icon="mdiAccountOutline"
+                prepend-inner-icon="mdi-account-outline"
                 required
                 :rules="[rules.required]"
               />
@@ -54,9 +53,9 @@
                 v-model="form.Contrasena"
                 label="Contraseña"
                 placeholder="••••••••"
-                :prepend-inner-icon="mdiLockOutline"
+                prepend-inner-icon="mdi-lock-outline"
                 :append-inner-icon="
-                  showPassword ? mdiEyeOutline : mdiEyeOffOutline
+                  showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
                 "
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
@@ -76,7 +75,7 @@
               :disabled="loadingLogin"
             >
               Iniciar Sesión
-              <v-icon end :icon="mdiLogin" class="ml-2" />
+              <v-icon end icon="mdi-login" class="ml-2" />
             </v-btn>
 
             <!-- Olvidaste tu contraseña -->
@@ -109,13 +108,6 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
 import Logo from "/sanamos_logo_horizontal.webp";
-import {
-  mdiAccountOutline,
-  mdiLockOutline,
-  mdiEyeOutline,
-  mdiEyeOffOutline,
-  mdiLogin,
-} from "@mdi/js";
 
 // ─── Composables ─────────────────────────────────────────────────────────────
 const router = useRouter();

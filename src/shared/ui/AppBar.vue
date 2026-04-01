@@ -1,6 +1,6 @@
 <template>
   <v-app-bar flat border="b">
-    <v-app-bar-nav-icon @click="handleMenuClick" />
+    <v-app-bar-nav-icon aria-label="Alternar menú de navegación" @click="handleMenuClick" />
     <v-app-bar-title class="font-weight-bold text-brand-grey-1">
       {{ moduleTitle }}
     </v-app-bar-title>
@@ -28,7 +28,7 @@
                 {{ currentUser.name }}
               </span>
               <v-icon
-                :icon="mdiChevronDown"
+                icon="mdi-chevron-down"
                 size="18"
                 class="text-brand-grey-1"
               />
@@ -50,14 +50,14 @@
             />
             <v-divider class="my-1" />
             <v-list-item
-              :prepend-icon="mdiLockReset"
+              prepend-icon="mdi-lock-reset"
               title="Cambiar contraseña"
               rounded="lg"
               @click="handleChangePassword"
             />
             <v-divider class="my-1" />
             <v-list-item
-              :prepend-icon="mdiLogout"
+              prepend-icon="mdi-logout"
               title="Cerrar sesión"
               rounded="lg"
               base-color="error"
@@ -70,7 +70,6 @@
   </v-app-bar>
 </template>
 <script setup>
-import { mdiChevronDown, mdiLockReset, mdiLogout } from "@mdi/js";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify/lib/composables/display";

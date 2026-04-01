@@ -4,11 +4,12 @@
       <v-autocomplete
         v-model="ui.idDepartamento"
         name="idDepartamento"
+        id="idDepartamento"
         label="Departamento"
         :items="departamentos"
         item-title="NombreDepartamento"
         item-value="IdDepartamento"
-        :prepend-inner-icon="mdiMapOutline"
+        prepend-inner-icon="mdi-map-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         @update:model-value="onDepartamentoChange"
@@ -19,11 +20,12 @@
       <v-autocomplete
         v-model="ui.idMunicipio"
         name="idMunicipio"
+        id="idMunicipio"
         label="Municipio"
         :items="municipios"
         item-title="NombreMunicipio"
         item-value="IdMunicipio"
-        :prepend-inner-icon="mdiCityVariantOutline"
+        prepend-inner-icon="mdi-city-variant-outline"
         :disabled="!ui.idDepartamento"
         :loading="loadingMunicipios"
         :rules="[rules.required]"
@@ -36,11 +38,12 @@
       <v-autocomplete
         v-model="form.IdCentroPoblado"
         name="IdCentroPoblado"
+        id="IdCentroPoblado"
         label="Centro Poblado"
         :items="centrosPoblados"
         item-title="NombreCentroPoblado"
         item-value="IdCentroPoblado"
-        :prepend-inner-icon="mdiHomeGroup"
+        prepend-inner-icon="mdi-home-group"
         :disabled="!ui.idMunicipio"
         :loading="loadingCentrosPoblados"
         :rules="[rules.required]"
@@ -52,8 +55,9 @@
       <v-text-field
         v-model="form.Direccion"
         name="Direccion"
+        id="Direccion"
         label="Dirección"
-        :prepend-inner-icon="mdiMapMarkerOutline"
+        prepend-inner-icon="mdi-map-marker-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -63,7 +67,6 @@
 </template>
 
 <script setup>
-import { mdiMapOutline, mdiCityVariantOutline, mdiHomeGroup, mdiMapMarkerOutline } from "@mdi/js";
 import { toRefs } from "vue";
 import { rules } from "@/shared/utils/formRules";
 
