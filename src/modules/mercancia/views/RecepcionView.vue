@@ -5,7 +5,7 @@
         <v-col cols="12" sm="auto" v-if="hasPermission('Recepcion.ADD')">
           <v-btn
             color="primary"
-            prepend-icon="mdi-plus"
+            prepend-icon="$plus"
             class="text-none w-100"
             @click="abrirCrear"
           >
@@ -33,7 +33,7 @@
           size="small"
           class="font-weight-medium"
         >
-          <v-icon icon="mdi-tag" start size="14" />
+          <v-icon :icon="mdiTag" start size="14" />
           {{ item.EstadoActa }}
         </v-chip>
       </template>
@@ -53,6 +53,7 @@
 </template>
 
 <script setup>
+import { mdiTag } from "@mdi/js";
 import { ref, computed } from "vue";
 import PageHeaderActions from "@/shared/ui/PageHeaderActions.vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
@@ -108,13 +109,13 @@ const headers = [
 const rowActions = [
   {
     label: "Ver",
-    icon: "mdi-eye",
+    icon: "$eye",
     color: "primary",
     action: (item) => abrirDialog("view", item),
   },
   {
     label: "Editar",
-    icon: "mdi-pencil",
+    icon: "$pencil",
     action: (item) => abrirDialog("edit", item),
     permission: "Recepcion.EDIT",
     visible: () => hasPermission("Recepcion.EDIT"),

@@ -24,7 +24,7 @@
           <v-text-field
             v-model="searchQuery"
             :placeholder="searchPlaceholder"
-            prepend-inner-icon="mdi-magnify"
+            prepend-inner-icon="$search"
             density="compact"
             variant="outlined"
             hide-details
@@ -64,10 +64,10 @@
               @update:model-value="onMobileSortChange"
             >
               <v-btn value="asc" size="small">
-                <v-icon size="18">mdi-arrow-up</v-icon>
+                <v-icon size="18">{{ mdiArrowUp }}</v-icon>
               </v-btn>
               <v-btn value="desc" size="small">
-                <v-icon size="18">mdi-arrow-down</v-icon>
+                <v-icon size="18">{{ mdiArrowDown }}</v-icon>
               </v-btn>
             </v-btn-toggle>
           </div>
@@ -83,7 +83,7 @@
             color="primary"
             variant="flat"
             class="text-none flex-1-1 flex-sm-0-0"
-            prepend-icon="mdi-magnify"
+            prepend-icon="$search"
             :loading="loading"
             :disabled="loading"
             @click="onSearch"
@@ -94,7 +94,7 @@
             color="primary"
             variant="tonal"
             class="text-none flex-1-1 flex-sm-0-0"
-            prepend-icon="mdi-refresh"
+            :prepend-icon="mdiRefresh"
             :loading="loading"
             :disabled="loading"
             @click="onRefresh"
@@ -132,47 +132,51 @@
         #[`item.${actionsKey}`]="{ item }"
       >
         <!-- Desktop: botones con tooltip -->
-    <!-- Desktop: botones con tooltip -->
-<div class="d-none d-md-flex align-center justify-center ga-2">
-  <template v-for="accion in visibleRowActions" :key="accion.label">
-    <v-tooltip :text="accion.label" location="top" :disabled="accion.showLabel">
-      <template #activator="{ props: tooltipProps }">
-        <!-- Solo icono -->
-        <v-btn
-          v-if="!accion.showLabel && accion.icon"
-          v-bind="tooltipProps"
-          :icon="accion.icon"
-          :color="accion.color ?? 'primary'"
-          :variant="accion.variant ?? 'tonal'"
-          size="x-small"
-          rounded="xl"
-          @click="accion.action(item)"
-        />
-        <!-- Icono + texto o solo texto -->
-        <v-btn
-          v-else
-          v-bind="tooltipProps"
-          :prepend-icon="accion.icon ?? undefined"
-          :color="accion.color ?? 'primary'"
-          :variant="accion.variant ?? 'tonal'"
-          size="small"
-          rounded="xl"
-          class="text-none"
-          @click="accion.action(item)"
-        >
-          {{ accion.label }}
-        </v-btn>
-      </template>
-    </v-tooltip>
-  </template>
-</div>
+        <!-- Desktop: botones con tooltip -->
+        <div class="d-none d-md-flex align-center justify-center ga-2">
+          <template v-for="accion in visibleRowActions" :key="accion.label">
+            <v-tooltip
+              :text="accion.label"
+              location="top"
+              :disabled="accion.showLabel"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <!-- Solo icono -->
+                <v-btn
+                  v-if="!accion.showLabel && accion.icon"
+                  v-bind="tooltipProps"
+                  :icon="accion.icon"
+                  :color="accion.color ?? 'primary'"
+                  :variant="accion.variant ?? 'tonal'"
+                  size="x-small"
+                  rounded="xl"
+                  @click="accion.action(item)"
+                />
+                <!-- Icono + texto o solo texto -->
+                <v-btn
+                  v-else
+                  v-bind="tooltipProps"
+                  :prepend-icon="accion.icon ?? undefined"
+                  :color="accion.color ?? 'primary'"
+                  :variant="accion.variant ?? 'tonal'"
+                  size="small"
+                  rounded="xl"
+                  class="text-none"
+                  @click="accion.action(item)"
+                >
+                  {{ accion.label }}
+                </v-btn>
+              </template>
+            </v-tooltip>
+          </template>
+        </div>
         <!-- Móvil: menú 3 puntos -->
         <div class="d-flex d-md-none justify-end">
           <v-menu location="bottom end">
             <template #activator="{ props: menuProps }">
               <v-btn
                 v-bind="menuProps"
-                icon="mdi-dots-vertical"
+                :icon="mdiDotsVertical"
                 variant="text"
                 size="small"
                 color="primary"
@@ -226,7 +230,7 @@
               class="d-none d-md-flex align-center justify-center ga-1"
             >
               <v-btn
-                icon="mdi-page-first"
+                :icon="mdiPageFirst"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
@@ -234,7 +238,7 @@
                 @click="goToPage(1)"
               />
               <v-btn
-                icon="mdi-chevron-left"
+                :icon="mdiChevronLeft"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
@@ -258,7 +262,7 @@
                 >
               </template>
               <v-btn
-                icon="mdi-chevron-right"
+                :icon="mdiChevronRight"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
@@ -266,7 +270,7 @@
                 @click="goToPage(tableOptions.page + 1)"
               />
               <v-btn
-                icon="mdi-page-last"
+                :icon="mdiPageLast"
                 variant="text"
                 size="small"
                 color="grey-darken-2"
@@ -287,7 +291,7 @@
                 class="d-flex d-md-none align-center justify-center ga-1"
               >
                 <v-btn
-                  icon="mdi-page-first"
+                  :icon="mdiPageFirst"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
@@ -295,7 +299,7 @@
                   @click="goToPage(1)"
                 />
                 <v-btn
-                  icon="mdi-chevron-left"
+                  :icon="mdiChevronLeft"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
@@ -321,7 +325,7 @@
                   >
                 </template>
                 <v-btn
-                  icon="mdi-chevron-right"
+                  :icon="mdiChevronRight"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
@@ -329,7 +333,7 @@
                   @click="goToPage(tableOptions.page + 1)"
                 />
                 <v-btn
-                  icon="mdi-page-last"
+                  :icon="mdiPageLast"
                   variant="text"
                   size="small"
                   color="grey-darken-2"
@@ -346,6 +350,16 @@
 </template>
 
 <script setup>
+import {
+  mdiArrowUp,
+  mdiArrowDown,
+  mdiRefresh,
+  mdiDotsVertical,
+  mdiPageFirst,
+  mdiChevronLeft,
+  mdiChevronRight,
+  mdiPageLast,
+} from "@mdi/js";
 import { ref, computed, onMounted } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";
@@ -383,7 +397,8 @@ const isVisible = (obj) => {
 
 const visibleRowActions = computed(() =>
   props.rowActions.filter(
-    (a) => isVisible(a) && (!a.permission || authStore.hasPermission(a.permission)),
+    (a) =>
+      isVisible(a) && (!a.permission || authStore.hasPermission(a.permission)),
   ),
 );
 

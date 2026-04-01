@@ -7,7 +7,7 @@
             <span class="digit text-primary">4</span>
             <div class="circle-icon">
               <v-icon
-                icon="mdi-compass-off-outline"
+                :icon="mdiCompassOffOutline"
                 size="48"
                 color="primary"
               />
@@ -31,7 +31,7 @@
             size="large"
             min-width="160"
             height="48"
-            prepend-icon="mdi-arrow-left"
+            :prepend-icon="mdiArrowLeft"
             @click="goBack"
           >
             Regresar
@@ -42,8 +42,7 @@
   </v-container>
 </template>
 
-<script setup>
-import { useRouter } from 'vue-router';
+<script setup>import { mdiCompassOffOutline, mdiArrowLeft } from "@mdi/js";import { useRouter } from 'vue-router';
 
 const router = useRouter();
 

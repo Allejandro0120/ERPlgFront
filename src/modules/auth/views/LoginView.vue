@@ -17,6 +17,8 @@
               max-width="180"
               height="100"
               contain
+              fetchpriority="high"
+              :eager="true"
             />
           </div>
 
@@ -25,7 +27,7 @@
             <h1 class="text-title-medium font-weight-bold text-brand-grey-1 mb">
               Acceso al Sistema
             </h1>
-            <p class="text-title-small text-brand-grey-3 mt-n2">
+            <p class="text-title-small text-brand-grey-2 mt-n2">
               Bienvenido a la plataforma administrativa
             </p>
           </div>
@@ -35,10 +37,11 @@
             <!-- Usuario -->
             <div class="mb-3">
               <v-text-field
+                id="campo-usuario"
                 v-model="form.Codigo"
                 label="Usuario"
                 placeholder="Usuario"
-                prepend-inner-icon="mdi-account-outline"
+                :prepend-inner-icon="mdiAccountOutline"
                 required
                 :rules="[rules.required]"
               />
@@ -47,14 +50,16 @@
             <!-- Contraseña -->
             <div class="mb-6">
               <v-text-field
+                id="campo-contrasena"
                 v-model="form.Contrasena"
                 label="Contraseña"
                 placeholder="••••••••"
-                prepend-inner-icon="mdi-lock-outline"
+                :prepend-inner-icon="mdiLockOutline"
                 :append-inner-icon="
-                  showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
+                  showPassword ? mdiEyeOutline : mdiEyeOffOutline
                 "
                 :type="showPassword ? 'text' : 'password'"
+                autocomplete="current-password"
                 required
                 :rules="[rules.requiredPassword]"
                 @click:append-inner="showPassword = !showPassword"
@@ -71,7 +76,7 @@
               :disabled="loadingLogin"
             >
               Iniciar Sesión
-              <v-icon end icon="mdi-login" class="ml-2" />
+              <v-icon end :icon="mdiLogin" class="ml-2" />
             </v-btn>
 
             <!-- Olvidaste tu contraseña -->
@@ -88,7 +93,7 @@
 
         <!-- Footer -->
         <div class="text-center mt-6">
-          <span class="text-body-small text-brand-grey-3">
+          <span class="text-body-small text-brand-grey-1">
             © {{ year }} Sanamos Santander. Todos los derechos reservados.
           </span>
         </div>
@@ -103,7 +108,14 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
-import Logo from "@/assets/sanamos_logo_horizontal.jpg";
+import Logo from "/sanamos_logo_horizontal.webp";
+import {
+  mdiAccountOutline,
+  mdiLockOutline,
+  mdiEyeOutline,
+  mdiEyeOffOutline,
+  mdiLogin,
+} from "@mdi/js";
 
 // ─── Composables ─────────────────────────────────────────────────────────────
 const router = useRouter();
@@ -180,18 +192,12 @@ const year = new Date().getFullYear();
 </script>
 
 <style scoped>
-.login-background {
-  background-color: #0d2e5c;
-  background-image:
-    linear-gradient(rgba(13, 46, 92, 0.552), rgba(13, 46, 92, 0.705)),
-    url("@/assets/pildoras_background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-blend-mode: multiply;
-}
-
 .link-hover:hover {
   text-decoration: underline !important;
+}
+
+/* Aumentar contraste - labels más oscuros para pasar WCAG AA */
+:deep() .v-label {
+  color: #0f172a !important;
 }
 </style>

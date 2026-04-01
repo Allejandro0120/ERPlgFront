@@ -28,7 +28,6 @@ import { useDisplay } from "vuetify";
 import { useRouter } from "vue-router";
 import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { authService } from "@/api/services/authService";
 import SidebarNav from "./SidebarNav.vue";
 import SidebarHeader from "./SidebarHeader.vue";
 import SidebarFooter from "./SidebarFooter.vue";

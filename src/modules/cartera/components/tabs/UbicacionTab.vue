@@ -8,7 +8,7 @@
         :items="departamentos"
         item-title="NombreDepartamento"
         item-value="IdDepartamento"
-        prepend-inner-icon="mdi-map-outline"
+        :prepend-inner-icon="mdiMapOutline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         @update:model-value="onDepartamentoChange"
@@ -23,7 +23,7 @@
         :items="municipios"
         item-title="NombreMunicipio"
         item-value="IdMunicipio"
-        prepend-inner-icon="mdi-city-variant-outline"
+        :prepend-inner-icon="mdiCityVariantOutline"
         :disabled="!ui.idDepartamento"
         :loading="loadingMunicipios"
         :rules="[rules.required]"
@@ -40,7 +40,7 @@
         :items="centrosPoblados"
         item-title="NombreCentroPoblado"
         item-value="IdCentroPoblado"
-        prepend-inner-icon="mdi-home-group"
+        :prepend-inner-icon="mdiHomeGroup"
         :disabled="!ui.idMunicipio"
         :loading="loadingCentrosPoblados"
         :rules="[rules.required]"
@@ -53,7 +53,7 @@
         v-model="form.Direccion"
         name="Direccion"
         label="Dirección"
-        prepend-inner-icon="mdi-map-marker-outline"
+        :prepend-inner-icon="mdiMapMarkerOutline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -63,6 +63,7 @@
 </template>
 
 <script setup>
+import { mdiMapOutline, mdiCityVariantOutline, mdiHomeGroup, mdiMapMarkerOutline } from "@mdi/js";
 import { toRefs } from "vue";
 import { rules } from "@/shared/utils/formRules";
 

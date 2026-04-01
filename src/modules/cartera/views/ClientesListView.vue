@@ -7,7 +7,7 @@
           <v-btn
             variant="tonal"
             color="brand-grey-2"
-            prepend-icon="mdi-tray-arrow-down"
+            :prepend-icon="mdiTrayArrowDown"
             class="text-none w-100"
           >
             Exportar
@@ -16,7 +16,7 @@
         <v-col cols="12" sm="auto" v-if="hasPermission('Clientes.ADD')">
           <v-btn
             color="primary"
-            prepend-icon="mdi-plus"
+            prepend-icon="$plus"
             @click="abrirCrear()"
             class="text-none w-100"
           >
@@ -79,7 +79,7 @@
           class="font-weight-medium"
           variant="tonal"
         >
-          <v-icon icon="mdi-circle" size="14" start></v-icon>
+          <v-icon icon="$circle" size="14" start></v-icon>
           {{ getEstadoNombre(item.Estado) }}
         </v-chip>
       </template>
@@ -116,12 +116,12 @@ const headers = [
 const rowActions = [
   {
     label: "Editar",
-    icon: "mdi-pencil",
+    icon: "$pencil",
     action: (item) => editarCliente(item),
   },
   {
     label: "Ver detalle",
-    icon: "mdi-eye",
+    icon: "$eye",
     color: "amber-darken-2",
     action: (item) => verDetalle(item),
   },

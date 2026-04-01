@@ -36,7 +36,7 @@
         <!-- Botón cerrar -->
         <v-btn
           v-if="!persistent"
-          icon="mdi-close"
+          icon="$close"
           variant="text"
           color="brand-grey-3"
           size="small"
@@ -81,6 +81,7 @@
   </v-dialog>
 </template>
 <script setup>
+
 defineProps({
   modelValue: Boolean,
   title: { type: String, default: "" },

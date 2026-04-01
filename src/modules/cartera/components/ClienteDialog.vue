@@ -25,7 +25,7 @@
         <!-- ── Tabs ──────────────────────────────────────────────── -->
         <v-tabs v-model="ui.tab" color="primary" class="mb-6">
           <v-tab value="identificacion">
-            <v-icon start icon="mdi-card-account-details-outline" />
+            <v-icon start :icon="mdiCardAccountDetailsOutline" />
             Identificación
             <v-badge
               v-if="tabErrors.identificacion"
@@ -36,7 +36,7 @@
             />
           </v-tab>
           <v-tab value="ubicacion">
-            <v-icon start icon="mdi-map-marker-outline" />
+            <v-icon start :icon="mdiMapMarkerOutline" />
             Ubicación
             <v-badge
               v-if="tabErrors.ubicacion"
@@ -47,7 +47,7 @@
             />
           </v-tab>
           <v-tab value="comercial">
-            <v-icon start icon="mdi-tag-outline" />
+            <v-icon start :icon="mdiTagOutline" />
             Comercial
             <v-badge
               v-if="tabErrors.comercial"
@@ -58,7 +58,7 @@
             />
           </v-tab>
           <v-tab value="sucursales">
-            <v-icon start icon="mdi-store-outline" />
+            <v-icon start :icon="mdiStoreOutline" />
             Sucursales
             <v-chip
               v-if="sucursales.length"
@@ -139,6 +139,14 @@ import IdentificacionTab from "./tabs/IdentificacionTab.vue";
 import UbicacionTab from "./tabs/UbicacionTab.vue";
 import ComercialTab from "./tabs/ComercialTab.vue";
 import SucursalesTab from "./tabs/SucursalesTab.vue";
+import {
+  mdiCardAccountDetailsOutline,
+  mdiMapMarkerOutline,
+  mdiTagOutline,
+  mdiStoreOutline,
+  mdiAccountPlus,
+  mdiAccountEdit,
+} from "@mdi/js";
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -169,9 +177,9 @@ const dialogTitle = computed(
 const dialogIcon = computed(
   () =>
     ({
-      create: "mdi-account-plus",
-      edit: "mdi-account-edit",
-      view: "mdi-card-account-details-outline",
+      create: mdiAccountPlus,
+      edit: mdiAccountEdit,
+      view: mdiCardAccountDetailsOutline,
     })[props.mode],
 );
 const labelConfirm = computed(
@@ -335,13 +343,13 @@ const sucursalesHeaders = computed(() => [
 const sucursalRowActions = [
   {
     label: "Editar",
-    icon: "mdi-pencil",
+    icon: "$pencil",
     action: (item) => handleEditarSucursal(item),
     visible: () => !isReadonly.value,
   },
   {
     label: "Ver detalle",
-    icon: "mdi-eye",
+    icon: "$eye",
     action: (item) => handleVerSucursal(item),
     visible: () => isReadonly.value,
   },

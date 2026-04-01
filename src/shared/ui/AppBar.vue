@@ -10,39 +10,54 @@
         <v-menu location="bottom end" :offset="[0, 8]">
           <template #activator="{ props }">
             <v-divider class="border-opacity-25" vertical></v-divider>
-            
+
             <v-btn
               v-bind="props"
               variant="text"
               class="d-flex align-center px-2"
             >
-              <v-avatar size="32" class="bg-primary text-white font-weight-bold">
+              <v-avatar
+                size="32"
+                class="bg-primary text-white font-weight-bold"
+              >
                 {{ userInitials }}
               </v-avatar>
-              <span class="text-body-small font-weight-medium text-brand-grey-1 d-none d-sm-inline ml-2">
+              <span
+                class="text-body-small font-weight-medium text-brand-grey-1 d-none d-sm-inline ml-2"
+              >
                 {{ currentUser.name }}
               </span>
-              <v-icon icon="mdi-chevron-down" size="18" class="text-brand-grey-1" />
+              <v-icon
+                :icon="mdiChevronDown"
+                size="18"
+                class="text-brand-grey-1"
+              />
             </v-btn>
           </template>
 
-          <v-list density="compact" nav min-width="200" elevation="3" rounded="lg">
+          <v-list
+            density="compact"
+            nav
+            min-width="200"
+            elevation="3"
+            rounded="lg"
+          >
             <v-list-item
-              prepend-icon="mdi-account"
+              prepend-icon="$account"
               :title="currentUser.name"
               :subtitle="currentUser.role"
               disabled
             />
             <v-divider class="my-1" />
             <v-list-item
-              prepend-icon="mdi-lock-reset"
+              :prepend-icon="mdiLockReset"
               title="Cambiar contraseña"
               rounded="lg"
               @click="handleChangePassword"
             />
             <v-divider class="my-1" />
             <v-list-item
-              prepend-icon="mdi-logout"
+              :prepend-icon="mdiLogout"
               title="Cerrar sesión"
               rounded="lg"
               base-color="error"
@@ -55,12 +70,12 @@
   </v-app-bar>
 </template>
 <script setup>
+import { mdiChevronDown, mdiLockReset, mdiLogout } from "@mdi/js";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify/lib/composables/display";
 import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { authService } from "@/api/services/authService";
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();

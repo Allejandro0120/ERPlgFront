@@ -6,7 +6,7 @@
         color="primary"
         variant="tonal"
         size="small"
-        prepend-icon="mdi-plus"
+        prepend-icon="$plus"
         @click="emit('add')"
       >
         Agregar sucursal
@@ -21,9 +21,9 @@
         background: rgba(0, 0, 0, 0.015);
       "
     >
-      <v-icon size="44" color="grey-lighten-1" class="mb-3">
-        mdi-store-off-outline
-      </v-icon>
+      <v-icon size="44" color="grey-lighten-1" class="mb-3">{{
+        mdiStoreOffOutline
+      }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">
         Sin sucursales registradas
       </p>
@@ -46,7 +46,7 @@
             {{ item.Direccion || "—" }}
           </div>
           <div class="text-caption text-grey">
-                {{ departamentoLabel(item._idDepartamento) }}
+            {{ departamentoLabel(item._idDepartamento) }}
           </div>
         </div>
       </template>
@@ -57,7 +57,7 @@
           size="small"
           variant="tonal"
         >
-          <v-icon icon="mdi-circle" size="14" start></v-icon>
+          <v-icon icon="$circle" size="14" start></v-icon>
           {{ item.Habilitada ? "Habilitada" : "Deshabilitada" }}
         </v-chip>
       </template>
@@ -66,6 +66,7 @@
 </template>
 
 <script setup>
+import { mdiPlus, mdiStoreOffOutline } from "@mdi/js";
 import { computed, toRefs } from "vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";

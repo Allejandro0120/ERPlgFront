@@ -8,7 +8,7 @@
         :items="tipoDocumentos"
         item-title="display"
         item-value="IdTipoDocumento"
-        prepend-inner-icon="mdi-card-account-details-outline"
+        :prepend-inner-icon="mdiCardAccountDetailsOutline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -19,7 +19,7 @@
         v-model="form.NumeroIdentificacion"
         name="NumeroIdentificacion"
         label="Número de Identificación"
-        prepend-inner-icon="mdi-numeric"
+        :prepend-inner-icon="mdiNumeric"
         :rules="[rules.required, rules.soloDigitosGuion]"
         :readonly="isReadonly"
         @keydown="bloquear($event, allow.idGuion)"
@@ -31,7 +31,7 @@
         v-model="form.Nombre"
         name="Nombre"
         label="Nombre o Razón Social"
-        prepend-inner-icon="mdi-domain"
+        :prepend-inner-icon="mdiDomain"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -45,7 +45,7 @@
         :items="ciuuConNa"
         item-title="display"
         item-value="Codigo"
-        prepend-inner-icon="mdi-briefcase-outline"
+        :prepend-inner-icon="mdiBriefcaseOutline"
         :clearable="!isReadonly"
         :readonly="isReadonly"
       />
@@ -56,7 +56,7 @@
         name="CorreoGeneral"
         label="Correo Electrónico"
         type="email"
-        prepend-inner-icon="mdi-email-outline"
+        :prepend-inner-icon="mdiEmailOutline"
         :rules="[rules.required, rules.email]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -67,7 +67,7 @@
         v-model="form.Telefono"
         name="Telefono"
         label="Teléfono"
-        prepend-inner-icon="mdi-phone-outline"
+        :prepend-inner-icon="mdiPhoneOutline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         @keydown="bloquear($event, allow.soloDigitos)"
@@ -82,7 +82,7 @@
         :items="estadosConColor"
         item-title="Nombre"
         item-value="Id"
-        prepend-inner-icon="mdi-account-badge-outline"
+        :prepend-inner-icon="mdiAccountBadgeOutline"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -90,7 +90,7 @@
         <template #selection="{ item }">
           <v-chip label class="estado-chip" :color="item.color" variant="tonal">
             <v-icon
-              icon="mdi-circle"
+              icon="$circle"
               :color="item.color"
               start
               size="10"
@@ -104,7 +104,7 @@
           <v-list-item v-bind="itemProps" title="">
             <v-chip label :color="item.color" variant="tonal">
               <v-icon
-                icon="mdi-circle"
+                icon="$circle"
                 :color="item.color"
                 start
                 size="10"
@@ -124,6 +124,7 @@ import { computed, toRefs } from "vue";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";
+import { mdiCardAccountDetailsOutline, mdiNumeric, mdiDomain, mdiBriefcaseOutline, mdiEmailOutline, mdiPhoneOutline, mdiAccountBadgeOutline } from "@mdi/js";
 
 const props = defineProps({
   form: { type: Object, required: true },

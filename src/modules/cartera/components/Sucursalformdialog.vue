@@ -20,14 +20,12 @@
               v-model="form.NombreSucursal"
               name="NombreSucursal"
               label="Nombre de la Sucursal"
-              prepend-inner-icon="mdi-store-outline"
+              :prepend-inner-icon="mdiStoreOutline"
               :rules="[rules.required]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
             />
           </v-col>
-
-        
 
           <!-- Teléfono -->
           <v-col cols="12" sm="6">
@@ -35,7 +33,7 @@
               v-model="form.Telefono"
               name="Telefono"
               label="Teléfono"
-              prepend-inner-icon="mdi-phone-outline"
+              :prepend-inner-icon="mdiPhoneOutline"
               :rules="[rules.required]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
@@ -50,7 +48,7 @@
               name="CorreoGeneral"
               label="Correo Electrónico"
               type="email"
-              prepend-inner-icon="mdi-email-outline"
+              :prepend-inner-icon="mdiEmailOutline"
               :rules="[rules.required, rules.email]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
@@ -66,7 +64,7 @@
               :items="departamentos"
               item-title="NombreDepartamento"
               item-value="IdDepartamento"
-              prepend-inner-icon="mdi-map-outline"
+              :prepend-inner-icon="mdiMapOutline"
               :rules="[rules.required]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
@@ -83,7 +81,7 @@
               :items="municipios"
               item-title="NombreMunicipio"
               item-value="IdMunicipio"
-              prepend-inner-icon="mdi-city-variant-outline"
+              :prepend-inner-icon="mdiCityVariantOutline"
               :disabled="!ui.idDepartamento"
               :loading="loadingMunicipios"
               :rules="[rules.required]"
@@ -102,7 +100,7 @@
               :items="centrosPoblados"
               item-title="NombreCentroPoblado"
               item-value="IdCentroPoblado"
-              prepend-inner-icon="mdi-home-group"
+              :prepend-inner-icon="mdiHomeGroup"
               :disabled="!ui.idMunicipio"
               :loading="loadingCentrosPoblados"
               :rules="[rules.required]"
@@ -117,14 +115,14 @@
               v-model="form.Direccion"
               name="Direccion"
               label="Dirección"
-              prepend-inner-icon="mdi-map-marker-outline"
+              :prepend-inner-icon="mdiMapMarkerOutline"
               :rules="[rules.required]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
             />
           </v-col>
-            <!-- Estado (solo edición / vista) -->
-          <v-col v-if="isEditing || isReadonly" cols="12" sm="6" >
+          <!-- Estado (solo edición / vista) -->
+          <v-col v-if="isEditing || isReadonly" cols="12" sm="6">
             <v-select
               v-model="form.Habilitada"
               name="Habilitada"
@@ -132,7 +130,7 @@
               :items="opcionesEstado"
               item-title="label"
               item-value="value"
-              prepend-inner-icon="mdi-domain"
+              :prepend-inner-icon="mdiDomain"
               :readonly="isReadonly"
             >
               <template #selection="{ item }">
@@ -143,7 +141,7 @@
                   variant="tonal"
                 >
                   <v-icon
-                    icon="mdi-circle"
+                    icon="$circle"
                     :color="item.color"
                     start
                     size="10"
@@ -157,7 +155,7 @@
                 <v-list-item v-bind="itemProps" title="">
                   <v-chip label :color="item.color" variant="tonal">
                     <v-icon
-                      icon="mdi-circle"
+                      icon="$circle"
                       :color="item.color"
                       start
                       size="10"
@@ -183,6 +181,16 @@ import { $confirm } from "@/plugins/confirm/confirm.js";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";
+import {
+  mdiStoreOutline,
+  mdiPhoneOutline,
+  mdiMapOutline,
+  mdiCityVariantOutline,
+  mdiHomeGroup,
+  mdiMapMarkerOutline,
+  mdiStorePlusOutline,
+  mdiStoreEditOutline,
+} from "@mdi/js";
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
   modelValue: Boolean,
@@ -218,9 +226,9 @@ const dialogTitle = computed(
 const dialogIcon = computed(
   () =>
     ({
-      create: "mdi-store-plus-outline",
-      edit: "mdi-store-edit-outline",
-      view: "mdi-store-outline",
+      create: mdiStorePlusOutline,
+      edit: mdiStoreEditOutline,
+      view: mdiStoreOutline,
     })[props.mode],
 );
 const labelConfirm = computed(

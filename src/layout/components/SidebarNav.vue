@@ -8,7 +8,7 @@
               <v-list-item
                 v-bind="{ ...props, ...tooltipProps }"
                 :title="group.Nombre"
-                :prepend-icon="group.Icono"
+                :prepend-icon="getIconByName(group.Icono)"
                 :color="isGroupActive(group) ? 'white' : ''"
                 :active="isGroupActive(group)"
                 slim
@@ -30,7 +30,7 @@
               <v-list-item
                 v-bind="tooltipProps"
                 :title="seccion.Nombre"
-                :prepend-icon="seccion.Icono"
+                :prepend-icon="getIconByName(seccion.Icono)"
                 :to="`/${getGroupAlias(group)}${seccion.Ruta}`"
                 color="white"
                 slim
@@ -48,6 +48,7 @@ import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { getIconByName } from "@/shared/utils/iconMap";
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();
