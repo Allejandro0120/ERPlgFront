@@ -5,6 +5,8 @@ export const DOMINIOS_ESTADO = {
   PEDIDO: "PEDIDO",
   FACTURA: "FACTURA",
   USUARIO: "USUARIO",
+  ACTA: "ACTA",
+  PRODCUTO_ACTA: "PRODCUTO_ACTA",
 };
 
 // ─── Mapeo de colores por dominio ─────────────────────────────────────────────
@@ -19,6 +21,15 @@ const ESTADO_COLORS = {
     habilitada: "success",
     deshabilitada: "error",
   },
+  [DOMINIOS_ESTADO.ACTA]: {
+    pendiente: "warning",
+    cerrada: "success",
+    borrador: "grey",
+  },
+  [DOMINIOS_ESTADO.PRODCUTO_ACTA]: {
+    aceptado: "success",
+    rechazado: "error",
+  }
 };
 
 // ─── Mapeo semántico para valores booleanos por dominio ───────────────────────
