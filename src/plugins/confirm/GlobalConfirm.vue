@@ -4,7 +4,7 @@
     :title="state.title"
     :message="state.message"
     :color="state.color"
-    icon="state.icon"
+    :icon="state.icon"
     :actions="state.actions"
     :persistent="state.persistent"
     :label-confirm="state.labelConfirm"

@@ -1,12 +1,12 @@
 import { reactive } from "vue";
 
 const TYPES = {
-  success: { color: "success", icon: 'mdi-check-circle-outline',  actions: false },
-  error:   { color: "error",   icon: 'mdi-close-circle-outline',  actions: false },
-  warning: { color: "warning", icon: 'mdi-alert-outline',         actions: true  },
-  info:    { color: "info",    icon: 'mdi-information-outline',   actions: false },
-  confirm: { color: "primary", icon: 'mdi-help-circle-outline',   actions: true  },
-  danger:  { color: "error",   icon: 'mdi-alert-circle-outline',  actions: true  },
+  success: { color: "success", icon: "$check",   actions: false },
+  error:   { color: "error",   icon: "$close",   actions: false },
+  warning: { color: "warning", icon: "$warning", actions: true  },
+  info:    { color: "info",    icon: "$info",    actions: false },
+  confirm: { color: "primary", icon: "$help",    actions: true  },
+  danger:  { color: "error",   icon: "$alert",   actions: true  },
 };
 
 const state = reactive({
