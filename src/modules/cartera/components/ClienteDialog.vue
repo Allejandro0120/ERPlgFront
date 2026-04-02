@@ -2,7 +2,7 @@
   <base-dialog
     :model-value="modelValue"
     :title="dialogTitle"
-    icon="dialogIcon"
+    :icon="dialogIcon"
     color="primary"
     :label-confirm="labelConfirm"
     :show-actions="!isReadonly"

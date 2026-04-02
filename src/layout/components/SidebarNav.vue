@@ -31,7 +31,7 @@
               <v-list-item
                 v-bind="tooltipProps"
                 :title="seccion.Nombre"
-                :prepend-icon="getIconByName(seccion.Icono)"
+                :prepend-icon="seccion.Icono"
                 :to="`/${getGroupAlias(group)}${seccion.Ruta}`"
                 color="white"
                 slim
@@ -74,9 +74,7 @@ function getGroupAlias(group) {
   return group.Alias || group.Nombre?.toLowerCase();
 }
 
-function getIconByName(iconName) {
-  return iconName || "mdi-circle-small";
-}
+
 
 function isGroupActive(group) {
   const groupAlias = getGroupAlias(group);
