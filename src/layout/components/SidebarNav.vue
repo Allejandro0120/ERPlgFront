@@ -74,6 +74,10 @@ function getGroupAlias(group) {
   return group.Alias || group.Nombre?.toLowerCase();
 }
 
+function getIconByName(iconName) {
+  return iconName || "mdi-circle-small";
+}
+
 function isGroupActive(group) {
   const groupAlias = getGroupAlias(group);
   return group.secciones.some((seccion) =>

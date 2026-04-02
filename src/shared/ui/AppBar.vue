@@ -75,6 +75,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify/lib/composables/display";
 import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { authService } from "@/api/services/authService";
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();
