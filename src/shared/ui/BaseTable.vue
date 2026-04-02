@@ -115,7 +115,7 @@
       v-bind="$attrs"
       :headers="computedHeaders"
       :items="filteredItems"
-      :items-length="totalItems"
+      :items-length="searchQuery.trim() ? filteredItems.length : totalItems"
       :loading="loading"
       :loading-text="loadingText"
       :items-per-page="tableOptions.itemsPerPage"
@@ -367,7 +367,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -440,6 +440,16 @@ const appliedSearch = ref(""); // término que se mandó a la API
 const mobileSortKey = ref(null);
 const mobileSortOrder = ref("asc");
 
+// Resetear a página 1 cuando cambia la búsqueda en tiempo real
+watch(
+  () => searchQuery.value.trim(),
+  (newQuery, oldQuery) => {
+    if (newQuery !== oldQuery && tableOptions.value.page !== 1) {
+      tableOptions.value = { ...tableOptions.value, page: 1 };
+    }
+  },
+);
+
 // ── Filtro local optimizado: solo campos "searchable" ───────────────────────
 const filteredItems = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
@@ -459,19 +469,23 @@ const filteredItems = computed(() => {
 });
 
 // ── Paginación ────────────────────────────────────────────────────────────────
-const totalPages = computed(
-  () => Math.ceil(props.totalItems / tableOptions.value.itemsPerPage) || 1,
-);
+const totalPages = computed(() => {
+  // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
+  const count = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems;
+  return Math.ceil(count / tableOptions.value.itemsPerPage) || 1;
+});
 
 const paginationInfo = computed(() => {
-  if (props.totalItems === 0) return "Sin registros";
+  // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
+  const totalCount = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems;
+  if (totalCount === 0) return "Sin registros";
   const start =
     (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1;
   const end = Math.min(
     tableOptions.value.page * tableOptions.value.itemsPerPage,
-    props.totalItems,
+    totalCount,
   );
-  return `${start}–${end} de ${props.totalItems}`;
+  return `${start}–${end} de ${totalCount}`;
 });
 
 const visiblePages = computed(() => {
@@ -533,6 +547,13 @@ function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
   }
 
   if (props.loading) return; // ← bloquea si está cargando
+
+  // Si hay búsqueda local, no hacer request al servidor
+  if (searchQuery.value.trim()) {
+    const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
+    tableOptions.value = { page, itemsPerPage, sortBy: newSortBy };
+    return;
+  }
 
   const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
   const changed =
