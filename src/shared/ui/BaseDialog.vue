@@ -36,7 +36,7 @@
         <!-- Botón cerrar -->
         <v-btn
           v-if="!persistent"
-          icon="close"
+          icon="$close"
           variant="text"
           color="brand-grey-3"
           size="small"
