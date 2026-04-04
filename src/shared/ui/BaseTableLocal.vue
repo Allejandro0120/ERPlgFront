@@ -27,8 +27,8 @@
             hide-details
             :disabled="loading"
             clearable
-            id="search-input-local"
-            name="searchQuery"
+            :id="controlNames.search"
+            :name="controlNames.search"
             aria-label="Buscar"
             @keyup.enter="onSearch"
             @click:clear="onClear"
@@ -50,8 +50,8 @@
               hide-details
               :disabled="loading"
               clearable
-              id="mobile-sort-key-local"
-              name="mobileSortKey"
+              :id="controlNames.mobileSort"
+              :name="controlNames.mobileSort"
               @update:model-value="onMobileSortChange"
             />
             <v-btn-toggle
@@ -209,8 +209,8 @@
                 class="flex-grow-0"
                 style="min-width: 75px; max-width: 90px"
                 aria-label="Filas por página"
-                id="items-per-page-local"
-                name="itemsPerPage"
+                :id="controlNames.itemsPerPage"
+                :name="controlNames.itemsPerPage"
                 @update:model-value="onItemsPerPageChange"
               />
             </v-col>
@@ -359,7 +359,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, getCurrentInstance } from "vue";
 import { useDisplay } from "vuetify";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -383,6 +383,13 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const { mdAndUp } = useDisplay();
+const instanceUid = getCurrentInstance()?.uid ?? "0";
+
+const controlNames = {
+  search: `search-input-local-${instanceUid}`,
+  mobileSort: `mobile-sort-key-local-${instanceUid}`,
+  itemsPerPage: `items-per-page-local-${instanceUid}`,
+};
 
 const isVisible = (obj) => {
   if (obj.visible === undefined) return true;

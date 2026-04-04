@@ -59,4 +59,12 @@ export const clienteService = {
    */
   getEstados: () =>
     withCache("clientes_estados", () => api.get("v1/clients/states")),
+
+  /**
+   * Obtiene los tipos de correos posibles para un cliente (Petición Cacheada de manera Global)
+   */
+  getTiposCorreos: () =>
+    withCache("clientes_tipos_correos", () =>
+      api.get("v1/clients/email-types")
+    ),
 };

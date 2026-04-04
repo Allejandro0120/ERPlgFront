@@ -21,6 +21,15 @@
         @submit="onSucursalSubmit"
       />
 
+      <!-- ── Dialog hijo: agregar / editar correo ──────────────── -->
+      <correo-form-dialog
+        v-model="correoDialog.open"
+        :mode="correoDialog.mode"
+        :correo="correoDialog.correo"
+        :tipos-correos="tiposCorreos"
+        @submit="onCorreoSubmit"
+      />
+
       <v-form ref="formRef">
         <!-- ── Tabs ──────────────────────────────────────────────── -->
         <v-tabs v-model="ui.tab" color="primary" class="mb-6">
@@ -56,6 +65,19 @@
               inline
               class="ml-2"
             />
+          </v-tab>
+          <v-tab value="correos">
+            <v-icon start icon="mdi-email-multiple-outline" />
+            Correos
+            <v-chip
+              v-if="correos.length"
+              size="x-small"
+              color="primary"
+              class="ml-2"
+              variant="tonal"
+            >
+              {{ correos.length }}
+            </v-chip>
           </v-tab>
           <v-tab value="sucursales">
             <v-icon start icon="mdi-store-outline" />
@@ -110,7 +132,19 @@
             />
           </v-tabs-window-item>
 
-          <!-- ── Tab 4: Sucursales ──────────────────────────────── -->
+          <!-- ── Tab 4: Correos ─────────────────────────────────── -->
+          <v-tabs-window-item value="correos" eager>
+            <correos-tab
+              :correos="correos"
+              :is-readonly="isReadonly"
+              :headers="correosHeaders"
+              :row-actions="correoRowActions"
+              :tipos-correos="tiposCorreos"
+              @add="abrirAgregarCorreo"
+            />
+          </v-tabs-window-item>
+
+          <!-- ── Tab 5: Sucursales ──────────────────────────────── -->
           <v-tabs-window-item value="sucursales" eager>
             <sucursales-tab
               :sucursales="sucursales"
@@ -139,6 +173,8 @@ import IdentificacionTab from "./tabs/IdentificacionTab.vue";
 import UbicacionTab from "./tabs/UbicacionTab.vue";
 import ComercialTab from "./tabs/ComercialTab.vue";
 import SucursalesTab from "./tabs/SucursalesTab.vue";
+import CorreosTab from "./tabs/CorreosTab.vue";
+import CorreoFormDialog from "./CorreoFormDialog.vue";
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -158,20 +194,34 @@ const isReadonly = computed(() => props.mode === "view");
 const isEditing = computed(() => props.mode === "edit");
 const isCreating = computed(() => props.mode === "create");
 
-const dialogTitle = computed(
-  () =>
-    ({
+const clienteDisplayName = computed(() => {
+  const nombre = props.cliente?.Nombre?.trim();
+  if (nombre) return nombre;
+  if (props.cliente?.NumeroIdentificacion) return props.cliente.NumeroIdentificacion;
+  if (props.cliente?.IdCliente) return `#${props.cliente.IdCliente}`;
+  return "";
+});
+
+const dialogTitle = computed(() => {
+  const baseTitle =
+    {
       create: "Crear Cliente",
       edit: "Editar Cliente",
       view: "Detalle del Cliente",
-    })[props.mode],
-);
+    }[props.mode] || "Cliente";
+
+  if (props.mode === "create" || !clienteDisplayName.value) {
+    return baseTitle;
+  }
+
+  return `${baseTitle}: ${clienteDisplayName.value}`;
+});
 const dialogIcon = computed(
   () =>
     ({
-      create: 'mdi-account-plus',
-      edit: 'mdi-account-edit',
-      view: 'mdi-card-account-details-outline',
+      create: "mdi-account-plus",
+      edit: "mdi-account-edit",
+      view: "mdi-card-account-details-outline",
     })[props.mode],
 );
 const labelConfirm = computed(
@@ -190,6 +240,7 @@ const departamentos = ref([]);
 const municipios = ref([]);
 const centrosPoblados = ref([]);
 const estadosCatalogo = ref([]);
+const tiposCorreos = ref([]);
 const loadingMunicipios = ref(false);
 const loadingCentrosPoblados = ref(false);
 
@@ -411,6 +462,188 @@ const sucursalRowActions = [
     visible: () => isReadonly.value,
   },
 ];
+
+// ─── Correos locales ─────────────────────────────────────────────────────────
+let localCorreoCounter = 0;
+
+function apiCorreoToLocal(apiCorreo) {
+  return {
+    LocalId: ++localCorreoCounter,
+    IdCorreo: apiCorreo.IdCorreo,
+    IdTipoCorreo: apiCorreo.IdTipoCorreo ?? null,
+    Email: apiCorreo.Email ?? "",
+  };
+}
+
+function localCorreoToApi(correo, includeId = true) {
+  const payload = {
+    IdTipoCorreo: correo.IdTipoCorreo,
+    Email: correo.Email,
+  };
+  if (includeId && correo.IdCorreo) payload.IdCorreo = correo.IdCorreo;
+  return payload;
+}
+
+function correoSerializable(c) {
+  return {
+    IdCorreo: c.IdCorreo ?? null,
+    IdTipoCorreo: c.IdTipoCorreo ?? null,
+    Email: c.Email ?? "",
+  };
+}
+
+const correoPatchFields = ["IdTipoCorreo", "Email"];
+
+function buildCorreoPatch(current, snapshotById) {
+  if (!current.IdCorreo) {
+    return localCorreoToApi(current, false);
+  }
+
+  const original = snapshotById.get(current.IdCorreo);
+  if (!original) {
+    return localCorreoToApi(current, true);
+  }
+
+  const patch = { IdCorreo: current.IdCorreo };
+  for (const field of correoPatchFields) {
+    if (JSON.stringify(current[field]) !== JSON.stringify(original[field])) {
+      patch[field] = current[field];
+    }
+  }
+
+  return Object.keys(patch).length > 1 ? patch : null;
+}
+
+function getChangedCorreos(snapshotList, currentList) {
+  const snapshotById = new Map(
+    (snapshotList || [])
+      .filter((c) => !!c.IdCorreo)
+      .map((c) => [c.IdCorreo, c]),
+  );
+
+  return currentList
+    .map((current) => buildCorreoPatch(current, snapshotById))
+    .filter(Boolean);
+}
+
+const correos = ref([]);
+
+const correoDialog = ref({
+  open: false,
+  mode: "create",
+  correo: null,
+  editIdx: null,
+});
+
+function handleEditarCorreo(item) {
+  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
+  if (idx !== -1) abrirEditarCorreo(idx);
+}
+
+function handleVerCorreo(item) {
+  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
+  if (idx !== -1) abrirVerCorreo(idx);
+}
+
+async function handleEliminarCorreo(item) {
+  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
+  if (idx === -1) return;
+  const correoLabel = item.Email || "(sin correo)";
+
+  const confirmed = await $confirm.warning({
+    title: "¿Eliminar correo?",
+    message: `Se eliminará el correo ${correoLabel} del cliente.`,
+    labelConfirm: "Sí, eliminar",
+    labelCancel: "Cancelar",
+  });
+
+  if (!confirmed) return;
+  correos.value.splice(idx, 1);
+}
+
+function abrirAgregarCorreo() {
+  correoDialog.value = {
+    open: true,
+    mode: "create",
+    correo: null,
+    editIdx: null,
+  };
+}
+
+function abrirEditarCorreo(idx) {
+  const correo = correos.value[idx];
+  correoDialog.value = {
+    open: true,
+    mode: "edit",
+    editIdx: idx,
+    correo: {
+      IdCorreo: correo.IdCorreo,
+      IdTipoCorreo: correo.IdTipoCorreo,
+      Email: correo.Email,
+    },
+  };
+}
+
+function abrirVerCorreo(idx) {
+  const correo = correos.value[idx];
+  correoDialog.value = {
+    open: true,
+    mode: "view",
+    editIdx: idx,
+    correo: {
+      IdCorreo: correo.IdCorreo,
+      IdTipoCorreo: correo.IdTipoCorreo,
+      Email: correo.Email,
+    },
+  };
+}
+
+function onCorreoSubmit({ payload, mode }) {
+  const local = {
+    IdTipoCorreo: payload.IdTipoCorreo,
+    Email: payload.Email,
+  };
+
+  if (mode === "create") {
+    correos.value.push({
+      LocalId: ++localCorreoCounter,
+      IdCorreo: null,
+      ...local,
+    });
+  } else if (mode === "edit" && correoDialog.value.editIdx !== null) {
+    const idx = correoDialog.value.editIdx;
+    correos.value[idx] = {
+      ...correos.value[idx],
+      ...local,
+    };
+  }
+
+  correoDialog.value.open = false;
+}
+
+const correosHeaders = computed(() => [
+  { title: "#", key: "indice", sortable: false, align: "left" },
+  { title: "Tipo", key: "IdTipoCorreo", sortable: false },
+  { title: "Correo", key: "Email", sortable: false },
+]);
+
+const correoRowActions = [
+  {
+    label: "Editar",
+    icon: "$pencil",
+    action: (item) => handleEditarCorreo(item),
+    visible: () => !isReadonly.value,
+  },
+  {
+    label: "Eliminar",
+    icon: "$delete",
+    color: "error",
+    action: (item) => handleEliminarCorreo(item),
+    visible: () => !isReadonly.value,
+  },
+  
+];
+
 // ─── Form principal ───────────────────────────────────────────────────────────
 const formInitial = {
   IdTipoDocumento: null,
@@ -436,6 +669,7 @@ const form = ref({ ...formInitial });
 const ui = ref({ ...uiInitial });
 const formSnapshot = ref(null);
 const sucursalesSnapshot = ref(null);
+const correosSnapshot = ref(null);
 
 const hasChanges = computed(() => {
   if (!formSnapshot.value) return false;
@@ -444,7 +678,10 @@ const hasChanges = computed(() => {
   const sucChanged =
     JSON.stringify(sucursales.value.map(sucursalSerializable)) !==
     JSON.stringify(sucursalesSnapshot.value ?? []);
-  return formChanged || sucChanged;
+  const correosChanged =
+    JSON.stringify(correos.value.map(correoSerializable)) !==
+    JSON.stringify(correosSnapshot.value ?? []);
+  return formChanged || sucChanged || correosChanged;
 });
 
 // ─── Tab errors ───────────────────────────────────────────────────────────────
@@ -518,6 +755,15 @@ const cargarEstados = async () => {
   }
 };
 
+const cargarTiposCorreos = async () => {
+  try {
+    const r = await clienteService.getTiposCorreos();
+    if (r.data?.success) tiposCorreos.value = r.data.data || [];
+  } catch (e) {
+    tiposCorreos.value = [];
+  }
+};
+
 // ─── Cascada ubicación principal ─────────────────────────────────────────────
 const onDepartamentoChange = async (idDepartamento) => {
   ui.value.idMunicipio = null;
@@ -583,8 +829,14 @@ async function precargarCliente(cliente) {
     : [];
   sucursales.value = locales;
 
+  const correosLocales = Array.isArray(cliente.correos)
+    ? cliente.correos.map(apiCorreoToLocal)
+    : [];
+  correos.value = correosLocales;
+
   formSnapshot.value = { ...form.value };
   sucursalesSnapshot.value = locales.map(sucursalSerializable);
+  correosSnapshot.value = correosLocales.map(correoSerializable);
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
@@ -594,8 +846,10 @@ const resetForm = () => {
   municipios.value = [];
   centrosPoblados.value = [];
   sucursales.value = [];
+  correos.value = [];
   formSnapshot.value = null;
   sucursalesSnapshot.value = null;
+  correosSnapshot.value = null;
   formRef.value?.resetValidation();
 };
 
@@ -616,12 +870,14 @@ watch(
         cargarActividadCiiu(),
         cargarDepartamentos(),
         cargarEstados(),
+        cargarTiposCorreos(),
       ]);
       if (props.cliente && !isCreating.value) {
         await precargarCliente(props.cliente);
       } else {
         formSnapshot.value = { ...form.value };
         sucursalesSnapshot.value = [];
+        correosSnapshot.value = [];
       }
     } catch (e) {
       console.error("Error al cargar datos:", e);
@@ -691,6 +947,14 @@ const submitForm = async () => {
   );
   if (sucursalesCambios.length > 0) {
     changes.sucursales = sucursalesCambios;
+  }
+
+  const correosCambios = getChangedCorreos(
+    correosSnapshot.value ?? [],
+    correos.value,
+  );
+  if (correosCambios.length > 0) {
+    changes.correos = correosCambios;
   }
 
   emit("submit", { payload: changes, mode: props.mode });
