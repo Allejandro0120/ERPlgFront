@@ -164,11 +164,16 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
-import SucursalFormDialog from "./SucursalFormDialog.vue";
+import SucursalFormDialog from "./Sucursalformdialog.vue";
 import { globalService } from "@/api/services/globalService";
-import { clienteService } from "@/api/services/clienteService";
 import { formatCOP, parseCOP } from "@/shared/utils/currency";
 import { $confirm } from "@/plugins/confirm/confirm.js";
+import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
+import { useLocationCascade } from "@/shared/composables/useLocationCascade";
+import { getChangedFields, hasObjectChanges } from "@/shared/composables/useChangePayload";
+import { useClienteCatalogos } from "../composables/useClienteCatalogos";
+import { useClienteSucursales } from "../composables/useClienteSucursales";
+import { useClienteCorreos } from "../composables/useClienteCorreos";
 import IdentificacionTab from "./tabs/IdentificacionTab.vue";
 import UbicacionTab from "./tabs/UbicacionTab.vue";
 import ComercialTab from "./tabs/ComercialTab.vue";
@@ -233,416 +238,43 @@ const labelConfirm = computed(
 
 // ─── Estado global ────────────────────────────────────────────────────────────
 const formRef = ref(null);
-const tipoDocumentos = ref([]);
-const listaPrecios = ref([]);
-const actividadesCiiu = ref([]);
-const departamentos = ref([]);
-const municipios = ref([]);
-const centrosPoblados = ref([]);
-const estadosCatalogo = ref([]);
-const tiposCorreos = ref([]);
-const loadingMunicipios = ref(false);
-const loadingCentrosPoblados = ref(false);
+const {
+  tipoDocumentos,
+  listaPrecios,
+  departamentos,
+  estadosCatalogo,
+  tiposCorreos,
+  ciuuConNa,
+  cargarCatalogos,
+} = useClienteCatalogos();
 
-// ─── Sucursales locales ───────────────────────────────────────────────────────
-let localSucursalCounter = 0;
+const {
+  sucursales,
+  sucursalDialog,
+  sucursalesHeaders,
+  sucursalRowActions,
+  abrirAgregarSucursal,
+  onSucursalSubmit,
+  hydrateSucursales,
+  setSucursalesSnapshot,
+  resetSucursales,
+  hasSucursalesChanges,
+  getSucursalesChanges,
+} = useClienteSucursales({ isReadonly });
 
-function apiSucursalToLocal(apiSuc) {
-  return {
-    LocalId: ++localSucursalCounter,
-    IdDepartamento: apiSuc.IdDepartamento ?? null,
-    IdMunicipio: apiSuc.IdMunicipio ?? null,
-    IdSucursal: apiSuc.IdSucursal,
-    NombreSucursal: apiSuc.NombreSucursal ?? "",
-    Telefono: apiSuc.Telefono ?? "",
-    CorreoGeneral: apiSuc.CorreoGeneral ?? "",
-    Direccion: apiSuc.Direccion ?? "",
-    IdCentroPoblado: apiSuc.IdCentroPoblado ?? null,
-    Habilitada: apiSuc.Habilitada ?? true,
-  };
-}
-
-function localSucursalToApi(suc, includeId = true) {
-  const payload = {
-    NombreSucursal: suc.NombreSucursal,
-    Telefono: suc.Telefono,
-    CorreoGeneral: suc.CorreoGeneral,
-    Direccion: suc.Direccion,
-    IdCentroPoblado: suc.IdCentroPoblado,
-    Habilitada: suc.Habilitada,
-  };
-  if (includeId && suc.IdSucursal) payload.IdSucursal = suc.IdSucursal;
-  return payload;
-}
-
-// Serializa los campos relevantes para detectar cambios reales.
-function sucursalSerializable(s) {
-  return {
-    IdSucursal: s.IdSucursal ?? null,
-    NombreSucursal: s.NombreSucursal ?? "",
-    Telefono: s.Telefono ?? "",
-    CorreoGeneral: s.CorreoGeneral ?? "",
-    Direccion: s.Direccion ?? "",
-    IdCentroPoblado: s.IdCentroPoblado ?? null,
-    Habilitada: s.Habilitada ?? true,
-    IdDepartamento: s.IdDepartamento ?? null,
-    IdMunicipio: s.IdMunicipio ?? null,
-  };
-}
-
-const sucursalPatchFields = [
-  "NombreSucursal",
-  "Telefono",
-  "CorreoGeneral",
-  "Direccion",
-  "IdCentroPoblado",
-  "Habilitada",
-];
-
-function buildSucursalPatch(current, snapshotById) {
-  if (!current.IdSucursal) {
-    return localSucursalToApi(current, false);
-  }
-
-  const original = snapshotById.get(current.IdSucursal);
-  if (!original) {
-    return localSucursalToApi(current, true);
-  }
-
-  const patch = { IdSucursal: current.IdSucursal };
-  for (const field of sucursalPatchFields) {
-    if (JSON.stringify(current[field]) !== JSON.stringify(original[field])) {
-      patch[field] = current[field];
-    }
-  }
-
-  return Object.keys(patch).length > 1 ? patch : null;
-}
-
-function getChangedSucursales(snapshotList, currentList) {
-  const snapshotById = new Map(
-    (snapshotList || [])
-      .filter((s) => !!s.IdSucursal)
-      .map((s) => [s.IdSucursal, s]),
-  );
-
-  return currentList
-    .map((current) => buildSucursalPatch(current, snapshotById))
-    .filter(Boolean);
-}
-
-const sucursales = ref([]);
-
-function handleEditarSucursal(item) {
-  const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
-  if (idx !== -1) {
-    abrirEditarSucursal(idx);
-  }
-}
-
-function handleVerSucursal(item) {
-  const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
-  if (idx !== -1) {
-    abrirVerSucursal(idx);
-  }
-}
-
-// ─── Dialog hijo (sucursal) ───────────────────────────────────────────────────
-const sucursalDialog = ref({
-  open: false,
-  mode: "create",
-  sucursal: null,
-  editIdx: null,
-});
-
-function abrirAgregarSucursal() {
-  sucursalDialog.value = {
-    open: true,
-    mode: "create",
-    sucursal: null,
-    editIdx: null,
-  };
-}
-
-function abrirEditarSucursal(idx) {
-  const suc = sucursales.value[idx];
-  sucursalDialog.value = {
-    open: true,
-    mode: "edit",
-    editIdx: idx,
-    sucursal: {
-      IdSucursal: suc.IdSucursal,
-      NombreSucursal: suc.NombreSucursal,
-      Telefono: suc.Telefono,
-      CorreoGeneral: suc.CorreoGeneral,
-      Direccion: suc.Direccion,
-      IdCentroPoblado: suc.IdCentroPoblado,
-      Habilitada: suc.Habilitada,
-      IdDepartamento: suc.IdDepartamento,
-      IdMunicipio: suc.IdMunicipio,
-    },
-  };
-}
-
-function abrirVerSucursal(idx) {
-  const suc = sucursales.value[idx];
-  sucursalDialog.value = {
-    open: true,
-    mode: "view",
-    editIdx: idx,
-    sucursal: {
-      IdSucursal: suc.IdSucursal,
-      NombreSucursal: suc.NombreSucursal,
-      Telefono: suc.Telefono,
-      CorreoGeneral: suc.CorreoGeneral,
-      Direccion: suc.Direccion,
-      IdCentroPoblado: suc.IdCentroPoblado,
-      Habilitada: suc.Habilitada,
-      IdDepartamento: suc.IdDepartamento,
-      IdMunicipio: suc.IdMunicipio,
-    },
-  };
-}
-
-/**
- * Callback del dialog hijo.
- * En create: agrega al array.
- * En edit: reemplaza el elemento en el índice.
- */
-function onSucursalSubmit({ payload, mode }) {
-  const local = {
-    NombreSucursal: payload.NombreSucursal,
-    Telefono: payload.Telefono,
-    CorreoGeneral: payload.CorreoGeneral,
-    Direccion: payload.Direccion,
-    IdCentroPoblado: payload.IdCentroPoblado,
-    Habilitada: payload.Habilitada,
-    IdDepartamento: payload.IdDepartamento,
-    IdMunicipio: payload.IdMunicipio,
-  };
-
-  if (mode === "create") {
-    sucursales.value.push({
-      LocalId: ++localSucursalCounter,
-      IdSucursal: null,
-      ...local,
-    });
-  } else if (mode === "edit" && sucursalDialog.value.editIdx !== null) {
-    const idx = sucursalDialog.value.editIdx;
-    sucursales.value[idx] = {
-      ...sucursales.value[idx],
-      ...local,
-    };
-  }
-
-  sucursalDialog.value.open = false;
-}
-
-// ─── Headers y acciones para tabla de sucursales ────────────────────────────
-const sucursalesHeaders = computed(() => [
-  { title: "#", key: "indice", sortable: false, align: "left" },
-  { title: "Nombre", key: "NombreSucursal", sortable: false },
-  { title: "Dirección", key: "Direccion", sortable: false },
-  { title: "Teléfono", key: "Telefono", sortable: false },
-  { title: "Correo", key: "CorreoGeneral", sortable: false },
-  { title: "Estado", key: "Habilitada", sortable: false, align: "center" },
-]);
-
-const sucursalRowActions = [
-  {
-    label: "Editar",
-    icon: "$pencil",
-    action: (item) => handleEditarSucursal(item),
-    visible: () => !isReadonly.value,
-  },
-  {
-    label: "Ver detalle",
-    icon: "$eye",
-    action: (item) => handleVerSucursal(item),
-    visible: () => isReadonly.value,
-  },
-];
-
-// ─── Correos locales ─────────────────────────────────────────────────────────
-let localCorreoCounter = 0;
-
-function apiCorreoToLocal(apiCorreo) {
-  return {
-    LocalId: ++localCorreoCounter,
-    IdCorreo: apiCorreo.IdCorreo,
-    IdTipoCorreo: apiCorreo.IdTipoCorreo ?? null,
-    Email: apiCorreo.Email ?? "",
-  };
-}
-
-function localCorreoToApi(correo, includeId = true) {
-  const payload = {
-    IdTipoCorreo: correo.IdTipoCorreo,
-    Email: correo.Email,
-  };
-  if (includeId && correo.IdCorreo) payload.IdCorreo = correo.IdCorreo;
-  return payload;
-}
-
-function correoSerializable(c) {
-  return {
-    IdCorreo: c.IdCorreo ?? null,
-    IdTipoCorreo: c.IdTipoCorreo ?? null,
-    Email: c.Email ?? "",
-  };
-}
-
-const correoPatchFields = ["IdTipoCorreo", "Email"];
-
-function buildCorreoPatch(current, snapshotById) {
-  if (!current.IdCorreo) {
-    return localCorreoToApi(current, false);
-  }
-
-  const original = snapshotById.get(current.IdCorreo);
-  if (!original) {
-    return localCorreoToApi(current, true);
-  }
-
-  const patch = { IdCorreo: current.IdCorreo };
-  for (const field of correoPatchFields) {
-    if (JSON.stringify(current[field]) !== JSON.stringify(original[field])) {
-      patch[field] = current[field];
-    }
-  }
-
-  return Object.keys(patch).length > 1 ? patch : null;
-}
-
-function getChangedCorreos(snapshotList, currentList) {
-  const snapshotById = new Map(
-    (snapshotList || [])
-      .filter((c) => !!c.IdCorreo)
-      .map((c) => [c.IdCorreo, c]),
-  );
-
-  return currentList
-    .map((current) => buildCorreoPatch(current, snapshotById))
-    .filter(Boolean);
-}
-
-const correos = ref([]);
-
-const correoDialog = ref({
-  open: false,
-  mode: "create",
-  correo: null,
-  editIdx: null,
-});
-
-function handleEditarCorreo(item) {
-  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
-  if (idx !== -1) abrirEditarCorreo(idx);
-}
-
-function handleVerCorreo(item) {
-  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
-  if (idx !== -1) abrirVerCorreo(idx);
-}
-
-async function handleEliminarCorreo(item) {
-  const idx = correos.value.findIndex((c) => c.LocalId === item.LocalId);
-  if (idx === -1) return;
-  const correoLabel = item.Email || "(sin correo)";
-
-  const confirmed = await $confirm.warning({
-    title: "¿Eliminar correo?",
-    message: `Se eliminará el correo ${correoLabel} del cliente.`,
-    labelConfirm: "Sí, eliminar",
-    labelCancel: "Cancelar",
-  });
-
-  if (!confirmed) return;
-  correos.value.splice(idx, 1);
-}
-
-function abrirAgregarCorreo() {
-  correoDialog.value = {
-    open: true,
-    mode: "create",
-    correo: null,
-    editIdx: null,
-  };
-}
-
-function abrirEditarCorreo(idx) {
-  const correo = correos.value[idx];
-  correoDialog.value = {
-    open: true,
-    mode: "edit",
-    editIdx: idx,
-    correo: {
-      IdCorreo: correo.IdCorreo,
-      IdTipoCorreo: correo.IdTipoCorreo,
-      Email: correo.Email,
-    },
-  };
-}
-
-function abrirVerCorreo(idx) {
-  const correo = correos.value[idx];
-  correoDialog.value = {
-    open: true,
-    mode: "view",
-    editIdx: idx,
-    correo: {
-      IdCorreo: correo.IdCorreo,
-      IdTipoCorreo: correo.IdTipoCorreo,
-      Email: correo.Email,
-    },
-  };
-}
-
-function onCorreoSubmit({ payload, mode }) {
-  const local = {
-    IdTipoCorreo: payload.IdTipoCorreo,
-    Email: payload.Email,
-  };
-
-  if (mode === "create") {
-    correos.value.push({
-      LocalId: ++localCorreoCounter,
-      IdCorreo: null,
-      ...local,
-    });
-  } else if (mode === "edit" && correoDialog.value.editIdx !== null) {
-    const idx = correoDialog.value.editIdx;
-    correos.value[idx] = {
-      ...correos.value[idx],
-      ...local,
-    };
-  }
-
-  correoDialog.value.open = false;
-}
-
-const correosHeaders = computed(() => [
-  { title: "#", key: "indice", sortable: false, align: "left" },
-  { title: "Tipo", key: "IdTipoCorreo", sortable: false },
-  { title: "Correo", key: "Email", sortable: false },
-]);
-
-const correoRowActions = [
-  {
-    label: "Editar",
-    icon: "$pencil",
-    action: (item) => handleEditarCorreo(item),
-    visible: () => !isReadonly.value,
-  },
-  {
-    label: "Eliminar",
-    icon: "$delete",
-    color: "error",
-    action: (item) => handleEliminarCorreo(item),
-    visible: () => !isReadonly.value,
-  },
-  
-];
+const {
+  correos,
+  correoDialog,
+  correosHeaders,
+  correoRowActions,
+  abrirAgregarCorreo,
+  onCorreoSubmit,
+  hydrateCorreos,
+  setCorreosSnapshot,
+  resetCorreos,
+  hasCorreosChanges,
+  getCorreosChanges,
+} = useClienteCorreos({ isReadonly });
 
 // ─── Form principal ───────────────────────────────────────────────────────────
 const formInitial = {
@@ -668,20 +300,36 @@ const uiInitial = {
 const form = ref({ ...formInitial });
 const ui = ref({ ...uiInitial });
 const formSnapshot = ref(null);
-const sucursalesSnapshot = ref(null);
-const correosSnapshot = ref(null);
+
+const {
+  municipios,
+  centrosPoblados,
+  loadingMunicipios,
+  loadingCentrosPoblados,
+  onDepartamentoChange,
+  onMunicipioChange,
+  preloadLocation,
+  resetLocationState,
+} = useLocationCascade({
+  ui,
+  form,
+  fetchMunicipios: globalService.getMunicipiosByDepartamento,
+  fetchCentrosPoblados: globalService.getCentrosPobladosByMunicipio,
+});
 
 const hasChanges = computed(() => {
   if (!formSnapshot.value) return false;
-  const formChanged =
-    JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
-  const sucChanged =
-    JSON.stringify(sucursales.value.map(sucursalSerializable)) !==
-    JSON.stringify(sucursalesSnapshot.value ?? []);
-  const correosChanged =
-    JSON.stringify(correos.value.map(correoSerializable)) !==
-    JSON.stringify(correosSnapshot.value ?? []);
+  const formChanged = hasObjectChanges(form.value, formSnapshot.value);
+  const sucChanged = hasSucursalesChanges();
+  const correosChanged = hasCorreosChanges();
   return formChanged || sucChanged || correosChanged;
+});
+
+const { onRequestClose } = useConfirmRequestClose({
+  emit,
+  isReadonly,
+  hasChanges,
+  confirmClose: (options) => $confirm.warning(options),
 });
 
 // ─── Tab errors ───────────────────────────────────────────────────────────────
@@ -711,102 +359,13 @@ const tabErrors = computed(() => {
   return result;
 });
 
-// ─── CIIU con N/A ─────────────────────────────────────────────────────────────
-const ciuuConNa = computed(() => [
-  { display: "N/A", Codigo: null },
-  ...actividadesCiiu.value,
-]);
-
-// ─── Carga de catálogos ───────────────────────────────────────────────────────
-const cargarTiposDocumentos = async () => {
-  const r = await globalService.getTiposDocumentos();
-  if (r.data?.success)
-    tipoDocumentos.value = (r.data.data || []).map((i) => ({
-      ...i,
-      display: `${i.Codigo} - ${i.Nombre}`,
-    }));
-};
-const cargarListaPrecios = async () => {
-  const r = await globalService.getListasPrecios();
-  if (r.data?.success)
-    listaPrecios.value = (r.data.data || []).map((i) => ({
-      ...i,
-      display: i.NombreLista,
-    }));
-};
-const cargarActividadCiiu = async () => {
-  const r = await globalService.getActividadesCiiu();
-  if (r.data?.success)
-    actividadesCiiu.value = (r.data.data || []).map((i) => ({
-      ...i,
-      display: `${i.Codigo} - ${i.Descripcion}`,
-    }));
-};
-const cargarDepartamentos = async () => {
-  const r = await globalService.getDepartamentos();
-  if (r.data?.success) departamentos.value = r.data.data || [];
-};
-const cargarEstados = async () => {
-  try {
-    const r = await clienteService.getEstados();
-    if (r.data?.success) estadosCatalogo.value = r.data.data || [];
-  } catch (e) {
-    estadosCatalogo.value = [];
-  }
-};
-
-const cargarTiposCorreos = async () => {
-  try {
-    const r = await clienteService.getTiposCorreos();
-    if (r.data?.success) tiposCorreos.value = r.data.data || [];
-  } catch (e) {
-    tiposCorreos.value = [];
-  }
-};
-
-// ─── Cascada ubicación principal ─────────────────────────────────────────────
-const onDepartamentoChange = async (idDepartamento) => {
-  ui.value.idMunicipio = null;
-  form.value.IdCentroPoblado = null;
-  municipios.value = [];
-  centrosPoblados.value = [];
-  if (!idDepartamento) return;
-  loadingMunicipios.value = true;
-  try {
-    const r = await globalService.getMunicipiosByDepartamento(idDepartamento);
-    if (r.data?.success) municipios.value = r.data.data || [];
-  } finally {
-    loadingMunicipios.value = false;
-  }
-};
-const onMunicipioChange = async (idMunicipio) => {
-  form.value.IdCentroPoblado = null;
-  centrosPoblados.value = [];
-  if (!idMunicipio) return;
-  loadingCentrosPoblados.value = true;
-  try {
-    const r = await globalService.getCentrosPobladosByMunicipio(idMunicipio);
-    if (r.data?.success) {
-      const data = r.data.data || [];
-      centrosPoblados.value = data;
-      if (data.length === 1)
-        form.value.IdCentroPoblado = data[0].IdCentroPoblado;
-    }
-  } finally {
-    loadingCentrosPoblados.value = false;
-  }
-};
-
 // ─── Precarga del cliente ─────────────────────────────────────────────────────
 async function precargarCliente(cliente) {
-  if (cliente.IdDepartamento) {
-    ui.value.idDepartamento = cliente.IdDepartamento;
-    await onDepartamentoChange(cliente.IdDepartamento);
-  }
-  if (cliente.IdMunicipio) {
-    ui.value.idMunicipio = cliente.IdMunicipio;
-    await onMunicipioChange(cliente.IdMunicipio);
-  }
+  await preloadLocation({
+    idDepartamento: cliente.IdDepartamento ?? null,
+    idMunicipio: cliente.IdMunicipio ?? null,
+    idCentroPoblado: cliente.IdCentroPoblado ?? null,
+  });
 
   form.value = {
     IdTipoDocumento: cliente.IdTipoDocumento,
@@ -823,33 +382,20 @@ async function precargarCliente(cliente) {
     Estado: cliente.IdEstado,
   };
 
-  // Sucursales
-  const locales = Array.isArray(cliente.sucursales)
-    ? cliente.sucursales.map(apiSucursalToLocal)
-    : [];
-  sucursales.value = locales;
-
-  const correosLocales = Array.isArray(cliente.correos)
-    ? cliente.correos.map(apiCorreoToLocal)
-    : [];
-  correos.value = correosLocales;
+  hydrateSucursales(cliente.sucursales || []);
+  hydrateCorreos(cliente.correos || []);
 
   formSnapshot.value = { ...form.value };
-  sucursalesSnapshot.value = locales.map(sucursalSerializable);
-  correosSnapshot.value = correosLocales.map(correoSerializable);
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
 const resetForm = () => {
   form.value = { ...formInitial };
   ui.value = { ...uiInitial };
-  municipios.value = [];
-  centrosPoblados.value = [];
-  sucursales.value = [];
-  correos.value = [];
+  resetLocationState();
+  resetSucursales();
+  resetCorreos();
   formSnapshot.value = null;
-  sucursalesSnapshot.value = null;
-  correosSnapshot.value = null;
   formRef.value?.resetValidation();
 };
 
@@ -864,20 +410,18 @@ watch(
 
     $loading.show();
     try {
-      await Promise.all([
-        cargarTiposDocumentos(),
-        cargarListaPrecios(),
-        cargarActividadCiiu(),
-        cargarDepartamentos(),
-        cargarEstados(),
-        cargarTiposCorreos(),
-      ]);
+      const catalogResult = await cargarCatalogos();
+      if (!catalogResult.ok) {
+        $toast.warning(
+          "Algunos catálogos no se cargaron. Puedes continuar, pero revisa los campos de selección.",
+        );
+      }
       if (props.cliente && !isCreating.value) {
         await precargarCliente(props.cliente);
       } else {
         formSnapshot.value = { ...form.value };
-        sucursalesSnapshot.value = [];
-        correosSnapshot.value = [];
+        setSucursalesSnapshot([]);
+        setCorreosSnapshot([]);
       }
     } catch (e) {
       console.error("Error al cargar datos:", e);
@@ -886,20 +430,6 @@ watch(
     }
   },
 );
-
-// ─── Cierre ───────────────────────────────────────────────────────────────────
-async function onRequestClose(value) {
-  if (!value && !isReadonly.value && hasChanges.value) {
-    const confirmed = await $confirm.warning({
-      title: "¿Descartar cambios?",
-      message: "Tienes cambios sin guardar. ¿Deseas salir de todas formas?",
-      labelConfirm: "Sí, salir",
-      labelCancel: "Seguir editando",
-    });
-    if (!confirmed) return;
-  }
-  emit("update:modelValue", value);
-}
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 const submitForm = async () => {
@@ -924,36 +454,19 @@ const submitForm = async () => {
   });
   if (!confirmado) return;
 
-  const changes = {};
+  const changes = getChangedFields(form.value, formSnapshot.value, {
+    normalizers: {
+      CupoCredito: parseCOP,
+    },
+  });
 
-  // Cambios en el formulario principal
-  for (const key in form.value) {
-    const currentValue =
-      key === "CupoCredito" ? parseCOP(form.value[key]) : form.value[key];
-    const snapshotValue =
-      key === "CupoCredito"
-        ? parseCOP(formSnapshot.value[key])
-        : formSnapshot.value[key];
-
-    if (JSON.stringify(currentValue) !== JSON.stringify(snapshotValue)) {
-      changes[key] = currentValue;
-    }
-  }
-
-  // Sucursales: enviar solo cada sucursal que realmente cambió.
-  const sucursalesCambios = getChangedSucursales(
-    sucursalesSnapshot.value ?? [],
-    sucursales.value,
-  );
+  const sucursalesCambios = getSucursalesChanges();
   if (sucursalesCambios.length > 0) {
     changes.sucursales = sucursalesCambios;
   }
 
-  const correosCambios = getChangedCorreos(
-    correosSnapshot.value ?? [],
-    correos.value,
-  );
-  if (correosCambios.length > 0) {
+  const correosCambios = getCorreosChanges();
+  if (correosCambios !== null) {
     changes.correos = correosCambios;
   }
 

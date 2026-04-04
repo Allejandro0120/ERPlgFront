@@ -53,6 +53,7 @@
 import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { $confirm } from "@/plugins/confirm/confirm.js";
+import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
 import { rules } from "@/shared/utils/formRules";
 
 const props = defineProps({
@@ -114,6 +115,14 @@ const hasChanges = computed(() => {
   return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
 });
 
+const { onRequestClose } = useConfirmRequestClose({
+  emit,
+  isReadonly,
+  hasChanges,
+  confirmClose: (options) => $confirm.warning(options),
+  message: "Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?",
+});
+
 const resetForm = () => {
   form.value = { ...formInitial };
   formSnapshot.value = null;
@@ -138,19 +147,6 @@ watch(
     formSnapshot.value = { ...form.value };
   },
 );
-
-async function onRequestClose(value) {
-  if (!value && !isReadonly.value && hasChanges.value) {
-    const confirmed = await $confirm.warning({
-      title: "¿Descartar cambios?",
-      message: "Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?",
-      labelConfirm: "Sí, salir",
-      labelCancel: "Seguir editando",
-    });
-    if (!confirmed) return;
-  }
-  emit("update:modelValue", value);
-}
 
 const submitForm = async () => {
   const { valid } = await formRef.value.validate();

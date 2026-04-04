@@ -178,6 +178,8 @@ import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { globalService } from "@/api/services/globalService";
 import { $confirm } from "@/plugins/confirm/confirm.js";
+import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
+import { useLocationCascade } from "@/shared/composables/useLocationCascade";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";
@@ -231,10 +233,6 @@ const labelConfirm = computed(
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const formRef = ref(null);
-const municipios = ref([]);
-const centrosPoblados = ref([]);
-const loadingMunicipios = ref(false);
-const loadingCentrosPoblados = ref(false);
 
 const opcionesEstado = computed(() =>
   [
@@ -263,80 +261,46 @@ const form = ref({ ...formInitial });
 const ui = ref({ ...uiInitial });
 const formSnapshot = ref(null);
 
+const {
+  municipios,
+  centrosPoblados,
+  loadingMunicipios,
+  loadingCentrosPoblados,
+  onDepartamentoChange,
+  onMunicipioChange,
+  preloadLocation,
+  resetLocationState,
+} = useLocationCascade({
+  ui,
+  form,
+  fetchMunicipios: globalService.getMunicipiosByDepartamento,
+  fetchCentrosPoblados: globalService.getCentrosPobladosByMunicipio,
+  onError: (error, stage) => {
+    console.error(`Error en sucursal (${stage}):`, error);
+  },
+});
+
 const hasChanges = computed(() => {
   if (!formSnapshot.value) return false;
   return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
 });
 
-// ─── Cascada ubicación ────────────────────────────────────────────────────────
-const onDepartamentoChange = async (idDepartamento) => {
-  ui.value.idMunicipio = null;
-  form.value.IdCentroPoblado = null;
-  municipios.value = [];
-  centrosPoblados.value = [];
-
-  if (!idDepartamento) return;
-
-  loadingMunicipios.value = true;
-  try {
-    const res = await globalService.getMunicipiosByDepartamento(idDepartamento);
-    if (res.data?.success) municipios.value = res.data.data || [];
-  } catch (e) {
-    console.error("Error municipios:", e);
-  } finally {
-    loadingMunicipios.value = false;
-  }
-};
-
-const onMunicipioChange = async (idMunicipio) => {
-  form.value.IdCentroPoblado = null;
-  centrosPoblados.value = [];
-
-  if (!idMunicipio) return;
-
-  loadingCentrosPoblados.value = true;
-  try {
-    const res = await globalService.getCentrosPobladosByMunicipio(idMunicipio);
-    if (res.data?.success) {
-      const data = res.data.data || [];
-      centrosPoblados.value = data;
-      if (data.length === 1)
-        form.value.IdCentroPoblado = data[0].IdCentroPoblado;
-    }
-  } catch (e) {
-    console.error("Error centros poblados:", e);
-  } finally {
-    loadingCentrosPoblados.value = false;
-  }
-};
+const { onRequestClose } = useConfirmRequestClose({
+  emit,
+  isReadonly,
+  hasChanges,
+  confirmClose: (options) => $confirm.warning(options),
+  message:
+    "Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?",
+});
 
 // ─── Precarga al editar/ver ───────────────────────────────────────────────────
 async function precargarSucursal(suc) {
-  if (suc.IdDepartamento) {
-    ui.value.idDepartamento = suc.IdDepartamento;
-    loadingMunicipios.value = true;
-    try {
-      const res = await globalService.getMunicipiosByDepartamento(
-        suc.IdDepartamento,
-      );
-      if (res.data?.success) municipios.value = res.data.data || [];
-    } finally {
-      loadingMunicipios.value = false;
-    }
-  }
-
-  if (suc.IdMunicipio) {
-    ui.value.idMunicipio = suc.IdMunicipio;
-    loadingCentrosPoblados.value = true;
-    try {
-      const res = await globalService.getCentrosPobladosByMunicipio(
-        suc.IdMunicipio,
-      );
-      if (res.data?.success) centrosPoblados.value = res.data.data || [];
-    } finally {
-      loadingCentrosPoblados.value = false;
-    }
-  }
+  await preloadLocation({
+    idDepartamento: suc.IdDepartamento ?? null,
+    idMunicipio: suc.IdMunicipio ?? null,
+    idCentroPoblado: suc.IdCentroPoblado ?? null,
+  });
 
   form.value = {
     NombreSucursal: suc.NombreSucursal ?? "",
@@ -354,8 +318,7 @@ async function precargarSucursal(suc) {
 const resetForm = () => {
   form.value = { ...formInitial };
   ui.value = { ...uiInitial };
-  municipios.value = [];
-  centrosPoblados.value = [];
+  resetLocationState();
   formSnapshot.value = null;
   formRef.value?.resetValidation();
 };
@@ -381,21 +344,6 @@ watch(
     }
   },
 );
-
-// ─── Cierre ───────────────────────────────────────────────────────────────────
-async function onRequestClose(value) {
-  if (!value && !isReadonly.value && hasChanges.value) {
-    const confirmed = await $confirm.warning({
-      title: "¿Descartar cambios?",
-      message:
-        "Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?",
-      labelConfirm: "Sí, salir",
-      labelCancel: "Seguir editando",
-    });
-    if (!confirmed) return;
-  }
-  emit("update:modelValue", value);
-}
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 const submitForm = async () => {

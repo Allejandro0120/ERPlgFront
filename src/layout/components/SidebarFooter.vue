@@ -20,8 +20,6 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 const props = defineProps({
   rail: { type: Boolean, default: false },
   user: {
@@ -37,15 +35,6 @@ const props = defineProps({
 });
 
 defineEmits(["logout", "change-password"]);
-
-function getUserInitials(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(" ");
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-  return name.substring(0, 2).toUpperCase();
-}
 </script>
 
 <style scoped></style>
