@@ -28,7 +28,7 @@ api.interceptors.response.use(
 
     if (!error.response) {
       $toast.error(
-        "No se pudo conectar con el servidor. Verifica tu conexión.",
+        "No se pudo conectar con el servidor.",
       );
       error._toastShown = true;
       return Promise.reject(error);
