@@ -107,6 +107,8 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
+import { $toast } from "@/plugins/toast";
+import { $loading } from "@/plugins/loading/loading";
 import Logo from "/sanamos_logo_horizontal.webp";
 
 // ─── Composables ─────────────────────────────────────────────────────────────

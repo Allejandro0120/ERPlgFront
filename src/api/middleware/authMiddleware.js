@@ -11,6 +11,7 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
+import { $loading } from "@/plugins/loading/loading";
 
 /**
  * Carga el perfil del usuario desde el servidor y lo guarda en el store.

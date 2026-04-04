@@ -178,6 +178,8 @@ import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import { globalService } from "@/api/services/globalService";
 import { $confirm } from "@/plugins/confirm/confirm.js";
+import { $toast } from "@/plugins/toast";
+import { $loading } from "@/plugins/loading/loading";
 import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
 import { useLocationCascade } from "@/shared/composables/useLocationCascade";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";

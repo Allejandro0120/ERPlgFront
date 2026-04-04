@@ -22,5 +22,7 @@
 </template>
 
 <script setup>
-const state = window.$loading.state;
+import { $loading } from "@/plugins/loading/loading.js";
+
+const state = $loading.state;
 </script>

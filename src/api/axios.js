@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AUTH_CODES } from "@/api/handlers/authCodes";
+import { $toast } from "@/plugins/toast";
 import {
   closeSession,
   getAbortSignal,

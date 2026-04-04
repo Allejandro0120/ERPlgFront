@@ -8,7 +8,7 @@ const defaults = {
   position: "bottom-right",
 };
 
-const $toast = {
+export const $toast = {
   success: (msg, options) =>
     toast.success(msg, { ...defaults, duration: 3000, ...options }),
   error: (msg, options) =>
@@ -32,6 +32,5 @@ const $toast = {
 
 export default {
   install() {
-    window.$toast = $toast;
   },
 };
