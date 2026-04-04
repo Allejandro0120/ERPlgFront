@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { authService } from "@/api/services/authService";
+import router from "@/router"; // <-- Importamos desde el router
 
 let abortController = new AbortController();
 let refreshPromise = null;
@@ -26,6 +27,9 @@ export async function closeSession() {
     abortController = new AbortController();
     useAuthStore().clearAuth();
     isClosingSession = false;
+    
+    // REDIRECCIÓN AL LOGIN!
+    router.replace({ name: 'login' })
   }
 }
 

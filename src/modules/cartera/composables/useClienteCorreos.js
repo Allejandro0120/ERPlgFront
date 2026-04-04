@@ -161,18 +161,10 @@ export function useClienteCorreos({ isReadonly }) {
   }
 
   function hasCorreosChanges() {
-    return hasCollectionChanges(
-      correos.value,
-      correosSnapshot.value,
-      correoSerializable,
-    );
+    return buildCorreosChangesPayload().length > 0;
   }
 
-  function getCorreosChanges() {
-    if (!hasCorreosChanges()) {
-      return null;
-    }
-
+  function buildCorreosChangesPayload() {
     const snapshotById = new Map(
       (correosSnapshot.value || [])
         .filter((correo) => !!correo?.IdCorreo)
@@ -184,22 +176,14 @@ export function useClienteCorreos({ isReadonly }) {
         .filter((correo) => !!correo.IdCorreo)
         .map((correo) => correo.IdCorreo),
     );
+    const eliminadosPayload = Array.from(snapshotById.keys())
+      .filter((id) => !idsActuales.has(id))
+      .map((id) => ({
+        IdCorreo: id,
+        Eliminar: true,
+      }));
 
-    const hayEliminados = Array.from(snapshotById.keys()).some(
-      (id) => !idsActuales.has(id),
-    );
-
-    // Para respetar el contrato del backend, cuando hay eliminaciones
-    // se envía el estado completo actual del arreglo.
-    if (hayEliminados) {
-      return correos.value.map((correo) =>
-        correo.IdCorreo
-          ? localCorreoToApi(correo, true)
-          : localCorreoToApi(correo, false),
-      );
-    }
-
-    return correos.value
+    const upsertsPayload = correos.value
       .map((correo) => {
         if (!correo.IdCorreo) {
           return localCorreoToApi(correo, false);
@@ -214,13 +198,34 @@ export function useClienteCorreos({ isReadonly }) {
           correo.IdTipoCorreo !== original.IdTipoCorreo;
         const changedEmail = correo.Email !== original.Email;
 
-        if (changedTipoCorreo || changedEmail) {
-          return localCorreoToApi(correo, true);
+        if (!changedTipoCorreo && !changedEmail) {
+          return null;
         }
 
-        return null;
+        const patch = { IdCorreo: correo.IdCorreo };
+
+        if (changedTipoCorreo) {
+          patch.IdTipoCorreo = correo.IdTipoCorreo;
+        }
+
+        if (changedEmail) {
+          patch.Email = correo.Email;
+        }
+
+        return patch;
       })
       .filter(Boolean);
+
+    return [...upsertsPayload, ...eliminadosPayload];
+  }
+
+  function getCorreosChanges() {
+    if (!hasCollectionChanges(correos.value, correosSnapshot.value, correoSerializable)) {
+      return null;
+    }
+
+    const payload = buildCorreosChangesPayload();
+    return payload.length > 0 ? payload : null;
   }
 
   return {
