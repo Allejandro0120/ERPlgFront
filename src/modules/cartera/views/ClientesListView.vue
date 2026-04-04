@@ -219,7 +219,10 @@ async function editarCliente(item) {
       dialog.value = { open: true, mode: "edit", cliente: res.data.data };
     }
   } catch (e) {
-    $toast.error("Error al obtener cliente: " + e.message);
+    console.error("Error al obtener cliente:", error);
+    if (!error._toastShown) {
+      $toast.error("Error inesperado al cargar el cliente");
+    }
   } finally {
     $loading.hide();
   }
@@ -233,7 +236,9 @@ async function verDetalle(item) {
       dialog.value = { open: true, mode: "view", cliente: res.data.data };
     }
   } catch (e) {
-    $toast.error("Error al obtener cliente: " + e.message);
+    if (!error._toastShown) {
+      $toast.error("Error inesperado al cargar el cliente");
+    }
   } finally {
     $loading.hide();
   }
@@ -264,7 +269,9 @@ async function onSubmit({ payload, mode }) {
     refrescarTabla();
   } catch (error) {
     console.error("Error al guardar cliente:", error);
-    $toast.error("Error al guardar cliente: " + error.message);
+    if (!error._toastShown) {
+      $toast.error("Error inesperado al guardar el cliente");
+    }
   } finally {
     $loading.hide();
   }
