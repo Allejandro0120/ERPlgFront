@@ -46,7 +46,7 @@
             {{ item.Direccion || "—" }}
           </div>
           <div class="text-caption text-grey">
-            {{ departamentoLabel(item._idDepartamento) }}
+            {{ departamentoLabel(item.IdDepartamento) }}
           </div>
         </div>
       </template>

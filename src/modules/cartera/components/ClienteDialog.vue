@@ -194,35 +194,103 @@ const loadingMunicipios = ref(false);
 const loadingCentrosPoblados = ref(false);
 
 // ─── Sucursales locales ───────────────────────────────────────────────────────
-let _uidCounter = 0;
+let localSucursalCounter = 0;
 
 function apiSucursalToLocal(apiSuc) {
   return {
-    _uid: ++_uidCounter,
-    _idDepartamento: apiSuc.IdDepartamento ?? null,
-    _idMunicipio: apiSuc.IdMunicipio ?? null,
-    _nombreMunicipio: null, // se resuelve después con el catálogo
-    Habilitada: apiSuc.Habilitada ?? true,
+    LocalId: ++localSucursalCounter,
+    IdDepartamento: apiSuc.IdDepartamento ?? null,
+    IdMunicipio: apiSuc.IdMunicipio ?? null,
     IdSucursal: apiSuc.IdSucursal,
     NombreSucursal: apiSuc.NombreSucursal ?? "",
     Telefono: apiSuc.Telefono ?? "",
     CorreoGeneral: apiSuc.CorreoGeneral ?? "",
     Direccion: apiSuc.Direccion ?? "",
     IdCentroPoblado: apiSuc.IdCentroPoblado ?? null,
+    Habilitada: apiSuc.Habilitada ?? true,
   };
+}
+
+function localSucursalToApi(suc, includeId = true) {
+  const payload = {
+    NombreSucursal: suc.NombreSucursal,
+    Telefono: suc.Telefono,
+    CorreoGeneral: suc.CorreoGeneral,
+    Direccion: suc.Direccion,
+    IdCentroPoblado: suc.IdCentroPoblado,
+    Habilitada: suc.Habilitada,
+  };
+  if (includeId && suc.IdSucursal) payload.IdSucursal = suc.IdSucursal;
+  return payload;
+}
+
+// Serializa los campos relevantes para detectar cambios reales.
+function sucursalSerializable(s) {
+  return {
+    IdSucursal: s.IdSucursal ?? null,
+    NombreSucursal: s.NombreSucursal ?? "",
+    Telefono: s.Telefono ?? "",
+    CorreoGeneral: s.CorreoGeneral ?? "",
+    Direccion: s.Direccion ?? "",
+    IdCentroPoblado: s.IdCentroPoblado ?? null,
+    Habilitada: s.Habilitada ?? true,
+    IdDepartamento: s.IdDepartamento ?? null,
+    IdMunicipio: s.IdMunicipio ?? null,
+  };
+}
+
+const sucursalPatchFields = [
+  "NombreSucursal",
+  "Telefono",
+  "CorreoGeneral",
+  "Direccion",
+  "IdCentroPoblado",
+  "Habilitada",
+];
+
+function buildSucursalPatch(current, snapshotById) {
+  if (!current.IdSucursal) {
+    return localSucursalToApi(current, false);
+  }
+
+  const original = snapshotById.get(current.IdSucursal);
+  if (!original) {
+    return localSucursalToApi(current, true);
+  }
+
+  const patch = { IdSucursal: current.IdSucursal };
+  for (const field of sucursalPatchFields) {
+    if (JSON.stringify(current[field]) !== JSON.stringify(original[field])) {
+      patch[field] = current[field];
+    }
+  }
+
+  return Object.keys(patch).length > 1 ? patch : null;
+}
+
+function getChangedSucursales(snapshotList, currentList) {
+  const snapshotById = new Map(
+    (snapshotList || [])
+      .filter((s) => !!s.IdSucursal)
+      .map((s) => [s.IdSucursal, s]),
+  );
+
+  return currentList
+    .map((current) => buildSucursalPatch(current, snapshotById))
+    .filter(Boolean);
 }
 
 const sucursales = ref([]);
 
 function handleEditarSucursal(item) {
-  const idx = sucursales.value.findIndex((s) => s._uid === item._uid);
+  const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
   if (idx !== -1) {
     abrirEditarSucursal(idx);
   }
 }
 
 function handleVerSucursal(item) {
-  const idx = sucursales.value.findIndex((s) => s._uid === item._uid);
+  const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
   if (idx !== -1) {
     abrirVerSucursal(idx);
   }
@@ -259,8 +327,8 @@ function abrirEditarSucursal(idx) {
       Direccion: suc.Direccion,
       IdCentroPoblado: suc.IdCentroPoblado,
       Habilitada: suc.Habilitada,
-      IdDepartamento: suc._idDepartamento,
-      IdMunicipio: suc._idMunicipio,
+      IdDepartamento: suc.IdDepartamento,
+      IdMunicipio: suc.IdMunicipio,
     },
   };
 }
@@ -279,8 +347,8 @@ function abrirVerSucursal(idx) {
       Direccion: suc.Direccion,
       IdCentroPoblado: suc.IdCentroPoblado,
       Habilitada: suc.Habilitada,
-      IdDepartamento: suc._idDepartamento,
-      IdMunicipio: suc._idMunicipio,
+      IdDepartamento: suc.IdDepartamento,
+      IdMunicipio: suc.IdMunicipio,
     },
   };
 }
@@ -291,31 +359,28 @@ function abrirVerSucursal(idx) {
  * En edit: reemplaza el elemento en el índice.
  */
 function onSucursalSubmit({ payload, mode }) {
+  const local = {
+    NombreSucursal: payload.NombreSucursal,
+    Telefono: payload.Telefono,
+    CorreoGeneral: payload.CorreoGeneral,
+    Direccion: payload.Direccion,
+    IdCentroPoblado: payload.IdCentroPoblado,
+    Habilitada: payload.Habilitada,
+    IdDepartamento: payload.IdDepartamento,
+    IdMunicipio: payload.IdMunicipio,
+  };
+
   if (mode === "create") {
     sucursales.value.push({
-      _uid: ++_uidCounter,
+      LocalId: ++localSucursalCounter,
       IdSucursal: null,
-      NombreSucursal: payload.NombreSucursal,
-      Telefono: payload.Telefono,
-      CorreoGeneral: payload.CorreoGeneral,
-      Direccion: payload.Direccion,
-      IdCentroPoblado: payload.IdCentroPoblado,
-      Habilitada: payload.Habilitada,
-      _idDepartamento: payload._IdDepartamento,
-      _idMunicipio: payload._IdMunicipio,
+      ...local,
     });
   } else if (mode === "edit" && sucursalDialog.value.editIdx !== null) {
     const idx = sucursalDialog.value.editIdx;
     sucursales.value[idx] = {
       ...sucursales.value[idx],
-      NombreSucursal: payload.NombreSucursal,
-      Telefono: payload.Telefono,
-      CorreoGeneral: payload.CorreoGeneral,
-      Direccion: payload.Direccion,
-      IdCentroPoblado: payload.IdCentroPoblado,
-      Habilitada: payload.Habilitada,
-      _idDepartamento: payload._IdDepartamento,
-      _idMunicipio: payload._IdMunicipio,
+      ...local,
     };
   }
 
@@ -371,21 +436,6 @@ const form = ref({ ...formInitial });
 const ui = ref({ ...uiInitial });
 const formSnapshot = ref(null);
 const sucursalesSnapshot = ref(null);
-
-// Serializa solo los campos relevantes de cada sucursal para comparar cambios
-function sucursalSerializable(s) {
-  return {
-    IdSucursal: s.IdSucursal,
-    NombreSucursal: s.NombreSucursal,
-    Telefono: s.Telefono,
-    CorreoGeneral: s.CorreoGeneral,
-    Direccion: s.Direccion,
-    IdCentroPoblado: s.IdCentroPoblado,
-    Habilitada: s.Habilitada,
-    _idDep: s._idDepartamento,
-    _idMun: s._idMunicipio,
-  };
-}
 
 const hasChanges = computed(() => {
   if (!formSnapshot.value) return false;
@@ -618,20 +668,32 @@ const submitForm = async () => {
   });
   if (!confirmado) return;
 
-  const payload = { ...form.value };
-  if (payload.CupoCredito) payload.CupoCredito = parseCOP(payload.CupoCredito);
+  const changes = {};
 
-  payload.sucursales = sucursales.value.map((s) => ({
-    ...(s.IdSucursal ? { IdSucursal: s.IdSucursal } : {}),
-    NombreSucursal: s.NombreSucursal,
-    Direccion: s.Direccion,
-    IdCentroPoblado: s.IdCentroPoblado,
-    Telefono: s.Telefono,
-    CorreoGeneral: s.CorreoGeneral,
-    Habilitada: s.Habilitada,
-  }));
+  // Cambios en el formulario principal
+  for (const key in form.value) {
+    const currentValue =
+      key === "CupoCredito" ? parseCOP(form.value[key]) : form.value[key];
+    const snapshotValue =
+      key === "CupoCredito"
+        ? parseCOP(formSnapshot.value[key])
+        : formSnapshot.value[key];
 
-  emit("submit", { payload, mode: props.mode });
+    if (JSON.stringify(currentValue) !== JSON.stringify(snapshotValue)) {
+      changes[key] = currentValue;
+    }
+  }
+
+  // Sucursales: enviar solo cada sucursal que realmente cambió.
+  const sucursalesCambios = getChangedSucursales(
+    sucursalesSnapshot.value ?? [],
+    sucursales.value,
+  );
+  if (sucursalesCambios.length > 0) {
+    changes.sucursales = sucursalesCambios;
+  }
+
+  emit("submit", { payload: changes, mode: props.mode });
 };
 </script>
 

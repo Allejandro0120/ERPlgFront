@@ -400,23 +400,17 @@ async function onRequestClose(value) {
 // ─── Submit ───────────────────────────────────────────────────────────────────
 const submitForm = async () => {
   const { valid } = await formRef.value.validate();
-
   if (!valid) {
     $toast.error("Por favor corrige los errores marcados");
     return;
   }
 
+  // Solo pasamos lo que el padre necesita para construir el objeto local.
   const payload = {
     ...form.value,
-    // Incluir IdSucursal solo si existe (edición)
-    ...(props.sucursal?.IdSucursal
-      ? { IdSucursal: props.sucursal.IdSucursal }
-      : {}),
-    // Metadatos de ubicación para uso interno del padre
-    _IdDepartamento: ui.value.idDepartamento,
-    _IdMunicipio: ui.value.idMunicipio,
-    _municipios: municipios.value,
-    _centrosPoblados: centrosPoblados.value,
+    ...(props.sucursal?.IdSucursal ? { IdSucursal: props.sucursal.IdSucursal } : {}),
+    IdDepartamento: ui.value.idDepartamento,
+    IdMunicipio: ui.value.idMunicipio,
   };
 
   emit("submit", { payload, mode: props.mode });

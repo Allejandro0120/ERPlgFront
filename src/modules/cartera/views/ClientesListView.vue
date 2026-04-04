@@ -239,6 +239,12 @@ async function verDetalle(item) {
 
 // ─── Submit Cliente (captura datos y modo del diálogo) ───────────────────────
 async function onSubmit({ payload, mode }) {
+  if (mode === "edit" && Object.keys(payload || {}).length === 0) {
+    $toast.info("No hay cambios para guardar");
+    dialog.value.open = false;
+    return;
+  }
+
   $loading.show();
   try {
     if (mode === "create") {
