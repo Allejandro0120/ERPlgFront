@@ -55,7 +55,10 @@ api.interceptors.response.use(
       if (action === "logout") {
         $toast.error(message);
         error._toastShown = true;
-        await closeSession();
+        await closeSession({
+          code,
+          skipServerLogout: code === "SESSION_REVOKED" || code === "SESSION_CLOSED",
+        });
         return Promise.reject(error);
       }
 

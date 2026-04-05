@@ -218,7 +218,7 @@ async function editarCliente(item) {
     if (res.data?.success) {
       dialog.value = { open: true, mode: "edit", cliente: res.data.data };
     }
-  } catch (e) {
+  } catch (error) {
     console.error("Error al obtener cliente:", error);
     if (!error._toastShown) {
       $toast.error("Error inesperado al cargar el cliente");
@@ -235,7 +235,7 @@ async function verDetalle(item) {
     if (res.data?.success) {
       dialog.value = { open: true, mode: "view", cliente: res.data.data };
     }
-  } catch (e) {
+  } catch (error) {
     if (!error._toastShown) {
       $toast.error("Error inesperado al cargar el cliente");
     }

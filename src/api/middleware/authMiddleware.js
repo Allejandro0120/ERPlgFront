@@ -77,10 +77,25 @@ export async function authMiddleware(to, from) {
       const firstRoute = authStore.firstRoute;
       return firstRoute ? { path: firstRoute.path } : { name: "login" };
     }
+
+    if (to.name === "login" && authStore.accessTokenHint) {
+      const loaded = await loadProfile();
+
+      if (loaded) {
+        const firstRoute = authStore.firstRoute;
+        return firstRoute ? { path: firstRoute.path } : { name: "login" };
+      }
+    }
+
     return true;
   }
 
   if (!authStore.isAuthenticated) {
+    if (!authStore.accessTokenHint) {
+      authStore.clearAuth();
+      return { name: "login" };
+    }
+
     const loaded = await loadProfile();
     if (!loaded) return { name: "login" };
   }

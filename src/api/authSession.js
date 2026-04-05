@@ -1,10 +1,20 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { authService } from "@/api/services/authService";
+import { $loading } from "@/plugins/loading/loading";
 import router from "@/router"; // <-- Importamos desde el router
 
 let abortController = new AbortController();
 let refreshPromise = null;
 let isClosingSession = false;
+let closeSessionPromise = null;
+
+const NO_SERVER_LOGOUT_CODES = new Set(["SESSION_REVOKED", "SESSION_CLOSED"]);
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 export function getAbortSignal() {
   return abortController.signal;
@@ -14,23 +24,45 @@ export function isSessionClosing() {
   return isClosingSession;
 }
 
-export async function closeSession() {
-  if (isClosingSession) return; // ← corta re-entrada
+export async function closeSession(options = {}) {
+  if (closeSessionPromise) return closeSessionPromise;
+
+  const {
+    code = null,
+    skipServerLogout = false,
+    showRevokedLoading = code === "SESSION_REVOKED",
+  } = options;
+
   isClosingSession = true;
 
-  try {
-    await authService.logout();
-  } catch {
-    // ignorar
-  } finally {
-    abortController.abort();
-    abortController = new AbortController();
-    useAuthStore().clearAuth();
-    isClosingSession = false;
-    
-    // REDIRECCIÓN AL LOGIN!
-    router.replace({ name: 'login' })
-  }
+  closeSessionPromise = (async () => {
+    const mustSkipServerLogout = skipServerLogout || NO_SERVER_LOGOUT_CODES.has(code);
+
+    try {
+      if (showRevokedLoading) {
+        $loading.show("Tu sesión fue revocada. Redirigiendo...");
+        await wait(2000);
+      }
+
+      if (!mustSkipServerLogout) {
+        await authService.logout();
+      }
+    } catch {
+      // ignorar
+    } finally {
+      abortController.abort();
+      abortController = new AbortController();
+      useAuthStore().clearAuth();
+      $loading.hide();
+
+      // REDIRECCIÓN AL LOGIN!
+      await router.replace({ name: "login" }).catch(() => {});// primero redirigir
+      isClosingSession = false; // luego limpiar
+      closeSessionPromise = null;
+    }
+  })();
+
+  return closeSessionPromise;
 }
 
 /**
@@ -51,7 +83,7 @@ export async function tryRefresh() {
       const fatalCodes = ["SESSION_CLOSED", "SESSION_REVOKED"];
       if (fatalCodes.includes(code)) {
         error._handled = true; // ← Marcar handled ANTES de cerrar sesión
-        await closeSession();
+        await closeSession({ code, skipServerLogout: true });
       }
       return false;
     } finally {
