@@ -11,6 +11,7 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
+import { tryRefresh } from "@/api/authSession";
 
 /**
  * Carga el perfil del usuario desde el servidor y lo guarda en el store.
@@ -26,6 +27,11 @@ async function loadProfile() {
     $loading.show();
     const response = await authService.profile();
     const profileData = response.data.data;
+
+    // Si el flag refresh viene en true, el rol cambió y necesitamos actualizar el access token
+    if (profileData.refresh) {
+      await tryRefresh();
+    }
 
     authStore.setAuth({
       Nombre: profileData.nombre,
