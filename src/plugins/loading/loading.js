@@ -5,7 +5,7 @@ const state = reactive({
   text: "Cargando...",
 });
 
-const $loading = {
+export const $loading = {
   state,
   show(text) {
     state.text = text || "Cargando...";
@@ -18,6 +18,5 @@ const $loading = {
 
 export default {
   install() {
-    window.$loading = $loading;
   },
 };

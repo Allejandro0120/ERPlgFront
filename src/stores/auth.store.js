@@ -1,10 +1,38 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+const ACCESS_TOKEN_HINT_KEY = 'erp_access_token_present'
+
+function setAccessTokenHint(isPresent) {
+  if (typeof window === 'undefined') return
+
+  try {
+    if (isPresent) {
+      window.localStorage.setItem(ACCESS_TOKEN_HINT_KEY, '1')
+      return
+    }
+
+    window.localStorage.removeItem(ACCESS_TOKEN_HINT_KEY)
+  } catch {
+    // Ignorar errores de storage (modo privado, permisos, etc.)
+  }
+}
+
+function hasAccessTokenHint() {
+  if (typeof window === 'undefined') return false
+
+  try {
+    return window.localStorage.getItem(ACCESS_TOKEN_HINT_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const menu = ref([])
   const permisos = ref([])
+  const accessTokenHint = ref(hasAccessTokenHint())
 
   // Con cookies HTTP Only, la autenticación se verifica por la presencia de datos del usuario
   const isAuthenticated = computed(() => !!user.value)
@@ -40,6 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setAuth = (userData) => {
     user.value = userData
+    accessTokenHint.value = true
+    setAccessTokenHint(true)
   }
 
   const setProfile = (profileData) => {
@@ -51,6 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     menu.value = []
     permisos.value = []
+    accessTokenHint.value = false
+    setAccessTokenHint(false)
   }
 
   const hasPermission = (permission) => {
@@ -61,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     menu,
     permisos,
+    accessTokenHint,
     isAuthenticated,
     orderedMenu,
     firstRoute,

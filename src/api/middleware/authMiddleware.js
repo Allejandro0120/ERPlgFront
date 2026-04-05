@@ -11,6 +11,7 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 import { authService } from "@/api/services/authService";
+import { $loading } from "@/plugins/loading/loading";
 import { tryRefresh } from "@/api/authSession";
 
 /**
@@ -82,10 +83,25 @@ export async function authMiddleware(to, from) {
       const firstRoute = authStore.firstRoute;
       return firstRoute ? { path: firstRoute.path } : { name: "login" };
     }
+
+    if (to.name === "login" && authStore.accessTokenHint) {
+      const loaded = await loadProfile();
+
+      if (loaded) {
+        const firstRoute = authStore.firstRoute;
+        return firstRoute ? { path: firstRoute.path } : { name: "login" };
+      }
+    }
+
     return true;
   }
 
   if (!authStore.isAuthenticated) {
+    if (!authStore.accessTokenHint) {
+      authStore.clearAuth();
+      return { name: "login" };
+    }
+
     const loaded = await loadProfile();
     if (!loaded) return { name: "login" };
   }

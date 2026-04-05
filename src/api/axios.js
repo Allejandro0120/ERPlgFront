@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AUTH_CODES } from "@/api/handlers/authCodes";
+import { $toast } from "@/plugins/toast";
 import {
   closeSession,
   getAbortSignal,
@@ -27,8 +28,9 @@ api.interceptors.response.use(
 
     if (!error.response) {
       $toast.error(
-        "No se pudo conectar con el servidor. Verifica tu conexión.",
+        "No se pudo conectar con el servidor.",
       );
+      error._toastShown = true;
       return Promise.reject(error);
     }
     const status = error.response?.status;
@@ -52,16 +54,22 @@ api.interceptors.response.use(
 
       if (action === "logout") {
         $toast.error(message);
-        await closeSession();
+        error._toastShown = true;
+        await closeSession({
+          code,
+          skipServerLogout: code === "SESSION_REVOKED" || code === "SESSION_CLOSED",
+        });
         return Promise.reject(error);
       }
 
       // action === "none": solo mostrar el error
       $toast.error(message);
+      error._toastShown = true;
       return Promise.reject(error);
     }
 
     $toast.error(message);
+    error._toastShown = true;
     return Promise.reject(error);
   },
 );

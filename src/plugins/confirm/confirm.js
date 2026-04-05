@@ -69,7 +69,5 @@ export { $confirm };
 export default {
   install(app) {
     app.config.globalProperties.$confirm = $confirm;
-        window.$confirm = $confirm;
-
   },
 };

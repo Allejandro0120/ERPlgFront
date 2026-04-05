@@ -76,6 +76,8 @@ import { useDisplay } from "vuetify/lib/composables/display";
 import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { authService } from "@/api/services/authService";
+import { $toast } from "@/plugins/toast";
+import { $loading } from "@/plugins/loading/loading";
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();
@@ -143,7 +145,7 @@ async function handleLogout() {
     await authService.logout();
     authStore.clearAuth();
     uiStore.setActiveModule(null);
-    window.$toast.success("Sesión cerrada correctamente");
+    $toast.success("Sesión cerrada correctamente");
     router.push({ name: "login" });
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
