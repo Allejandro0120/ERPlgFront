@@ -1,5 +1,6 @@
 import { ref, computed } from "vue";
 import { $confirm } from "@/plugins/confirm/confirm.js";
+import { $toast } from "@/plugins/toast";
 import { hasCollectionChanges } from "@/shared/composables/useChangePayload";
 
 export function useClienteCorreos({ isReadonly }) {
@@ -43,6 +44,27 @@ export function useClienteCorreos({ isReadonly }) {
       IdTipoCorreo: correo.IdTipoCorreo ?? null,
       Email: correo.Email ?? "",
     };
+  }
+
+  function normalizeEmail(value) {
+    return String(value ?? "").trim().toLowerCase();
+  }
+
+  function isDuplicateCorreo({ IdTipoCorreo, Email }, mode) {
+    const targetTipo = Number(IdTipoCorreo);
+    const targetEmail = normalizeEmail(Email);
+    const currentEditIdx = mode === "edit" ? correoDialog.value.editIdx : null;
+
+    return correos.value.some((correo, idx) => {
+      if (currentEditIdx !== null && idx === currentEditIdx) {
+        return false;
+      }
+
+      return (
+        Number(correo.IdTipoCorreo) === targetTipo &&
+        normalizeEmail(correo.Email) === targetEmail
+      );
+    });
   }
 
   function abrirAgregarCorreo() {
@@ -92,9 +114,14 @@ export function useClienteCorreos({ isReadonly }) {
   }
 
   function onCorreoSubmit({ payload, mode }) {
+    if (isDuplicateCorreo(payload, mode)) {
+      $toast.error("Ya existe ese correo para el tipo seleccionado");
+      return;
+    }
+
     const local = {
       IdTipoCorreo: payload.IdTipoCorreo,
-      Email: payload.Email,
+      Email: String(payload.Email ?? "").trim(),
     };
 
     if (mode === "create") {
@@ -216,7 +243,9 @@ export function useClienteCorreos({ isReadonly }) {
       })
       .filter(Boolean);
 
-    return [...upsertsPayload, ...eliminadosPayload];
+    // Primero eliminaciones para evitar conflictos de duplicado al recrear
+    // el mismo tipo+correo dentro del mismo submit.
+    return [...eliminadosPayload, ...upsertsPayload];
   }
 
   function getCorreosChanges() {
