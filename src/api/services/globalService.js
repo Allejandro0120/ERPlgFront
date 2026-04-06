@@ -42,7 +42,7 @@ export const globalService = {
    * Obtiene las listas de precios disponibles (Caché en Memoria)
    */
   getListasPrecios: () =>
-    withCache("listasPrecios", () => api.get("v1/global/listas-precios")),
+    withCache("listasPrecios", () => api.get("v1/ware/listas-precios")),
 
   /**
    * Limpia toda la caché almacenada (Útil para forzar actualización)
