@@ -164,7 +164,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
-import SucursalFormDialog from "./Sucursalformdialog.vue";
+import SucursalFormDialog from "./SucursalFormDialog.vue";
 import { globalService } from "@/api/services/globalService";
 import { formatCOP, parseCOP } from "@/shared/utils/currency";
 import { $confirm } from "@/plugins/confirm/confirm.js";

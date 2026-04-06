@@ -15,7 +15,7 @@ export default [
     {
     path: '/mercancia/recepcion-mercancia',
     name: 'recepciones',
-    component: () => import('./views/RecepcionView.vue'),
+    component: () => import('./views/RecepcionListView.vue'),
     meta: { title: 'Gestión de Recepciones', permiso: 'Recepciones.READ' },
   },
 
