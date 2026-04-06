@@ -9,4 +9,5 @@ export const authService = {
   logout: () => api.post("v1/auth/logout"),
   profile: () => api.post("v1/auth/profile"),
   refreshToken: () => api.post("v1/auth/refresh"),
+  changePassword: (params) => api.patch("v1/auth/change-password", params),
 };

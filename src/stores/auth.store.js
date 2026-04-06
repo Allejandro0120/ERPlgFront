@@ -32,6 +32,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const menu = ref([])
   const permisos = ref([])
+  const mustChangePassword = ref(false)
+  const passwordExpiryDate = ref(null)
   const accessTokenHint = ref(hasAccessTokenHint())
 
   // Con cookies HTTP Only, la autenticación se verifica por la presencia de datos del usuario
@@ -68,6 +70,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setAuth = (userData) => {
     user.value = userData
+    mustChangePassword.value = Boolean(userData?.debeCambiarContrasena)
+    passwordExpiryDate.value = userData?.vencimientoContrasena || null
     accessTokenHint.value = true
     setAccessTokenHint(true)
   }
@@ -75,12 +79,16 @@ export const useAuthStore = defineStore('auth', () => {
   const setProfile = (profileData) => {
     menu.value = profileData.menu || []
     permisos.value = profileData.permisos || []
+    mustChangePassword.value = Boolean(profileData?.debeCambiarContrasena)
+    passwordExpiryDate.value = profileData?.vencimientoContrasena || null
   }
 
   const clearAuth = () => {
     user.value = null
     menu.value = []
     permisos.value = []
+    mustChangePassword.value = false
+    passwordExpiryDate.value = null
     accessTokenHint.value = false
     setAccessTokenHint(false)
   }
@@ -93,6 +101,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     menu,
     permisos,
+    mustChangePassword,
+    passwordExpiryDate,
     accessTokenHint,
     isAuthenticated,
     orderedMenu,

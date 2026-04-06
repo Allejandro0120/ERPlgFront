@@ -3,6 +3,7 @@
   <AppSidebar />
   <v-main>
     <AppBar />
+    <ChangePasswordDialog />
     <router-view v-slot="{ Component }">
       <v-container fluid class="pa-3 pa-sm-5">
         <div class="d-flex flex-wrap justify-space-between align-center mb-6 mx-1 mx-sm-3 ga-3">
@@ -30,6 +31,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import AppBar from "@/shared/ui/AppBar.vue";
+import ChangePasswordDialog from "@/shared/ui/ChangePasswordDialog.vue";
 import AppSidebar from "@/layout/components/AppSidebar.vue";
 import { useAuthStore } from "@/stores/auth.store";
 

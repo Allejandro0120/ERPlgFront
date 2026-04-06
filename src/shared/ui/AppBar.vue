@@ -68,16 +68,17 @@
       </div>
     </template>
   </v-app-bar>
+
 </template>
 <script setup>
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify/lib/composables/display";
+import { authService } from "@/api/services/authService";
+import { $loading } from "@/plugins/loading/loading";
+import { $toast } from "@/plugins/toast";
 import { useUiStore } from "@/stores/ui.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { authService } from "@/api/services/authService";
-import { $toast } from "@/plugins/toast";
-import { $loading } from "@/plugins/loading/loading";
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();
@@ -158,6 +159,8 @@ async function handleLogout() {
 }
 
 function handleChangePassword() {
-  console.log("change password");
+  uiStore.openChangePasswordDialog({
+    forced: Boolean(authStore.mustChangePassword),
+  });
 }
 </script>

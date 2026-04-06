@@ -15,6 +15,10 @@ export const useUiStore = defineStore('ui', () => {
   // Acciones opcionales a la derecha del encabezado de página
   const headerActions = ref([])
 
+  // Modal para cambio de contraseña propia
+  const changePasswordDialogOpen = ref(false)
+  const changePasswordDialogForced = ref(false)
+
   function toggleDrawer() {
     drawer.value = !drawer.value
   }
@@ -35,5 +39,31 @@ export const useUiStore = defineStore('ui', () => {
     headerActions.value = []
   }
 
-  return { drawer, rail, activeModule, headerActions, toggleDrawer, toggleRail, setActiveModule, setHeaderActions, clearHeaderActions }
+  function openChangePasswordDialog(options = {}) {
+    changePasswordDialogOpen.value = true
+    changePasswordDialogForced.value = Boolean(options.forced)
+  }
+
+  function closeChangePasswordDialog(options = {}) {
+    if (changePasswordDialogForced.value && !options.force) return
+
+    changePasswordDialogOpen.value = false
+    changePasswordDialogForced.value = false
+  }
+
+  return {
+    drawer,
+    rail,
+    activeModule,
+    headerActions,
+    changePasswordDialogOpen,
+    changePasswordDialogForced,
+    toggleDrawer,
+    toggleRail,
+    setActiveModule,
+    setHeaderActions,
+    clearHeaderActions,
+    openChangePasswordDialog,
+    closeChangePasswordDialog,
+  }
 })
