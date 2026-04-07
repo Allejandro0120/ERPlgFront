@@ -39,12 +39,6 @@ export const globalService = {
     withCache("actividadesCiiu", () => api.get("v1/global/actividades-ciiu")),
 
   /**
-   * Obtiene las listas de precios disponibles (Caché en Memoria)
-   */
-  getListasPrecios: () =>
-    withCache("listasPrecios", () => api.get("v1/ware/listas-precios")),
-
-  /**
    * Limpia toda la caché almacenada (Útil para forzar actualización)
    */
   clearCache: (key) => clearCache(key),

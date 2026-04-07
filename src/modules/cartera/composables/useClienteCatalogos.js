@@ -1,6 +1,8 @@
 import { ref, computed } from "vue";
 import { globalService } from "@/api/services/globalService";
 import { clienteService } from "@/api/services/clienteService";
+import { mercanciaService } from "@/api/services/mercanciaService";
+
 
 export function useClienteCatalogos() {
   const tipoDocumentos = ref([]);
@@ -26,7 +28,7 @@ export function useClienteCatalogos() {
   };
 
   const cargarListaPrecios = async () => {
-    const response = await globalService.getListasPrecios();
+    const response = await mercanciaService.getListasPrecios();
     if (response.data?.success) {
       listaPrecios.value = (response.data.data || []).map((item) => ({
         ...item,
