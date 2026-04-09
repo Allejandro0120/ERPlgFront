@@ -6,7 +6,7 @@ export const globalService = {
    * Obtiene la lista de departamentos (Caché en Memoria)
    */
   getDepartamentos: () =>
-    withCache("departamentos", () => api.get("v1/global/departamentos")),
+    withCache("departamentos", () => api.get("v1/global/departments")),
 
   /**
    * Obtiene la lista de municipios por departamento (Caché por ID)
@@ -14,7 +14,7 @@ export const globalService = {
    */
   getMunicipiosByDepartamento: (idDepartamento) =>
     withCache(`municipios_${idDepartamento}`, () =>
-      api.get(`v1/global/municipios/${idDepartamento}`),
+      api.get(`v1/global/municipalities/${idDepartamento}`),
     ),
 
   /**
@@ -23,20 +23,20 @@ export const globalService = {
    */
   getCentrosPobladosByMunicipio: (idMunicipio) =>
     withCache(`centrosN_${idMunicipio}`, () =>
-      api.get(`v1/global/centros-poblados/${idMunicipio}`),
+      api.get(`v1/global/populated-centers/${idMunicipio}`),
     ),
 
   /**
    * Obtiene la lista de tipos de documentos (Caché en Memoria)
    */
   getTiposDocumentos: () =>
-    withCache("tiposDocumentos", () => api.get("v1/global/tipos-documentos")),
+    withCache("tiposDocumentos", () => api.get("v1/global/document-types")),
 
   /**
    * Obtiene la lista de actividades CIIU (Caché en Memoria)
    */
   getActividadesCiiu: () =>
-    withCache("actividadesCiiu", () => api.get("v1/global/actividades-ciiu")),
+    withCache("actividadesCiiu", () => api.get("v1/global/ciiu-activities")),
 
   /**
    * Limpia toda la caché almacenada (Útil para forzar actualización)

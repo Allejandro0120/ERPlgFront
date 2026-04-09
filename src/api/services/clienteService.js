@@ -40,7 +40,7 @@ export const clienteService = {
    * Obtiene un cliente por su ID
    * @param {number} IdCliente - ID del cliente
    */
-  getClienteById: (IdCliente) => api.get(`v1/clients/getunique/${IdCliente}`),
+  getClienteById: (IdCliente) => api.get(`v1/clients/unique/${IdCliente}`),
 
   /**
    * Crea un nuevo cliente
