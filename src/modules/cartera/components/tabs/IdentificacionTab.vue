@@ -22,9 +22,9 @@
         id="NumeroIdentificacion"
         label="Número de Identificación"
         prepend-inner-icon="mdi-numeric"
-        :rules="[rules.required, rules.soloDigitosGuion]"
+        :rules="[rules.required, rules.onlyDigitsGuion]"
         :readonly="isReadonly"
-        @keydown="bloquear($event, allow.idGuion)"
+        @keydown="blockKey ($event, allow.idWithDash)"
         :clearable="!isReadonly"
       />
     </v-col>
@@ -77,7 +77,7 @@
         prepend-inner-icon="mdi-phone-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
-        @keydown="bloquear($event, allow.soloDigitos)"
+        @keydown="blockKey ($event, allow.onlyDigits)"
         :clearable="!isReadonly"
       />
     </v-col>
@@ -129,9 +129,9 @@
 
 <script setup>
 import { computed, onMounted, toRefs } from "vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
-import { rules } from "@/shared/utils/formRules";
-import { allow, bloquear } from "@/shared/utils/inputHelpers";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
+import { rules } from "@/shared/utils/validationRules";
+import { allow, blockKey  } from "@/shared/utils/inputKeyFilter";
 
 const props = defineProps({
   form: { type: Object, required: true },

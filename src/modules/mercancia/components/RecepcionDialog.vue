@@ -164,7 +164,7 @@
 import { reactive, computed, watch, ref } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
 
 const props = defineProps({
   modelValue: Boolean,

@@ -1,5 +1,5 @@
 import api from "@/api/axios";
-import { withCache } from "@/api/utils/cache";
+import { withCache } from "@/api/utils/apiCache";
 
 export const mercanciaService = {
 

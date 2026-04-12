@@ -13,12 +13,12 @@ export const CONTROL_KEYS = new Set([
 ]);
 
 export const allow = {
-  soloDigitos: /^[0-9]$/,
-  idGuion: /^[0-9\-]$/,
+  onlyDigits: /^[0-9]$/,
+  idWithDash: /^[0-9\-]$/,
   decimal: /^[0-9.,]$/,
 };
 
-export const bloquear = (event, pattern) => {
+export const blockKey  = (event, pattern) => {
   if (CONTROL_KEYS.has(event.key) || event.ctrlKey || event.metaKey) return;
   if (!pattern.test(event.key)) event.preventDefault();
 };

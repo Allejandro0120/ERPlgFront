@@ -68,7 +68,7 @@
 <script setup>
 import { computed, toRefs } from "vue";
 import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
 
 const emit = defineEmits(["add"]);
 

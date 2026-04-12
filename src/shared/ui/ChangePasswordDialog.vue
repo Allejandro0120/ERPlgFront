@@ -1,7 +1,11 @@
 <template>
   <base-dialog
     :model-value="uiStore.changePasswordDialogOpen"
-    :title="isForcedPasswordChange ? 'Debes cambiar tu contraseña' : 'Cambiar contraseña'"
+    :title="
+      isForcedPasswordChange
+        ? 'Debes cambiar tu contraseña'
+        : 'Cambiar contraseña'
+    "
     icon="mdi-lock-reset"
     color="primary"
     :persistent="isForcedPasswordChange"
@@ -21,17 +25,23 @@
           density="comfortable"
           class="mb-8"
         >
-          Tu contraseña venció{{ passwordExpiryText ? ` el ${passwordExpiryText}` : '' }}.
-          Debes actualizarla para continuar.
+          Tu contraseña venció{{
+            passwordExpiryText ? ` el ${passwordExpiryText}` : ""
+          }}. Debes actualizarla para continuar.
         </v-alert>
 
-        <v-form ref="changePasswordFormRef" @submit.prevent="submitChangePassword">
+        <v-form
+          ref="changePasswordFormRef"
+          @submit.prevent="submitChangePassword"
+        >
           <v-text-field
             v-model="changePasswordForm.ContrasenaActual"
             label="Contraseña actual"
             placeholder="••••••••"
             prepend-inner-icon="mdi-lock-outline"
-            :append-inner-icon="showCurrentPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+            :append-inner-icon="
+              showCurrentPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
+            "
             :type="showCurrentPassword ? 'text' : 'password'"
             autocomplete="current-password"
             :rules="passwordFieldRules.current"
@@ -44,7 +54,9 @@
             label="Nueva contraseña"
             placeholder="••••••••"
             prepend-inner-icon="mdi-lock-reset"
-            :append-inner-icon="showNewPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+            :append-inner-icon="
+              showNewPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
+            "
             :type="showNewPassword ? 'text' : 'password'"
             autocomplete="new-password"
             :rules="passwordFieldRules.next"
@@ -57,7 +69,9 @@
             label="Confirmar nueva contraseña"
             placeholder="••••••••"
             prepend-inner-icon="mdi-check-circle-outline"
-            :append-inner-icon="showConfirmPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+            :append-inner-icon="
+              showConfirmPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
+            "
             :type="showConfirmPassword ? 'text' : 'password'"
             autocomplete="new-password"
             :rules="passwordFieldRules.confirm"
@@ -70,158 +84,152 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseDialog from '@/shared/ui/BaseDialog.vue'
-import { authService } from '@/api/services/authService'
-import { $confirm } from '@/plugins/confirm/confirm.js'
-import { $loading } from '@/plugins/loading/loading'
-import { $toast } from '@/plugins/toast'
-import { useAuthStore } from '@/stores/auth.store'
-import { useUiStore } from '@/stores/ui.store'
-import { rules } from '@/shared/utils/formRules'
+import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import BaseDialog from "@/shared/ui/BaseDialog.vue";
+import { authService } from "@/api/services/authService";
+import { $confirm } from "@/plugins/confirm/confirm.js";
+import { $loading } from "@/plugins/loading/loading";
+import { $toast } from "@/plugins/toast";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUiStore } from "@/stores/ui.store";
+import { rules } from "@/shared/utils/validationRules";
+import { formatDate } from "../utils/dateFormatter";
 
-const authStore = useAuthStore()
-const uiStore = useUiStore()
-const router = useRouter()
+const authStore = useAuthStore();
+const uiStore = useUiStore();
+const router = useRouter();
 
-const changingPassword = ref(false)
-const changePasswordFormRef = ref(null)
+const changingPassword = ref(false);
+const changePasswordFormRef = ref(null);
 
-const showCurrentPassword = ref(false)
-const showNewPassword = ref(false)
-const showConfirmPassword = ref(false)
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const changePasswordForm = ref({
-  ContrasenaActual: '',
-  ContrasenaNueva: '',
-  ConfirmacionContrasena: '',
-})
+  ContrasenaActual: "",
+  ContrasenaNueva: "",
+  ConfirmacionContrasena: "",
+});
 
 const passwordFieldRules = {
   current: [rules.required],
   next: [
     rules.required,
-    rules.passwordStrength,        
+    rules.passwordStrength,
     rules.differentFrom(
       () => changePasswordForm.value.ContrasenaActual,
-      'La nueva contraseña debe ser diferente a la actual',
+      "La nueva contraseña debe ser diferente a la actual",
     ),
   ],
   confirm: [
     rules.required,
     rules.matchesWith(
       () => changePasswordForm.value.ContrasenaNueva,
-      'La confirmación no coincide con la nueva contraseña',
+      "La confirmación no coincide con la nueva contraseña",
     ),
   ],
-}
+};
 
-const isForcedPasswordChange = computed(() => uiStore.changePasswordDialogForced)
+const isForcedPasswordChange = computed(
+  () => uiStore.changePasswordDialogForced,
+);
 
 const passwordExpiryText = computed(() => {
-  const value = authStore.passwordExpiryDate
-  if (!value) return ''
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-
-  return new Intl.DateTimeFormat('es-CO', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date)
-})
+  const value = formatDate(authStore.passwordExpiryDate);
+  return value;
+});
 
 watch(
   () => authStore.mustChangePassword,
   (mustChangePassword) => {
     if (mustChangePassword) {
-      uiStore.openChangePasswordDialog({ forced: true })
-      return
+      uiStore.openChangePasswordDialog({ forced: true });
+      return;
     }
 
     if (uiStore.changePasswordDialogForced) {
-      uiStore.closeChangePasswordDialog({ force: true })
-      resetChangePasswordForm()
+      uiStore.closeChangePasswordDialog({ force: true });
+      resetChangePasswordForm();
     }
   },
   { immediate: true },
-)
+);
 
 watch(
   () => uiStore.changePasswordDialogOpen,
   (isOpen) => {
     if (!isOpen) {
-      resetChangePasswordForm()
+      resetChangePasswordForm();
     }
   },
-)
+);
 
 function handlePasswordDialogModelValue(isOpen) {
   if (isOpen) {
-    uiStore.openChangePasswordDialog({ forced: isForcedPasswordChange.value })
-    return
+    uiStore.openChangePasswordDialog({ forced: isForcedPasswordChange.value });
+    return;
   }
 
-  uiStore.closeChangePasswordDialog()
+  uiStore.closeChangePasswordDialog();
 }
 
 function resetChangePasswordForm() {
   changePasswordForm.value = {
-    ContrasenaActual: '',
-    ContrasenaNueva: '',
-    ConfirmacionContrasena: '',
-  }
+    ContrasenaActual: "",
+    ContrasenaNueva: "",
+    ConfirmacionContrasena: "",
+  };
 
-  showCurrentPassword.value = false
-  showNewPassword.value = false
-  showConfirmPassword.value = false
-  changePasswordFormRef.value?.resetValidation?.()
+  showCurrentPassword.value = false;
+  showNewPassword.value = false;
+  showConfirmPassword.value = false;
+  changePasswordFormRef.value?.resetValidation?.();
 }
 
 async function submitChangePassword() {
-  if (changingPassword.value) return
+  if (changingPassword.value) return;
 
-  const { valid } = await changePasswordFormRef.value.validate()
+  const { valid } = await changePasswordFormRef.value.validate();
   if (!valid) {
-    $toast.error('Por favor corrige los errores en los campos marcados')
-    return
+    $toast.error("Por favor corrige los errores en los campos marcados");
+    return;
   }
 
   const confirmed = await $confirm.confirm({
-    title: '¿Guardar cambio de contraseña?',
+    title: "¿Guardar cambio de contraseña?",
     message:
-      'Se actualizará tu contraseña y se cerrará tu sesión actual para que ingreses nuevamente.',
-    labelConfirm: 'Sí, guardar',
-    labelCancel: 'Cancelar',
-  })
-  if (!confirmed) return
+      "Se actualizará tu contraseña y se cerrará tu sesión actual para que ingreses nuevamente.",
+    labelConfirm: "Sí, guardar",
+    labelCancel: "Cancelar",
+  });
+  if (!confirmed) return;
 
   try {
-    changingPassword.value = true
-    $loading.show('Actualizando contraseña...')
+    changingPassword.value = true;
+    $loading.show("Actualizando contraseña...");
 
     await authService.changePassword({
       ContrasenaActual: changePasswordForm.value.ContrasenaActual,
       ContrasenaNueva: changePasswordForm.value.ContrasenaNueva,
-    })
+    });
 
     // Esperar 2 segundos para que el loading sea más visible
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    $toast.success('Contraseña actualizada. Inicia sesión nuevamente.')
+    $toast.success("Contraseña actualizada. Inicia sesión nuevamente.");
 
-    uiStore.closeChangePasswordDialog({ force: true })
-    resetChangePasswordForm()
-    authStore.clearAuth()
-    uiStore.setActiveModule(null)
-    await router.replace({ name: 'login' })
+    uiStore.closeChangePasswordDialog({ force: true });
+    resetChangePasswordForm();
+    authStore.clearAuth();
+    uiStore.setActiveModule(null);
+    await router.replace({ name: "login" });
   } catch {
     // El interceptor global ya muestra los errores de autenticación
   } finally {
-    changingPassword.value = false
-    $loading.hide()
+    changingPassword.value = false;
+    $loading.hide();
   }
 }
 </script>

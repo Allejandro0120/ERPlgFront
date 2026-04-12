@@ -166,7 +166,7 @@ import { ref, computed, watch } from "vue";
 import BaseDialog from "@/shared/ui/BaseDialog.vue";
 import SucursalFormDialog from "./SucursalFormDialog.vue";
 import { globalService } from "@/api/services/globalService";
-import { formatCOP, parseCOP } from "@/shared/utils/currency";
+import { formatCOP, parseCOP } from "@/shared/utils/formatCurrency";
 import { $confirm } from "@/plugins/confirm/confirm.js";
 import { $toast } from "@/plugins/toast";
 import { $loading } from "@/plugins/loading/loading";

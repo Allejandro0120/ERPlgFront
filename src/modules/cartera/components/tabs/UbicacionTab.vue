@@ -68,7 +68,7 @@
 
 <script setup>
 import { toRefs } from "vue";
-import { rules } from "@/shared/utils/formRules";
+import { rules } from "@/shared/utils/validationRules";
 
 const emit = defineEmits(["departamento-change", "municipio-change"]);
 

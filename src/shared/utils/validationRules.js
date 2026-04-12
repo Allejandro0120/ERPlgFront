@@ -17,7 +17,7 @@ export const rules = {
       /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) || "Correo no válido"
     );
   },
-  soloDigitosGuion: (v) =>
+  onlyDigitsGuion: (v) =>
     !v || /^[0-9\-]+$/.test(v) || "Solo se permiten números y guion ( - )",
   minLength:
     (len = 1, label = "Este campo") =>

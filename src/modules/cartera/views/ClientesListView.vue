@@ -96,7 +96,7 @@ import BaseTable from "@/shared/ui/BaseTable.vue";
 import ClienteDialog from "@/modules/cartera/components/ClienteDialog.vue";
 import { clienteService } from "@/api/services/clienteService";
 import { useAuthStore } from "@/stores/auth.store";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
 import { $toast } from "@/plugins/toast";
 import { $loading } from "@/plugins/loading/loading";
 

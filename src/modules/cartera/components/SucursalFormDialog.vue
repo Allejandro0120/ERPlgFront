@@ -37,7 +37,7 @@
               :rules="[rules.required]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
-              @keydown="bloquear($event, allow.soloDigitos)"
+              @keydown="blockKey ($event, allow.onlyDigits)"
             />
           </v-col>
 
@@ -182,9 +182,9 @@ import { $toast } from "@/plugins/toast";
 import { $loading } from "@/plugins/loading/loading";
 import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
 import { useLocationCascade } from "@/shared/composables/useLocationCascade";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
-import { rules } from "@/shared/utils/formRules";
-import { allow, bloquear } from "@/shared/utils/inputHelpers";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
+import { rules } from "@/shared/utils/validationRules";
+import { allow, blockKey  } from "@/shared/utils/inputKeyFilter";
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps({

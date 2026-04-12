@@ -1,5 +1,5 @@
 import api from "@/api/axios";
-import { withCache, clearCache } from "@/api/utils/cache";
+import { withCache, clearCache } from "@/api/utils/apiCache";
 
 export const globalService = {
   /**

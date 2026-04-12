@@ -24,7 +24,7 @@
         prepend-inner-icon="mdi-calendar-clock-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
-        @keydown="bloquear($event, allow.soloDigitos)"
+        @keydown="blockKey ($event, allow.onlyDigits)"
         :clearable="!isReadonly"
       />
     </v-col>
@@ -35,7 +35,7 @@
         id="CupoCredito"
         label="Cupo Crédito"
         prepend-inner-icon="mdi-currency-usd"
-        @keydown="bloquear($event, allow.decimal)"
+        @keydown="blockKey ($event, allow.decimal)"
         :rules="[rules.required]"
         :readonly="isReadonly"
         :clearable="!isReadonly"
@@ -46,9 +46,9 @@
 
 <script setup>
 import { toRefs, watch } from "vue";
-import { formatCOP } from "@/shared/utils/currency";
-import { rules } from "@/shared/utils/formRules";
-import { allow, bloquear } from "@/shared/utils/inputHelpers";
+import { formatCOP } from "@/shared/utils/formatCurrency";
+import { rules } from "@/shared/utils/validationRules";
+import { allow, blockKey  } from "@/shared/utils/inputKeyFilter";
 
 const props = defineProps({
   form: { type: Object, required: true },

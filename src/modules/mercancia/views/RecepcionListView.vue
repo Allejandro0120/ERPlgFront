@@ -34,7 +34,7 @@
           :color="
             getEstadoColor(
               getEstadoNombre(item.IdEstadoActa),
-              DOMINIOS_ESTADO.CLIENTE,
+             DOMINIOS_ESTADO.ACTA,
             )
           "
           variant="tonal"
@@ -44,6 +44,9 @@
           <v-icon icon="mdi-tag" start size="14" />
           {{ getEstadoNombre(item.IdEstadoActa) }}
         </v-chip>
+      </template>
+      <template #item.FechaActa="{item}">
+        {{ formatDateTime(item.FechaActa) }}
       </template>
     </base-table>
 
@@ -62,10 +65,11 @@ import PageHeaderActions from "@/shared/ui/PageHeaderActions.vue";
 import BaseTable from "@/shared/ui/BaseTable.vue";
 import RecepcionDialog from "@/modules/mercancia/components/RecepcionDialog.vue";
 import { useAuthStore } from "@/stores/auth.store";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
+import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
 import { $toast } from "@/plugins/toast";
 import { $loading } from "@/plugins/loading/loading";
 import { recepcionService } from "@/api/services/recepcionService";
+import { formatDateTime } from "@/shared/utils/dateFormatter";
 
 const authStore = useAuthStore();
 const hasPermission = (permiso) => authStore.hasPermission(permiso);
@@ -106,19 +110,17 @@ const headers = [
 ];
 
 const rowActions = [
-  // {
-  //   label: "Ver",
-  //   icon: "$eye",
-  //   color: "primary",
-  //   action: (item) => abrirDialog("view", item),
-  // },
-  // {
-  //   label: "Editar",
-  //   icon: "$pencil",
-  //   action: (item) => abrirDialog("edit", item),
-  //   permission: "Recepcion.EDIT",
-  //   visible: () => hasPermission("Recepcion.EDIT"),
-  // },
+  {
+    label: "Ver",
+    icon: "$eye",
+    color: "primary",
+    action: (item) => abrirDialog("view", item),
+  },
+  {
+    label: "Editar",
+    icon: "$pencil",
+    action: (item) => abrirDialog("edit", item),
+  },
 ];
 const estados = ref([]);
 const estadoSeleccionado = ref(null);
@@ -215,5 +217,4 @@ function onSubmit(payload) {
   );
 }
 
-const estadoColor = (estado) => getEstadoColor(estado, DOMINIOS_ESTADO.ACTA);
 </script>

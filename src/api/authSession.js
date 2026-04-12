@@ -25,7 +25,10 @@ export function isSessionClosing() {
 }
 
 export async function closeSession(options = {}) {
+  // Evitar cerrar sesión repetidas veces si ya estamos en ese proceso,
+  // o si ya no estamos autenticados (la sesión ya fue limpiada).
   if (closeSessionPromise) return closeSessionPromise;
+  if (!useAuthStore().isAuthenticated && !useAuthStore().accessTokenHint) return;
 
   const {
     code = null,
@@ -48,7 +51,7 @@ export async function closeSession(options = {}) {
       if (!mustSkipServerLogout) {
         await authService.logout();
       }
-    } catch {
+    } catch (error) {
       // ignorar
       console.error("Fallo la redirección al login:", error);
     } finally {
@@ -58,7 +61,9 @@ export async function closeSession(options = {}) {
       $loading.hide();
       console.log("Redirigiendo al login...");
       // REDIRECCIÓN AL LOGIN!
-      await router.replace({ name: "login" }).catch(() => {}); // primero redirigir
+      await router.replace({ name: "login" }).catch((err) => {
+        console.error("Router error:", err);
+      }); // primero redirigir
       isClosingSession = false; // luego limpiar
       closeSessionPromise = null;
     }

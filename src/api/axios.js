@@ -23,7 +23,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error._handled || axios.isCancel(error)) return Promise.reject(error);
-    if (isSessionClosing()) return Promise.reject(error); // ← agregar
+    if (isSessionClosing()) {
+      error._handled = true;
+      return Promise.reject(error);
+    }
     error._handled = true;
 
     if (!error.response) {
