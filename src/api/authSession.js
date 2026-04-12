@@ -36,12 +36,13 @@ export async function closeSession(options = {}) {
   isClosingSession = true;
 
   closeSessionPromise = (async () => {
-    const mustSkipServerLogout = skipServerLogout || NO_SERVER_LOGOUT_CODES.has(code);
+    const mustSkipServerLogout =
+      skipServerLogout || NO_SERVER_LOGOUT_CODES.has(code);
 
     try {
       if (showRevokedLoading) {
         $loading.show("Tu sesión fue revocada. Redirigiendo...");
-        await wait(2000);
+        await wait(1000);
       }
 
       if (!mustSkipServerLogout) {
@@ -49,14 +50,15 @@ export async function closeSession(options = {}) {
       }
     } catch {
       // ignorar
+      console.error("Fallo la redirección al login:", error);
     } finally {
       abortController.abort();
       abortController = new AbortController();
       useAuthStore().clearAuth();
       $loading.hide();
-
+      console.log("Redirigiendo al login...");
       // REDIRECCIÓN AL LOGIN!
-      await router.replace({ name: "login" }).catch(() => {});// primero redirigir
+      await router.replace({ name: "login" }).catch(() => {}); // primero redirigir
       isClosingSession = false; // luego limpiar
       closeSessionPromise = null;
     }

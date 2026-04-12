@@ -289,7 +289,7 @@ const formInitial = {
   Plazo: null,
   CupoCredito: null,
   Direccion: "",
-  CIIU: null,
+  IdCiiu: null,
   IdCentroPoblado: null,
   Estado: null,
 };
@@ -379,7 +379,7 @@ async function precargarCliente(cliente) {
     Plazo: cliente.Plazo,
     CupoCredito: formatCOP(cliente.CupoCredito),
     Direccion: cliente.Direccion,
-    CIIU: cliente.CIIU,
+    IdCiiu: cliente.IdCiiu,
     IdCentroPoblado: cliente.IdCentroPoblado,
     Estado: cliente.IdEstado,
   };

@@ -38,6 +38,7 @@
               label="Correo Electrónico"
               type="email"
               prepend-inner-icon="mdi-email-outline"
+              @update:modelValue="(val) => (form.Email = val?.toLowerCase())"
               :rules="[rules.required, rules.email]"
               :readonly="isReadonly"
               :clearable="!isReadonly"
@@ -121,7 +122,8 @@ const { onRequestClose } = useConfirmRequestClose({
   isReadonly,
   hasChanges,
   confirmClose: (options) => $confirm.warning(options),
-  message: "Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?",
+  message:
+    "Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?",
 });
 
 const resetForm = () => {

@@ -55,7 +55,7 @@
             v-model="estadoSeleccionado"
             :items="estados"
             item-title="Nombre"
-            item-value="Id"
+            item-value="IdClienteEstado"
             label="Estado"
             density="compact"
             variant="outlined"
@@ -135,7 +135,7 @@ const estados = ref([]);
 const estadoSeleccionado = ref(null);
 
 const getEstadoNombre = (estadoId) => {
-  const estado = estados.value.find((e) => e.Id === estadoId);
+  const estado = estados.value.find((e) => e.IdClienteEstado === estadoId);
   return estado ? estado.Nombre : "Desconocido";
 };
 
@@ -149,12 +149,12 @@ async function cargarEstados() {
   try {
     const response = await clienteService.getEstados();
     if (response.data?.success) {
-      // ✅ Ya NO usas withEstadoColor, solo asignas directamente
-      estados.value = [{ Id: null, Nombre: "Todos" }, ...response.data.data];
+      
+      estados.value = [{ IdClienteEstado: null, Nombre: "Todos" }, ...response.data.data];
     }
   } catch (error) {
     console.error("Error al obtener los estados:", error);
-    estados.value = [{ Id: null, Nombre: "Todos" }];
+    estados.value = [{ IdClienteEstado: null, Nombre: "Todos" }];
   }
 }
 

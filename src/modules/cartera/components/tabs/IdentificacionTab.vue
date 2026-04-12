@@ -42,13 +42,13 @@
     </v-col>
     <v-col cols="12">
       <v-autocomplete
-        v-model="form.CIIU"
+        v-model="form.IdCiiu"
         name="CIIU"
         id="CIIU"
         label="Actividad CIIU"
         :items="ciuuConNa"
         item-title="display"
-        item-value="Codigo"
+        item-value="IdCiiu"
         prepend-inner-icon="mdi-briefcase-outline"
         :clearable="!isReadonly"
         :readonly="isReadonly"
@@ -61,6 +61,7 @@
         id="CorreoGeneral"
         label="Correo Electrónico"
         type="email"
+        @update:modelValue="(val) => (form.CorreoGeneral = val?.toLowerCase())"
         prepend-inner-icon="mdi-email-outline"
         :rules="[rules.required, rules.email]"
         :readonly="isReadonly"
@@ -88,7 +89,7 @@
         label="Estado"
         :items="estadosConColor"
         item-title="Nombre"
-        item-value="Id"
+        item-value="IdClienteEstado"
         prepend-inner-icon="mdi-account-badge-outline"
         :rules="[rules.required]"
         :readonly="isReadonly"
@@ -127,7 +128,7 @@
 </template>
 
 <script setup>
-import { computed, toRefs } from "vue";
+import { computed, onMounted, toRefs } from "vue";
 import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/estadoColors";
 import { rules } from "@/shared/utils/formRules";
 import { allow, bloquear } from "@/shared/utils/inputHelpers";

@@ -6,7 +6,17 @@ export const rules = {
       (v !== null && v !== undefined && v !== "") || "Este campo es obligatorio"
     );
   },
-  email: (v) => !v || /.+@.+\..+/.test(v) || "Correo no válido",
+  email: (v) => {
+    if (!v) return true;
+
+    if (!/^[\x00-\x7F]+$/.test(v)) {
+      return "No se permiten tildes";
+    }
+
+    return (
+      /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(v) || "Correo no válido"
+    );
+  },
   soloDigitosGuion: (v) =>
     !v || /^[0-9\-]+$/.test(v) || "Solo se permiten números y guion ( - )",
   minLength:

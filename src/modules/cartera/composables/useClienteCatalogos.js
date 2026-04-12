@@ -13,12 +13,12 @@ export function useClienteCatalogos() {
   const tiposCorreos = ref([]);
 
   const ciuuConNa = computed(() => [
-    { display: "N/A", Codigo: null },
+    { display: "N/A", Codigo: null , IdCiiu: null },
     ...actividadesCiiu.value,
   ]);
-
   const cargarTiposDocumentos = async () => {
     const response = await globalService.getTiposDocumentos();
+
     if (response.data?.success) {
       tipoDocumentos.value = (response.data.data || []).map((item) => ({
         ...item,
@@ -44,6 +44,8 @@ export function useClienteCatalogos() {
         ...item,
         display: `${item.Codigo} - ${item.Descripcion}`,
       }));
+
+      console.log("Actividades CIIU cargadas:", actividadesCiiu.value);
     }
   };
 
