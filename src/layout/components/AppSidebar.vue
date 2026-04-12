@@ -9,7 +9,7 @@
     style="background-color: #0d2a46"
   >
     <SidebarHeader :rail="rail" />
-    <SidebarNav />
+    <SidebarNav :rail="rail" />
 
     <template #append>
       <SidebarFooter :rail="rail" :version="version" />

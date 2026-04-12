@@ -1,5 +1,5 @@
 <template>
-  <v-list density="compact" nav class="sidebar-nav" :opened="openedGroups" role="listbox" aria-label="Menú principal">
+  <v-list density="compact" nav class="sidebar-nav" v-model:opened="openedGroups" role="listbox" aria-label="Menú principal">
     <template v-for="group in menu" :key="getGroupAlias(group)">
       <v-list-group :value="getGroupAlias(group)">
         <template #activator="{ props, isOpen }">
@@ -50,24 +50,35 @@ import { useAuthStore } from "@/stores/auth.store";
 import { computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 
+const props = defineProps({
+  rail: { type: Boolean, default: false }
+});
 
 const uiStore = useUiStore();
 const authStore = useAuthStore();
 const route = useRoute();
-const rail = computed(() => uiStore.rail);
 const menu = computed(() => authStore.orderedMenu);
 
 // Array de grupos que deben estar abiertos (expandidos)
-const openedGroups = computed(() => {
-  // Si hay un módulo activo establecido, ese debe estar abierto
-  if (uiStore.activeModule) {
-    return [uiStore.activeModule];
+const openedGroups = computed({
+  get: () => {
+    // Si hay un módulo activo establecido, ese debe estar abierto
+    if (uiStore.activeModule) {
+      return [uiStore.activeModule];
+    }
+    // Si no hay módulo activo pero hay menú, abrir el primero
+    if (menu.value.length > 0) {
+      return [getGroupAlias(menu.value[0])];
+    }
+    return [];
+  },
+  set: (val) => {
+    if (val && val.length > 0) {
+      uiStore.setActiveModule(val[val.length - 1]);
+    } else {
+      uiStore.setActiveModule(null);
+    }
   }
-  // Si no hay módulo activo pero hay menú, abrir el primero
-  if (menu.value.length > 0) {
-    return [getGroupAlias(menu.value[0])];
-  }
-  return [];
 });
 
 function getGroupAlias(group) {
