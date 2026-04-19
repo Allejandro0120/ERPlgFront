@@ -33,6 +33,9 @@ export const recepcionService = {
   /**
    * Obtiene la lista de estados de recepción
    */
-  getReceptionEstados: () =>
+  getRecepcionEstados: () =>
     withCache("recepcion_estados", () => api.get("v1/reception/states")),
+
+  createActa: (reportData) => api.post("v1/reception/create", reportData),
+  
 };

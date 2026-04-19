@@ -2,7 +2,7 @@
   <div class="w-100">
     <page-header-actions>
       <v-row density="comfortable">
-        <v-col cols="12" sm="auto" v-if="hasPermission('Recepcion.ADD')">
+        <v-col cols="12" sm="auto">
           <v-btn
             color="primary"
             prepend-icon="$plus"
@@ -29,12 +29,30 @@
       search-placeholder="Buscar por acta, proveedor o factura..."
       @load="fetchData"
     >
+      <template #filters>
+        <v-col cols="12" md="2">
+          <v-select
+            v-model="estadoSeleccionado"
+            :items="estados"
+            item-title="Nombre"
+            item-value="IdEstado"
+            label="Estado"
+            density="compact"
+            variant="outlined"
+            :disabled="loadingTable"
+            hide-details
+            id="filtro-estado"
+            name="estadoFiltro"
+            @update:model-value="onFilterChange"
+          />
+        </v-col>
+      </template>
       <template #item.Estado="{ item }">
         <v-chip
           :color="
             getEstadoColor(
               getEstadoNombre(item.IdEstadoActa),
-             DOMINIOS_ESTADO.ACTA,
+              DOMINIOS_ESTADO.ACTA,
             )
           "
           variant="tonal"
@@ -45,7 +63,7 @@
           {{ getEstadoNombre(item.IdEstadoActa) }}
         </v-chip>
       </template>
-      <template #item.FechaActa="{item}">
+      <template #item.FechaActa="{ item }">
         {{ formatDateTime(item.FechaActa) }}
       </template>
     </base-table>
@@ -70,6 +88,7 @@ import { $toast } from "@/plugins/toast";
 import { $loading } from "@/plugins/loading/loading";
 import { recepcionService } from "@/api/services/recepcionService";
 import { formatDateTime } from "@/shared/utils/dateFormatter";
+import { proveedorService } from "../../../api/services/proveedorService";
 
 const authStore = useAuthStore();
 const hasPermission = (permiso) => authStore.hasPermission(permiso);
@@ -111,19 +130,23 @@ const headers = [
 
 const rowActions = [
   {
-    label: "Ver",
+    label: "Ver detalle",
     icon: "$eye",
-    color: "primary",
+    color: "blue-darken-3",
     action: (item) => abrirDialog("view", item),
   },
   {
     label: "Editar",
     icon: "$pencil",
+    color: "purple-darken-3",
     action: (item) => abrirDialog("edit", item),
   },
 ];
 const estados = ref([]);
 const estadoSeleccionado = ref(null);
+
+const proveedores = ref([]);
+const proveedorSeleccionado = ref(null);
 
 const getEstadoNombre = (estadoId) => {
   const estado = estados.value.find((e) => e.IdEstado === estadoId);
@@ -136,7 +159,7 @@ const loadingTable = ref(false);
 
 async function cargarEstados() {
   try {
-    const response = await recepcionService.getReceptionEstados();
+    const response = await recepcionService.getRecepcionEstados();
     if (response.data?.success) {
       estados.value = [
         { IdEstado: null, Nombre: "Todos" },
@@ -145,10 +168,24 @@ async function cargarEstados() {
     }
   } catch (error) {
     console.error("Error al obtener los estados:", error);
-    estados.value = [{ Id: null, Nombre: "Todos" }];
+    estados.value = [{ IdEstado: null, Nombre: "Todos" }];
   }
 }
 
+async function cargarProveedores() {
+  try {
+    const response = await proveedorService.getProveedores();
+    if (response.data?.success) {
+      proveedores.value = [
+        { IdProveedor: null, Nombre: "Todos" },
+        ...response.data.data,
+      ];
+    }
+  } catch (error) {
+    console.error("Error al obtener los proveedores:", error);
+    proveedores.value = [{ IdProveedor: null, Nombre: "Todos" }];
+  }
+}
 onMounted(() => {
   cargarEstados();
 });
@@ -166,14 +203,14 @@ async function fetchData({
     if (estadoSeleccionado.value !== null) {
       filters.IdEstadoActa = estadoSeleccionado.value;
     }
-    const response = await recepcionService.getRecepciones({
+    const response = await recepcionService.getRecepciones(
       page,
       itemsPerPage,
+      search,
       sortByField,
       sortOrder,
-      search,
       filters,
-    });
+    );
 
     if (response.data?.success) {
       const { items = [], totalItems: total = 0 } = response.data.data || {};
@@ -216,5 +253,4 @@ function onSubmit(payload) {
       : "Acta actualizada exitosamente",
   );
 }
-
 </script>

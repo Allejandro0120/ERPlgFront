@@ -119,15 +119,16 @@ const headers = [
 
 const rowActions = [
   {
-    label: "Editar",
-    icon: "$pencil",
-    action: (item) => editarCliente(item),
-  },
-  {
     label: "Ver detalle",
     icon: "$eye",
-    color: "amber-darken-2",
+    color: "blue-darken-3",
     action: (item) => verDetalle(item),
+  },
+  {
+    label: "Editar",
+    icon: "$pencil",
+    color: "purple-darken-3",
+    action: (item) => editarCliente(item),
   },
 ];
 
