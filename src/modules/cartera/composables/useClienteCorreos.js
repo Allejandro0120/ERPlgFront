@@ -22,6 +22,7 @@ export function useClienteCorreos({ isReadonly }) {
       IdCorreo: apiCorreo.IdCorreo,
       IdTipoCorreo: apiCorreo.IdTipoCorreo ?? null,
       Email: apiCorreo.Email ?? "",
+      NombreTipoCorreo: apiCorreo.TipoCorreo || apiCorreo.NombreTipoCorreo,
     };
   }
 
@@ -86,6 +87,7 @@ export function useClienteCorreos({ isReadonly }) {
         IdCorreo: correo.IdCorreo,
         IdTipoCorreo: correo.IdTipoCorreo,
         Email: correo.Email,
+        NombreTipoCorreo: correo.NombreTipoCorreo,
       },
     };
   }

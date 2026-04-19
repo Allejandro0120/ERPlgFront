@@ -96,6 +96,26 @@ export function useLocationCascade({
     form.value[idCentroPobladoKey] = idCentroPoblado;
   }
 
+  function setLocationDataLectura(data) {
+    const idDep = data.idDepartamento ?? data.IdDepartamento;
+    const nomDep = data.nombreDepartamento ?? data.NombreDepartamento;
+    const idMun = data.idMunicipio ?? data.IdMunicipio;
+    const nomMun = data.nombreMunicipio ?? data.NombreMunicipio;
+    const idCentro = data.idCentroPoblado ?? data.IdCentroPoblado;
+    const nomCentro = data.nombreCentroPoblado ?? data.NombreCentroPoblado;
+
+    ui.value[idDepartamentoKey] = idDep;
+    ui.value[idMunicipioKey] = idMun;
+    form.value[idCentroPobladoKey] = idCentro;
+
+    if (idMun && nomMun) {
+      municipios.value = [{ [idMunicipioKey === 'idMunicipio' ? 'IdMunicipio' : idMunicipioKey]: idMun, NombreMunicipio: nomMun }];
+    }
+    if (idCentro && nomCentro) {
+      centrosPoblados.value = [{ [idCentroPobladoKey]: idCentro, NombreCentroPoblado: nomCentro }];
+    }
+  }
+
   function resetLocationState({ clearSelections = true } = {}) {
     municipios.value = [];
     centrosPoblados.value = [];
@@ -116,6 +136,7 @@ export function useLocationCascade({
     onDepartamentoChange,
     onMunicipioChange,
     preloadLocation,
+    setLocationDataLectura,
     resetLocationState,
   };
 }

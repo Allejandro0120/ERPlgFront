@@ -248,6 +248,7 @@ const {
   tiposCorreos,
   ciuuConNa,
   cargarCatalogos,
+  setCatalogosLectura,
 } = useClienteCatalogos();
 
 const {
@@ -311,6 +312,7 @@ const {
   onDepartamentoChange,
   onMunicipioChange,
   preloadLocation,
+  setLocationDataLectura,
   resetLocationState,
 } = useLocationCascade({
   ui,
@@ -363,11 +365,15 @@ const tabErrors = computed(() => {
 
 // ─── Precarga del cliente ─────────────────────────────────────────────────────
 async function precargarCliente(cliente) {
-  await preloadLocation({
-    idDepartamento: cliente.IdDepartamento ?? null,
-    idMunicipio: cliente.IdMunicipio ?? null,
-    idCentroPoblado: cliente.IdCentroPoblado ?? null,
-  });
+  if (isReadonly.value) {
+    setLocationDataLectura(cliente);
+  } else {
+    await preloadLocation({
+      idDepartamento: cliente.IdDepartamento ?? null,
+      idMunicipio: cliente.IdMunicipio ?? null,
+      idCentroPoblado: cliente.IdCentroPoblado ?? null,
+    });
+  }
 
   form.value = {
     IdTipoDocumento: cliente.IdTipoDocumento,
@@ -412,18 +418,23 @@ watch(
 
     $loading.show();
     try {
-      const catalogResult = await cargarCatalogos();
-      if (!catalogResult.ok) {
-        $toast.warning(
-          "Algunos catálogos no se cargaron. Puedes continuar, pero revisa los campos de selección.",
-        );
-      }
-      if (props.cliente && !isCreating.value) {
+      if (isReadonly.value && props.cliente) {
+        setCatalogosLectura(props.cliente);
         await precargarCliente(props.cliente);
       } else {
-        formSnapshot.value = { ...form.value };
-        setSucursalesSnapshot([]);
-        setCorreosSnapshot([]);
+        const catalogResult = await cargarCatalogos();
+        if (!catalogResult.ok) {
+          $toast.warning(
+            "Algunos catálogos no se cargaron. Puedes continuar, pero revisa los campos de selección.",
+          );
+        }
+        if (props.cliente && !isCreating.value) {
+          await precargarCliente(props.cliente);
+        } else {
+          formSnapshot.value = { ...form.value };
+          setSucursalesSnapshot([]);
+          setCorreosSnapshot([]);
+        }
       }
     } catch (e) {
       console.error("Error al cargar datos:", e);

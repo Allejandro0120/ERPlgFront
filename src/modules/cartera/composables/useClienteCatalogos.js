@@ -16,6 +16,40 @@ export function useClienteCatalogos() {
     { display: "N/A", Codigo: null , IdCiiu: null },
     ...actividadesCiiu.value,
   ]);
+
+  const setCatalogosLectura = (cliente) => {
+    if (cliente.IdTipoDocumento) {
+      tipoDocumentos.value = [{ IdTipoDocumento: cliente.IdTipoDocumento, display: cliente.NombreTipoDocumento }];
+    }
+    if (cliente.IdListaPrecio) {
+      listaPrecios.value = [{ IdListaPrecio: cliente.IdListaPrecio, display: cliente.NombreListaPrecio }];
+    }
+    if (cliente.IdCiiu) {
+      actividadesCiiu.value = [{ IdCiiu: cliente.IdCiiu, display: cliente.NombreCiiu }];
+    }
+    if (cliente.IdDepartamento) {
+      const depSet = new Map();
+      depSet.set(cliente.IdDepartamento, { IdDepartamento: cliente.IdDepartamento, NombreDepartamento: cliente.NombreDepartamento });
+      (cliente.sucursales || []).forEach(s => {
+        if (s.IdDepartamento && !depSet.has(s.IdDepartamento)) {
+          depSet.set(s.IdDepartamento, { IdDepartamento: s.IdDepartamento, NombreDepartamento: s.NombreDepartamento });
+        }
+      });
+      departamentos.value = Array.from(depSet.values());
+    }
+    if (cliente.IdEstado !== undefined && cliente.IdEstado !== null) {
+      estadosCatalogo.value = [{ IdClienteEstado: cliente.IdEstado, Nombre: cliente.NombreEstado }];
+    }
+    
+    const unqiueTiposCorreos = new Map();
+    (cliente.correos || []).forEach((c) => {
+      if (c.IdTipoCorreo && !unqiueTiposCorreos.has(c.IdTipoCorreo)) {
+        unqiueTiposCorreos.set(c.IdTipoCorreo, { IdTipoCorreo: c.IdTipoCorreo, Descripcion: c.TipoCorreo });
+      }
+    });
+    tiposCorreos.value = Array.from(unqiueTiposCorreos.values());
+  };
+
   const cargarTiposDocumentos = async () => {
     const response = await globalService.getTiposDocumentos();
 
@@ -148,5 +182,6 @@ export function useClienteCatalogos() {
     tiposCorreos,
     ciuuConNa,
     cargarCatalogos,
+    setCatalogosLectura,
   };
 }

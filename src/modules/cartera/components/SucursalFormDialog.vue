@@ -271,6 +271,7 @@ const {
   onDepartamentoChange,
   onMunicipioChange,
   preloadLocation,
+  setLocationDataLectura,
   resetLocationState,
 } = useLocationCascade({
   ui,
@@ -298,11 +299,15 @@ const { onRequestClose } = useConfirmRequestClose({
 
 // ─── Precarga al editar/ver ───────────────────────────────────────────────────
 async function precargarSucursal(suc) {
-  await preloadLocation({
-    idDepartamento: suc.IdDepartamento ?? null,
-    idMunicipio: suc.IdMunicipio ?? null,
-    idCentroPoblado: suc.IdCentroPoblado ?? null,
-  });
+  if (isReadonly.value) {
+    setLocationDataLectura(suc);
+  } else {
+    await preloadLocation({
+      idDepartamento: suc.IdDepartamento ?? null,
+      idMunicipio: suc.IdMunicipio ?? null,
+      idCentroPoblado: suc.IdCentroPoblado ?? null,
+    });
+  }
 
   form.value = {
     NombreSucursal: suc.NombreSucursal ?? "",

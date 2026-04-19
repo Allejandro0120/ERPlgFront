@@ -38,6 +38,9 @@ export function useClienteSucursales({ isReadonly }) {
       Direccion: apiSucursal.Direccion ?? "",
       IdCentroPoblado: apiSucursal.IdCentroPoblado ?? null,
       Habilitada: apiSucursal.Habilitada ?? true,
+      NombreDepartamento: apiSucursal.NombreDepartamento,
+      NombreMunicipio: apiSucursal.NombreMunicipio,
+      NombreCentroPoblado: apiSucursal.NombreCentroPoblado,
     };
   }
 
@@ -83,6 +86,9 @@ export function useClienteSucursales({ isReadonly }) {
       Habilitada: sucursal.Habilitada,
       IdDepartamento: sucursal.IdDepartamento,
       IdMunicipio: sucursal.IdMunicipio,
+      NombreDepartamento: sucursal.NombreDepartamento,
+      NombreMunicipio: sucursal.NombreMunicipio,
+      NombreCentroPoblado: sucursal.NombreCentroPoblado,
     };
   }
 
