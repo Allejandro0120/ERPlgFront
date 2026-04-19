@@ -3,7 +3,6 @@ import { globalService } from "@/api/services/globalService";
 import { clienteService } from "@/api/services/clienteService";
 import { mercanciaService } from "@/api/services/mercanciaService";
 
-
 export function useClienteCatalogos() {
   const tipoDocumentos = ref([]);
   const listaPrecios = ref([]);
@@ -13,38 +12,64 @@ export function useClienteCatalogos() {
   const tiposCorreos = ref([]);
 
   const ciuuConNa = computed(() => [
-    { display: "N/A", Codigo: null , IdCiiu: null },
+    { display: "N/A", Codigo: null, IdCiiu: null },
     ...actividadesCiiu.value,
   ]);
 
   const setCatalogosLectura = (cliente) => {
     if (cliente.IdTipoDocumento) {
-      tipoDocumentos.value = [{ IdTipoDocumento: cliente.IdTipoDocumento, display: cliente.NombreTipoDocumento }];
+      tipoDocumentos.value = [
+        {
+          IdTipoDocumento: cliente.IdTipoDocumento,
+          display: cliente.NombreTipoDocumento,
+        },
+      ];
     }
     if (cliente.IdListaPrecio) {
-      listaPrecios.value = [{ IdListaPrecio: cliente.IdListaPrecio, display: cliente.NombreListaPrecio }];
+      listaPrecios.value = [
+        {
+          IdListaPrecio: cliente.IdListaPrecio,
+          display: cliente.NombreListaPrecio,
+        },
+      ];
     }
     if (cliente.IdCiiu) {
-      actividadesCiiu.value = [{ IdCiiu: cliente.IdCiiu, display: cliente.NombreCiiu }];
+      actividadesCiiu.value = [
+        { IdCiiu: cliente.IdCiiu, display: cliente.NombreCiiu },
+      ];
     }
-    if (cliente.IdDepartamento) {
-      const depSet = new Map();
-      depSet.set(cliente.IdDepartamento, { IdDepartamento: cliente.IdDepartamento, NombreDepartamento: cliente.NombreDepartamento });
-      (cliente.sucursales || []).forEach(s => {
-        if (s.IdDepartamento && !depSet.has(s.IdDepartamento)) {
-          depSet.set(s.IdDepartamento, { IdDepartamento: s.IdDepartamento, NombreDepartamento: s.NombreDepartamento });
-        }
+    const depSet = new Map();
+
+    if (cliente.IdDepartamento && cliente.NombreDepartamento) {
+      depSet.set(cliente.IdDepartamento, {
+        IdDepartamento: cliente.IdDepartamento,
+        NombreDepartamento: cliente.NombreDepartamento,
       });
-      departamentos.value = Array.from(depSet.values());
     }
+
+    (cliente.sucursales || []).forEach((s) => {
+      if (s.IdDepartamento && !depSet.has(s.IdDepartamento)) {
+        depSet.set(s.IdDepartamento, {
+          IdDepartamento: s.IdDepartamento,
+          NombreDepartamento: s.NombreDepartamento,
+        });
+      }
+    });
+
+    departamentos.value = Array.from(depSet.values());
     if (cliente.IdEstado !== undefined && cliente.IdEstado !== null) {
-      estadosCatalogo.value = [{ IdClienteEstado: cliente.IdEstado, Nombre: cliente.NombreEstado }];
+      estadosCatalogo.value = [
+        { IdClienteEstado: cliente.IdEstado, Nombre: cliente.NombreEstado },
+      ];
     }
-    
+
     const unqiueTiposCorreos = new Map();
     (cliente.correos || []).forEach((c) => {
       if (c.IdTipoCorreo && !unqiueTiposCorreos.has(c.IdTipoCorreo)) {
-        unqiueTiposCorreos.set(c.IdTipoCorreo, { IdTipoCorreo: c.IdTipoCorreo, Descripcion: c.TipoCorreo });
+        unqiueTiposCorreos.set(c.IdTipoCorreo, {
+          IdTipoCorreo: c.IdTipoCorreo,
+          Descripcion: c.TipoCorreo,
+        });
       }
     });
     tiposCorreos.value = Array.from(unqiueTiposCorreos.values());
@@ -79,7 +104,7 @@ export function useClienteCatalogos() {
         display: `${item.Codigo} - ${item.Descripcion}`,
       }));
 
-      console.log("Actividades CIIU cargadas:", actividadesCiiu.value);
+
     }
   };
 

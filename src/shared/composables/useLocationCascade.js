@@ -109,10 +109,10 @@ export function useLocationCascade({
     form.value[idCentroPobladoKey] = idCentro;
 
     if (idMun && nomMun) {
-      municipios.value = [{ [idMunicipioKey === 'idMunicipio' ? 'IdMunicipio' : idMunicipioKey]: idMun, NombreMunicipio: nomMun }];
+      municipios.value = [{ IdMunicipio: idMun, NombreMunicipio: nomMun }];
     }
     if (idCentro && nomCentro) {
-      centrosPoblados.value = [{ [idCentroPobladoKey]: idCentro, NombreCentroPoblado: nomCentro }];
+     centrosPoblados.value = [{ IdCentroPoblado: idCentro, NombreCentroPoblado: nomCentro }];
     }
   }
 
