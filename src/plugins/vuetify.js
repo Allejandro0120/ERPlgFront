@@ -1,5 +1,6 @@
 // Composables
 import { createVuetify } from "vuetify";
+import { es } from 'vuetify/locale';
 
 // Theme and defaults
 import { aliases, mdi } from "vuetify/iconsets/mdi";
@@ -13,6 +14,10 @@ import "@mdi/font/css/materialdesignicons.css";
 import "@/styles/global.css";
 
 export default createVuetify({
+  locale: {
+    locale: 'es',
+    messages: { es },
+  },
   defaults: VUETIFY_DEFAULTS,
   icons: {
     defaultSet: "mdi",

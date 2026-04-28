@@ -46,15 +46,19 @@
             @update:model-value="onFilterChange"
           />
         </v-col>
+        <v-col cols="12" md="5">
+          <date-range-filter
+            v-model="dateRange"
+            @change="onDateRangeChange"
+            :showPresetSelect="false"
+            presetValue="30days"
+           
+          />
+        </v-col>
       </template>
       <template #item.Estado="{ item }">
         <v-chip
-          :color="
-            getEstadoColor(
-              getEstadoNombre(item.IdEstadoActa),
-              DOMINIOS_ESTADO.ACTA,
-            )
-          "
+          :color="getEstadoColor(getEstadoNombre(item.IdEstadoActa), DOMINIOS_ESTADO.ACTA)"
           variant="tonal"
           size="small"
           class="font-weight-medium"
@@ -89,11 +93,12 @@ import { $loading } from "@/plugins/loading/loading";
 import { recepcionService } from "@/api/services/recepcionService";
 import { formatDateTime } from "@/shared/utils/dateFormatter";
 import { proveedorService } from "../../../api/services/proveedorService";
+import DateRangeFilter from '@/shared/ui/DateRangeFilter.vue';
 
 const authStore = useAuthStore();
 const hasPermission = (permiso) => authStore.hasPermission(permiso);
 const tableRef = ref();
-
+ 
 const headers = [
   { title: "Nro Acta", key: "Acta", sortable: true, searchable: true },
   {
@@ -144,6 +149,12 @@ const rowActions = [
 ];
 const estados = ref([]);
 const estadoSeleccionado = ref(null);
+const dateRange = ref({ start: null, end: null });
+
+const onDateRangeChange = (range) => {
+  // Only update local state; do not trigger table reload immediately.
+  dateRange.value = { start: range.start, end: range.end };
+};
 
 const proveedores = ref([]);
 const proveedorSeleccionado = ref(null);
@@ -202,6 +213,10 @@ async function fetchData({
     const filters = {};
     if (estadoSeleccionado.value !== null) {
       filters.IdEstadoActa = estadoSeleccionado.value;
+    }
+    if (dateRange.value && (dateRange.value.start || dateRange.value.end)) {
+      if (dateRange.value.start) filters.startDate = new Date(dateRange.value.start).toISOString().slice(0,10);
+      if (dateRange.value.end) filters.endDate = new Date(dateRange.value.end).toISOString().slice(0,10);
     }
     const response = await recepcionService.getRecepciones(
       page,
