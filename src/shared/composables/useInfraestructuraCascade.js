@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-function extractData (response) {
+function extractData(response) {
   if (response?.data?.success) {
     return response.data.data || []
   }
@@ -10,7 +10,7 @@ function extractData (response) {
 /**
  * Maneja la cascada de infraestructura: Cedi -> Bodega -> Zona -> Pasillo -> Estante.
  */
-export function useInfraestructuraCascade ({
+export function useInfraestructuraCascade({
   ui,
   form,
   services,
@@ -46,7 +46,7 @@ export function useInfraestructuraCascade ({
     console.error(`Error en cascada de infraestructura (${stage}):`, error)
   }
 
-  async function loadBodegas (idCedi) {
+  async function loadBodegas(idCedi) {
     bodegas.value = []
     if (!idCedi) {
       return
@@ -66,7 +66,7 @@ export function useInfraestructuraCascade ({
     }
   }
 
-  async function loadZonas (idBodega) {
+  async function loadZonas(idBodega) {
     zonas.value = []
     if (!idBodega) {
       return
@@ -86,7 +86,7 @@ export function useInfraestructuraCascade ({
     }
   }
 
-  async function loadPasillos (idZona) {
+  async function loadPasillos(idZona) {
     pasillos.value = []
     if (!idZona) {
       return
@@ -106,7 +106,7 @@ export function useInfraestructuraCascade ({
     }
   }
 
-  async function loadEstantes (idPasillo) {
+  async function loadEstantes(idPasillo) {
     estantes.value = []
     if (!idPasillo) {
       return
@@ -127,7 +127,7 @@ export function useInfraestructuraCascade ({
 
   // --- Handlers de cambio ---
 
-  async function onCediChange (idCedi) {
+  async function onCediChange(idCedi) {
     ui.value[cascadeKeys.idBodega] = null
     form.value[cascadeKeys.idZona] = null
     form.value[cascadeKeys.idPasillo] = null
@@ -138,7 +138,7 @@ export function useInfraestructuraCascade ({
     await loadBodegas(idCedi)
   }
 
-  async function onBodegaChange (idBodega) {
+  async function onBodegaChange(idBodega) {
     ui.value[cascadeKeys.idZona] = null
     form.value[cascadeKeys.idPasillo] = null
     form.value[cascadeKeys.idEstante] = null
@@ -147,29 +147,26 @@ export function useInfraestructuraCascade ({
     await loadZonas(idBodega)
   }
 
-  async function onZonaChange (idZona) {
+  async function onZonaChange(idZona) {
     ui.value[cascadeKeys.idPasillo] = null
     form.value[cascadeKeys.idEstante] = null
     estantes.value = []
     await loadPasillos(idZona)
   }
 
-  async function onPasilloChange (idPasillo) {
+  async function onPasilloChange(idPasillo) {
     ui.value[cascadeKeys.idEstante] = null
     await loadEstantes(idPasillo)
   }
 
-  async function preloadInfraestructura ({
-    idCedi = null,
-    idBodega = null,
-  } = {}) {
+  async function preloadInfraestructura({ idCedi = null, idBodega = null } = {}) {
     ui.value[cascadeKeys.idCedi] = idCedi
     await loadBodegas(idCedi)
 
     form.value[cascadeKeys.idBodega] = idBodega
   }
 
-  function setInfraestructuraLectura (data) {
+  function setInfraestructuraLectura(data) {
     const idCedi = data.IdCedi
     const nomCedi = data.NombreCedi
     const idBodega = data.IdBodega

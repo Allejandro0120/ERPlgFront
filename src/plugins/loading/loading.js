@@ -1,22 +1,21 @@
-import { reactive } from "vue";
+import { reactive } from 'vue'
 
 const state = reactive({
   active: false,
-  text: "Cargando...",
-});
+  text: 'Cargando...',
+})
 
 export const $loading = {
   state,
   show(text) {
-    state.text = text || "Cargando...";
-    state.active = true;
+    state.text = text || 'Cargando...'
+    state.active = true
   },
   hide() {
-    state.active = false;
+    state.active = false
   },
-};
+}
 
 export default {
-  install() {
-  },
-};
+  install() {},
+}

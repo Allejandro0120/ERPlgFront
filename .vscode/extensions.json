@@ -1,5 +1,14 @@
 {
   "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "johnsoncodehk.volar",
+    "octref.vetur"
+  ],
+  "unwantedRecommendations": []
+}
+{
+  "recommendations": [
     "vuetifyjs.vuetify-vscode",
     "vue.volar"
   ]

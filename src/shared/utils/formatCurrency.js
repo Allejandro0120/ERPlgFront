@@ -4,45 +4,48 @@
  * Handles partial inputs for typing.
  * Example: 1234.56 -> "1.234,56"
  */
-export const formatCOP = (value) => {
-  if (value === null || value === undefined || value === "") return "";
-  
+export function formatCOP(value) {
+  if (value === null || value === undefined || value === '') {
+    return ''
+  }
+
   // Convert to string to handle partial inputs
-  let strValue = String(value);
+  const strValue = String(value)
 
   // 1. Clean the input: keep only digits and comma
   // This removes existing dots so we can re-format correctly
-  let cleanValue = strValue.replace(/[^\d,]/g, "");
+  const cleanValue = strValue.replace(/[^\d,]/g, '')
 
   // 2. Handle multiple commas: keep only the first one
-  const parts = cleanValue.split(",");
-  let integerPart = parts[0];
-  
+  const parts = cleanValue.split(',')
+  let integerPart = parts[0]
+
   // If there is a decimal part, take the comma and up to 2 decimal digits
-  let decimalPart = "";
+  let decimalPart = ''
   if (parts.length > 1) {
-    decimalPart = "," + parts[1].slice(0, 2);
+    decimalPart = ',' + parts[1].slice(0, 2)
   }
 
   // 3. Format the integer part with thousands separators (dots)
   // Regex to insert dots every 3 digits from the right
   if (integerPart) {
-    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   }
 
   // 4. Combine parts
-  return integerPart + decimalPart;
-};
+  return integerPart + decimalPart
+}
 
 /**
  * Parses a COP formatted string into a standard JavaScript number.
  * Example: "1.234,56" -> 1234.56
  */
-export const parseCOP = (value) => {
-  if (value === null || value === undefined || value === "") return null;
+export function parseCOP(value) {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
   // Remove dots and convert comma to dot for parsing
-  const clean = String(value).replace(/\./g, "").replace(",", ".");
-  const number = parseFloat(clean);
-  return isNaN(number) ? null : number;
-};
-
+  const clean = String(value).replace(/\./g, '').replace(',', '.')
+  const number = Number.parseFloat(clean)
+  return Number.isNaN(number) ? null : number
+}

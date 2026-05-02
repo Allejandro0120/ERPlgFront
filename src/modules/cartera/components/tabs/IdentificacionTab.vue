@@ -2,122 +2,110 @@
   <v-row class="mt-2">
     <v-col cols="12" sm="5">
       <v-select
-        v-model="form.IdTipoDocumento"
-        name="IdTipoDocumento"
         id="IdTipoDocumento"
-        label="Tipo de Documento"
-        :items="tipoDocumentos"
+        v-model="form.IdTipoDocumento"
+        :clearable="!isReadonly"
         item-title="display"
         item-value="IdTipoDocumento"
+        :items="tipoDocumentos"
+        label="Tipo de Documento"
+        name="IdTipoDocumento"
         prepend-inner-icon="mdi-card-account-details-outline"
-        :rules="[rules.required]"
         :readonly="isReadonly"
-        :clearable="!isReadonly"
+        :rules="[rules.required]"
       />
     </v-col>
     <v-col cols="12" sm="7">
       <v-text-field
-        v-model="form.NumeroIdentificacion"
-        name="NumeroIdentificacion"
         id="NumeroIdentificacion"
-        label="Número de Identificación"
-        prepend-inner-icon="mdi-numeric"
-        :rules="[rules.required, rules.onlyDigitsGuion]"
-        :readonly="isReadonly"
-        @keydown="blockKey ($event, allow.idWithDash)"
+        v-model="form.NumeroIdentificacion"
         :clearable="!isReadonly"
+        label="Número de Identificación"
+        name="NumeroIdentificacion"
+        prepend-inner-icon="mdi-numeric"
+        :readonly="isReadonly"
+        :rules="[rules.required, rules.onlyDigitsGuion]"
+        @keydown="blockKey($event, allow.idWithDash)"
       />
     </v-col>
     <v-col cols="12">
       <v-text-field
-        v-model="form.Nombre"
-        name="Nombre"
         id="Nombre"
-        label="Nombre o Razón Social"
-        prepend-inner-icon="mdi-domain"
-        :rules="[rules.required]"
-        :readonly="isReadonly"
+        v-model="form.Nombre"
         :clearable="!isReadonly"
+        label="Nombre o Razón Social"
+        name="Nombre"
+        prepend-inner-icon="mdi-domain"
+        :readonly="isReadonly"
+        :rules="[rules.required]"
       />
     </v-col>
     <v-col cols="12">
       <v-autocomplete
-        v-model="form.IdCiiu"
-        name="CIIU"
         id="CIIU"
-        label="Actividad CIIU"
-        :items="ciuuConNa"
+        v-model="form.IdCiiu"
+        :clearable="!isReadonly"
         item-title="display"
         item-value="IdCiiu"
+        :items="ciuuConNa"
+        label="Actividad CIIU"
+        name="CIIU"
         prepend-inner-icon="mdi-briefcase-outline"
-        :clearable="!isReadonly"
         :readonly="isReadonly"
       />
     </v-col>
     <v-col cols="12" sm="6">
       <v-text-field
-        v-model="form.CorreoGeneral"
-        name="CorreoGeneral"
         id="CorreoGeneral"
-        label="Correo Electrónico"
-        type="email"
-        @update:modelValue="(val) => (form.CorreoGeneral = val?.toLowerCase())"
-        prepend-inner-icon="mdi-email-outline"
-        :rules="[rules.required, rules.email]"
-        :readonly="isReadonly"
+        v-model="form.CorreoGeneral"
         :clearable="!isReadonly"
+        label="Correo Electrónico"
+        name="CorreoGeneral"
+        prepend-inner-icon="mdi-email-outline"
+        :readonly="isReadonly"
+        :rules="[rules.required, rules.email]"
+        type="email"
+        @update:model-value="(val) => (form.CorreoGeneral = val?.toLowerCase())"
       />
     </v-col>
     <v-col cols="12" sm="6">
       <v-text-field
-        v-model="form.Telefono"
-        name="Telefono"
         id="Telefono"
-        label="Teléfono"
-        prepend-inner-icon="mdi-phone-outline"
-        :rules="[rules.required]"
-        :readonly="isReadonly"
-        @keydown="blockKey ($event, allow.onlyDigits)"
+        v-model="form.Telefono"
         :clearable="!isReadonly"
+        label="Teléfono"
+        name="Telefono"
+        prepend-inner-icon="mdi-phone-outline"
+        :readonly="isReadonly"
+        :rules="[rules.required]"
+        @keydown="blockKey($event, allow.onlyDigits)"
       />
     </v-col>
     <v-col v-if="showEstado" cols="12" sm="6">
       <v-select
-        v-model="form.Estado"
-        name="Estado"
         id="Estado"
-        label="Estado"
-        :items="estadosConColor"
+        v-model="form.Estado"
+        :clearable="!isReadonly"
         item-title="Nombre"
         item-value="IdClienteEstado"
+        :items="estadosConColor"
+        label="Estado"
+        name="Estado"
         prepend-inner-icon="mdi-account-badge-outline"
-        :rules="[rules.required]"
         :readonly="isReadonly"
-        :clearable="!isReadonly"
+        :rules="[rules.required]"
       >
         <template #selection="{ item }">
-          <v-chip label class="estado-chip" :color="item.color" variant="tonal">
-            <v-icon
-              icon="$circle"
-              :color="item.color"
-              start
-              size="10"
-              class="ml-1"
-            />
+          <v-chip class="estado-chip" :color="item.color" label variant="tonal">
+            <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
             {{ item.Nombre }}
           </v-chip>
         </template>
 
         <template #item="{ item, props: itemProps }">
           <v-list-item v-bind="itemProps" title="">
-            <v-chip label :color="item.color" variant="tonal">
-              <v-icon
-                icon="$circle"
-                :color="item.color"
-                start
-                size="10"
-                class="ml-1"
-              />
+            <v-chip :color="item.color" label variant="tonal">
+              <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
               {{ item.Nombre }}
             </v-chip>
           </v-list-item>
@@ -128,32 +116,25 @@
 </template>
 
 <script setup>
-import { computed, onMounted, toRefs } from "vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
-import { rules } from "@/shared/utils/validationRules";
-import { allow, blockKey  } from "@/shared/utils/inputKeyFilter";
+  import { computed, toRefs } from 'vue'
+  import { allow, blockKey } from '@/shared/utils/inputKeyFilter'
+  import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
+  import { rules } from '@/shared/utils/validationRules'
 
-const props = defineProps({
-  form: { type: Object, required: true },
-  tipoDocumentos: { type: Array, default: () => [] },
-  ciuuConNa: { type: Array, default: () => [] },
-  estadosCatalogo: { type: Array, default: () => [] },
-  isReadonly: { type: Boolean, default: false },
-  showEstado: { type: Boolean, default: false },
-});
-const {
-  form,
-  tipoDocumentos,
-  ciuuConNa,
-  estadosCatalogo,
-  isReadonly,
-  showEstado,
-} = toRefs(props);
+  const props = defineProps({
+    form: { type: Object, required: true },
+    tipoDocumentos: { type: Array, default: () => [] },
+    ciuuConNa: { type: Array, default: () => [] },
+    estadosCatalogo: { type: Array, default: () => [] },
+    isReadonly: { type: Boolean, default: false },
+    showEstado: { type: Boolean, default: false },
+  })
+  const { form, tipoDocumentos, ciuuConNa, estadosCatalogo, isReadonly, showEstado } = toRefs(props)
 
-const estadosConColor = computed(() =>
-  (estadosCatalogo.value || []).map((estado) => ({
-    ...estado,
-    color: getEstadoColor(estado.Nombre, DOMINIOS_ESTADO.CLIENTE),
-  })),
-);
+  const estadosConColor = computed(() =>
+    (estadosCatalogo.value || []).map((estado) => ({
+      ...estado,
+      color: getEstadoColor(estado.Nombre, DOMINIOS_ESTADO.CLIENTE),
+    })),
+  )
 </script>

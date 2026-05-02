@@ -16,11 +16,7 @@ const SUCURSAL_PATCH_FIELDS = [
 
 // ─── Campos de display (nombres legibles, solo para mostrar) ──────────────────
 // No se incluyen en snapshots ni en payloads al API.
-const SUCURSAL_DISPLAY_FIELDS = [
-  'NombreDepartamento',
-  'NombreMunicipio',
-  'NombreCentroPoblado',
-]
+const SUCURSAL_DISPLAY_FIELDS = ['NombreDepartamento', 'NombreMunicipio', 'NombreCentroPoblado']
 
 // ─── Campos que se guardan en el snapshot para comparar cambios ───────────────
 // Incluye IDs de ubicación porque aunque no van al patch, sí indican un cambio.
@@ -33,10 +29,8 @@ const SUCURSAL_SNAPSHOT_FIELDS = [
 
 // Construye un objeto con solo los campos indicados, aplicando un valor por
 // defecto cuando el campo es undefined o null (para comparaciones consistentes).
-function pickFields (source, fields, defaults = {}) {
-  return Object.fromEntries(
-    fields.map(key => [key, source[key] ?? defaults[key] ?? null]),
-  )
+function pickFields(source, fields, defaults = {}) {
+  return Object.fromEntries(fields.map((key) => [key, source[key] ?? defaults[key] ?? null]))
 }
 
 const SUCURSAL_DEFAULTS = {
@@ -47,7 +41,7 @@ const SUCURSAL_DEFAULTS = {
   Habilitada: true,
 }
 
-export function useClienteSucursales ({ isReadonly }) {
+export function useClienteSucursales({ isReadonly }) {
   let localSucursalCounter = 0
 
   // ─── Estado ─────────────────────────────────────────────────────────────────
@@ -63,7 +57,7 @@ export function useClienteSucursales ({ isReadonly }) {
   // ─── Transformadores ─────────────────────────────────────────────────────────
 
   // API → estado local: agrega LocalId y campos de display
-  function apiSucursalToLocal (apiSucursal) {
+  function apiSucursalToLocal(apiSucursal) {
     return {
       LocalId: ++localSucursalCounter,
       ...pickFields(apiSucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS),
@@ -72,12 +66,12 @@ export function useClienteSucursales ({ isReadonly }) {
   }
 
   // Estado local → snapshot: solo campos comparables, sin LocalId ni display
-  function sucursalSerializable (sucursal) {
+  function sucursalSerializable(sucursal) {
     return pickFields(sucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS)
   }
 
   // Estado local → payload API
-  function localSucursalToApi (sucursal, includeId = false) {
+  function localSucursalToApi(sucursal, includeId = false) {
     const payload = pickFields(sucursal, SUCURSAL_PATCH_FIELDS, SUCURSAL_DEFAULTS)
     if (includeId && sucursal.IdSucursal) {
       payload.IdSucursal = sucursal.IdSucursal
@@ -86,7 +80,7 @@ export function useClienteSucursales ({ isReadonly }) {
   }
 
   // Estado local → objeto para el diálogo hijo (incluye display para precarga de ubicación)
-  function toDialogSucursal (sucursal) {
+  function toDialogSucursal(sucursal) {
     return {
       ...pickFields(sucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS),
       ...pickFields(sucursal, SUCURSAL_DISPLAY_FIELDS),
@@ -95,7 +89,7 @@ export function useClienteSucursales ({ isReadonly }) {
 
   // ─── Diálogo ─────────────────────────────────────────────────────────────────
 
-  function abrirSucursalDialog (mode, idx = null) {
+  function abrirSucursalDialog(mode, idx = null) {
     sucursalDialog.value = {
       open: true,
       mode,
@@ -105,14 +99,14 @@ export function useClienteSucursales ({ isReadonly }) {
   }
 
   // Busca por LocalId y delega a abrirSucursalDialog
-  function abrirPorLocalId (localId, mode) {
-    const idx = sucursales.value.findIndex(s => s.LocalId === localId)
+  function abrirPorLocalId(localId, mode) {
+    const idx = sucursales.value.findIndex((s) => s.LocalId === localId)
     if (idx !== -1) {
       abrirSucursalDialog(mode, idx)
     }
   }
 
-  function abrirAgregarSucursal () {
+  function abrirAgregarSucursal() {
     abrirSucursalDialog('create')
   }
 
@@ -132,19 +126,19 @@ export function useClienteSucursales ({ isReadonly }) {
       label: 'Editar',
       icon: '$pencil',
       visible: !isReadonly.value,
-      action: item => abrirPorLocalId(item.LocalId, 'edit'),
+      action: (item) => abrirPorLocalId(item.LocalId, 'edit'),
     },
     {
       label: 'Ver detalle',
       icon: '$eye',
       visible: isReadonly.value,
-      action: item => abrirPorLocalId(item.LocalId, 'view'),
+      action: (item) => abrirPorLocalId(item.LocalId, 'view'),
     },
   ])
 
   // ─── Mutaciones de lista ──────────────────────────────────────────────────────
 
-  function onSucursalSubmit ({ payload, mode }) {
+  function onSucursalSubmit({ payload, mode }) {
     const localFields = {
       ...pickFields(payload, SUCURSAL_PATCH_FIELDS, SUCURSAL_DEFAULTS),
       IdDepartamento: payload.IdDepartamento ?? null,
@@ -167,42 +161,43 @@ export function useClienteSucursales ({ isReadonly }) {
 
   // ─── Hidratación y snapshot ───────────────────────────────────────────────────
 
-  function hydrateSucursales (apiSucursales = []) {
+  function hydrateSucursales(apiSucursales = []) {
     const locales = Array.isArray(apiSucursales)
-      ? apiSucursales.map(apiSucursalToLocal)
+      ? apiSucursales.map((s) => apiSucursalToLocal(s))
       : []
     sucursales.value = locales
-    sucursalesSnapshot.value = locales.map(sucursalSerializable)
+    sucursalesSnapshot.value = locales.map((s) => sucursalSerializable(s))
   }
 
-  function setSucursalesSnapshot (snapshot = []) {
+  function setSucursalesSnapshot(snapshot = []) {
     sucursalesSnapshot.value = snapshot
   }
 
-  function resetSucursales () {
+  function resetSucursales() {
     sucursales.value = []
     sucursalesSnapshot.value = []
-    sucursalDialog.value = { open: false, mode: 'create', sucursal: null, editIdx: null }
+    sucursalDialog.value = {
+      open: false,
+      mode: 'create',
+      sucursal: null,
+      editIdx: null,
+    }
   }
 
   // ─── Detección de cambios ─────────────────────────────────────────────────────
 
-  function hasSucursalesChanges () {
-    return hasCollectionChanges(
-      sucursales.value,
-      sucursalesSnapshot.value,
-      sucursalSerializable,
-    )
+  function hasSucursalesChanges() {
+    return hasCollectionChanges(sucursales.value, sucursalesSnapshot.value, sucursalSerializable)
   }
 
-  function getSucursalesChanges () {
+  function getSucursalesChanges() {
     return getChangedCollectionPayload({
       currentList: sucursales.value,
       snapshotList: sucursalesSnapshot.value,
       idKey: 'IdSucursal',
       patchFields: SUCURSAL_PATCH_FIELDS,
-      toCreatePayload: item => localSucursalToApi(item, false),
-      toFallbackPayload: item => localSucursalToApi(item, true),
+      toCreatePayload: (item) => localSucursalToApi(item, false),
+      toFallbackPayload: (item) => localSucursalToApi(item, true),
     })
   }
 

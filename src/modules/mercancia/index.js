@@ -6,17 +6,16 @@ export default [
     component: () => import('./views/ProductosListView.vue'),
     meta: { title: 'Gestión de Productos', permiso: 'Productos.READ' },
   },
-    {
+  {
     path: '/mercancia/inventario',
     name: 'inventario',
     component: () => import('./views/InventarioView.vue'),
     meta: { title: 'Gestión de Inventario', permiso: 'Inventario.READ' },
   },
-    {
+  {
     path: '/mercancia/recepcion-mercancia',
     name: 'recepciones',
     component: () => import('./views/RecepcionListView.vue'),
     meta: { title: 'Gestión de Recepciones', permiso: 'Recepciones.READ' },
   },
-
 ]

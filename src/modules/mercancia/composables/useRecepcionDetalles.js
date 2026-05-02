@@ -6,18 +6,12 @@ import {
 
 const productopatchFields = ['CantidadRecibida', 'CantidadMuestra', 'Aceptado']
 
-export function useRecepcionDetalles () {
+export function useRecepcionDetalles() {
   let localDetalleCounter = 0
 
   const detalles = ref([])
   const detallesSnapshot = ref([])
-  const productoDialog = ref({
-    open: false,
-    mode: 'create',
-    producto: null,
-    editIdx: null,
-  })
-  function apiDetalleToLocal (api) {
+  function apiDetalleToLocal(api) {
     return {
       LocalId: ++localDetalleCounter,
       IdDetalle: api.IdDetalle,
@@ -30,7 +24,7 @@ export function useRecepcionDetalles () {
     }
   }
 
-  function detalleSerializable (d) {
+  function detalleSerializable(d) {
     return {
       IdDetalle: d.IdDetalle ?? null,
       CantidadRecibida: d.CantidadRecibida ?? 0,
@@ -39,66 +33,36 @@ export function useRecepcionDetalles () {
     }
   }
 
-  function toDialogProducto (producto) {
-    return {
-      CodigoProducto: producto.CodigoProducto,
-      CodLote: producto.CodLote,
-      CantidadFacturada: producto.CantidadFacturada,
-      CantidadRecibida: producto.CantidadRecibida,
-      CantidadMuestra: producto.CantidadMuestra,
-      Aceptado: producto.Aceptado,
-      Observaciones: producto.Observaciones ?? '',
-    }
-  }
-  function abrirVerProducto (idx) {
-    const producto = detalles.value[idx]
-    productoDialog.value = {
-      open: true,
-      mode: 'view',
-      producto: toDialogProducto(producto),
-      editIdx: idx,
-    }
-  }
-  function handleVerProducto (item) {
-    const idx = sucursales.value.findIndex(s => s.LocalId === item.LocalId)
-    if (idx !== -1) {
-      abrirVerSucursal(idx)
-    }
-  }
+  // helper functions for dialog were removed as not used by current UI
+  // Viewing helpers were removed because not used in current UI
 
-  function hydrateDetalles (apiDetalles = []) {
-    const locales = Array.isArray(apiDetalles)
-      ? apiDetalles.map(apiDetalleToLocal)
-      : []
+  function hydrateDetalles(apiDetalles = []) {
+    const locales = Array.isArray(apiDetalles) ? apiDetalles.map((d) => apiDetalleToLocal(d)) : []
 
     detalles.value = locales
-    detallesSnapshot.value = locales.map(detalleSerializable)
+    detallesSnapshot.value = locales.map((d) => detalleSerializable(d))
   }
 
-  function setDetallesSnapshot (snapshot = []) {
+  function setDetallesSnapshot(snapshot = []) {
     detallesSnapshot.value = snapshot
   }
 
-  function resetDetalles () {
+  function resetDetalles() {
     detalles.value = []
     detallesSnapshot.value = []
   }
 
-  function hasDetallesChanges () {
-    return hasCollectionChanges(
-      detalles.value,
-      detallesSnapshot.value,
-      detalleSerializable,
-    )
+  function hasDetallesChanges() {
+    return hasCollectionChanges(detalles.value, detallesSnapshot.value, detalleSerializable)
   }
 
-  function getDetallesChanges () {
+  function getDetallesChanges() {
     const payload = getChangedCollectionPayload({
       currentList: detalles.value,
       snapshotList: detallesSnapshot.value,
       idKey: 'IdDetalle',
       patchFields: productopatchFields,
-      toCreatePayload: d => ({
+      toCreatePayload: (d) => ({
         CodigoProducto: d.CodigoProducto,
         CodLote: d.CodLote,
         CantidadFacturada: d.CantidadFacturada,
@@ -106,7 +70,7 @@ export function useRecepcionDetalles () {
         CantidadMuestra: d.CantidadMuestra,
         Aceptado: d.Aceptado,
       }),
-      toFallbackPayload: d => ({
+      toFallbackPayload: (d) => ({
         IdDetalle: d.IdDetalle,
         CodigoProducto: d.CodigoProducto,
         CodLote: d.CodLote,

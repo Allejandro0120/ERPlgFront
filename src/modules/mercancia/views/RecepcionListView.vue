@@ -3,12 +3,7 @@
     <page-header-actions>
       <v-row density="comfortable">
         <v-col cols="12" sm="auto">
-          <v-btn
-            class="text-none w-100"
-            color="primary"
-            prepend-icon="$plus"
-            @click="abrirCrear"
-          >
+          <v-btn class="text-none w-100" color="primary" prepend-icon="$plus" @click="abrirCrear">
             Añadir Acta
           </v-btn>
         </v-col>
@@ -58,12 +53,7 @@
       <template #item.Estado="{ item }">
         <v-chip
           class="font-weight-medium"
-          :color="
-            getEstadoColor(
-              getEstadoNombre(item.IdEstadoActa),
-              DOMINIOS_ESTADO.ACTA,
-            )
-          "
+          :color="getEstadoColor(getEstadoNombre(item.IdEstadoActa), DOMINIOS_ESTADO.ACTA)"
           size="small"
           variant="tonal"
         >
@@ -86,7 +76,7 @@
 </template>
 
 <script setup>
-  import { computed, onMounted, ref } from 'vue'
+  import { onMounted, ref } from 'vue'
   import { recepcionService } from '@/api/services/recepcionService'
   import RecepcionDialog from '@/modules/mercancia/components/RecepcionDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
@@ -100,7 +90,7 @@
   import { proveedorService } from '../../../api/services/proveedorService'
 
   const authStore = useAuthStore()
-  const hasPermission = permiso => authStore.hasPermission(permiso)
+  const _hasPermission = (permiso) => authStore.hasPermission(permiso)
   const tableRef = ref()
 
   const headers = [
@@ -142,13 +132,13 @@
       label: 'Ver detalle',
       icon: '$eye',
       color: 'blue-darken-3',
-      action: item => verDetalle(item),
+      action: (item) => verDetalle(item),
     },
     {
       label: 'Editar',
       icon: '$pencil',
       color: 'purple-darken-3',
-      action: item => abrirDialog('edit', item),
+      action: (item) => abrirDialog('edit', item),
     },
   ]
   const estados = ref([])
@@ -156,29 +146,26 @@
   const dateRange = ref({ start: null, end: null })
   const dialog = ref({ open: false, mode: 'view', acta: null })
   const proveedores = ref([])
-  const proveedorSeleccionado = ref(null)
+  const _proveedorSeleccionado = ref(null)
   const recepciones = ref([])
   const totalItems = ref(0)
   const loadingTable = ref(false)
 
-  function onDateRangeChange (range) {
+  function onDateRangeChange(range) {
     // Only update local state; do not trigger table reload immediately.
     dateRange.value = { start: range.start, end: range.end }
   }
 
-  function getEstadoNombre (estadoId) {
-    const estado = estados.value.find(e => e.IdEstado === estadoId)
+  function getEstadoNombre(estadoId) {
+    const estado = estados.value.find((e) => e.IdEstado === estadoId)
     return estado ? estado.Nombre : 'Desconocido'
   }
 
-  async function cargarEstados () {
+  async function cargarEstados() {
     try {
       const response = await recepcionService.getRecepcionEstados()
       if (response.data?.success) {
-        estados.value = [
-          { IdEstado: null, Nombre: 'Todos' },
-          ...response.data.data,
-        ]
+        estados.value = [{ IdEstado: null, Nombre: 'Todos' }, ...response.data.data]
       }
     } catch (error) {
       console.error('Error al obtener los estados:', error)
@@ -186,14 +173,11 @@
     }
   }
 
-  async function cargarProveedores () {
+  async function _cargarProveedores() {
     try {
       const response = await proveedorService.getProveedores()
       if (response.data?.success) {
-        proveedores.value = [
-          { IdProveedor: null, Nombre: 'Todos' },
-          ...response.data.data,
-        ]
+        proveedores.value = [{ IdProveedor: null, Nombre: 'Todos' }, ...response.data.data]
       }
     } catch (error) {
       console.error('Error al obtener los proveedores:', error)
@@ -204,13 +188,7 @@
     cargarEstados()
   })
 
-  async function fetchData ({
-    page,
-    itemsPerPage,
-    sortByField,
-    sortOrder,
-    search,
-  }) {
+  async function fetchData({ page, itemsPerPage, sortByField, sortOrder, search }) {
     loadingTable.value = true
     try {
       const filters = {}
@@ -219,13 +197,9 @@
       }
       if (dateRange.value && (dateRange.value.start || dateRange.value.end)) {
         if (dateRange.value.start)
-          filters.startDate = new Date(dateRange.value.start)
-            .toISOString()
-            .slice(0, 10)
+          filters.startDate = new Date(dateRange.value.start).toISOString().slice(0, 10)
         if (dateRange.value.end)
-          filters.endDate = new Date(dateRange.value.end)
-            .toISOString()
-            .slice(0, 10)
+          filters.endDate = new Date(dateRange.value.end).toISOString().slice(0, 10)
       }
       const response = await recepcionService.getRecepciones(
         page,
@@ -250,23 +224,23 @@
     }
   }
 
-  function onFilterChange () {
+  function onFilterChange() {
     tableRef.value?.reset()
   }
 
-  function refrescarTabla () {
+  function refrescarTabla() {
     tableRef.value?.reset()
   }
 
-  function abrirCrear () {
+  function abrirCrear() {
     dialog.value = { open: true, mode: 'create', acta: null }
   }
 
-  function abrirDialog (mode, acta) {
+  function abrirDialog(mode, acta) {
     dialog.value = { open: true, mode, acta }
   }
 
-  async function verDetalle (item) {
+  async function verDetalle(item) {
     $loading.show()
     try {
       const res = await recepcionService.getRecepcionById(item.IdActa)
@@ -282,14 +256,12 @@
     }
   }
 
-  function onSubmit (payload) {
+  function onSubmit(_payload) {
     // Refrescar tabla después de guardar
     refrescarTabla()
     dialog.value.open = false
     $toast.success(
-      dialog.value.mode === 'create'
-        ? 'Acta creada exitosamente'
-        : 'Acta actualizada exitosamente',
+      dialog.value.mode === 'create' ? 'Acta creada exitosamente' : 'Acta actualizada exitosamente',
     )
   }
 </script>

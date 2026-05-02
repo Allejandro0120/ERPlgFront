@@ -38,10 +38,7 @@
           </v-tabs-window-item>
 
           <v-tabs-window-item eager value="detalle">
-            <recepcion-detalle-tab
-              :detalle-headers="detalleHeaders"
-              :form="form"
-            />
+            <recepcion-detalle-tab :detalle-headers="detalleHeaders" :form="form" />
           </v-tabs-window-item>
         </v-tabs-window>
       </v-form>
@@ -52,13 +49,9 @@
 <script setup>
   import { computed, reactive, ref, watch } from 'vue'
   import { infraestructuraService } from '@/api/services/infraestructuraService'
-  import { $confirm } from '@/plugins/confirm/confirm.js'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import {
-    getChangedFields,
-    hasObjectChanges,
-  } from '@/shared/composables/useChangePayload'
+  import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
   // colors handled inside tabs
@@ -72,7 +65,7 @@
     mode: {
       type: String,
       default: 'create',
-      validator: v => ['create', 'edit', 'view'].includes(v),
+      validator: (v) => ['create', 'edit', 'view'].includes(v),
     },
     acta: { type: Object, default: null },
   })
@@ -87,7 +80,7 @@
   const formRef = ref(null)
   const ui = ref({ tab: 'info' })
 
-  function formInitial () {
+  function formInitial() {
     return {
       IdActa: null,
       NroActa: '',
@@ -115,7 +108,7 @@
     estadosCatalogo,
     proveedores,
     cedis,
-    bodegas,
+    bodegas: _bodegas,
     setCatalogosLectura,
     cargarCatalogos,
   } = useRecepcionCatalogos()
@@ -169,49 +162,40 @@
     { title: 'Estado', key: 'Aceptado', align: 'center', sortable: false },
     { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
   ]
-  const DetallerowActions = [
+  const _DetallerowActions = [
     {
       label: 'Ver detalle',
       icon: '$eye',
       color: 'blue-darken-3',
-      action: item => verDetalle(item),
+      action: (item) => verDetalle(item),
     },
     {
       label: 'Editar',
       icon: '$pencil',
       color: 'purple-darken-3',
-      action: item => editarCliente(item),
+      action: (item) => editarCliente(item),
     },
   ]
 
   const dialogTitle = computed(
-    () =>
-      ({ create: 'Crear Acta', edit: 'Editar Acta', view: 'Detalle del Acta' })[
-        props.mode
-      ],
+    () => ({ create: 'Crear Acta', edit: 'Editar Acta', view: 'Detalle del Acta' })[props.mode],
   )
   const dialogIcon = computed(
-    () =>
-      ({ create: 'mdi-file-plus', edit: 'mdi-file-edit', view: 'mdi-file-eye' })[
-        props.mode
-      ],
+    () => ({ create: 'mdi-file-plus', edit: 'mdi-file-edit', view: 'mdi-file-eye' })[props.mode],
   )
   const labelConfirm = computed(
-    () =>
-      ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
+    () => ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
   )
 
   const disableConfirm = computed(() => isEditing.value && !hasChanges.value)
 
   const hasChanges = computed(() => {
-    const formChanged = formSnapshot.value
-      ? hasObjectChanges(form, formSnapshot.value)
-      : false
+    const formChanged = formSnapshot.value ? hasObjectChanges(form, formSnapshot.value) : false
     const detallesChanged = hasDetallesChanges()
     return formChanged || detallesChanged
   })
 
-  async function precargarActa (acta) {
+  async function precargarActa(acta) {
     if (!acta) {
       Object.assign(form, formInitial())
       resetDetalles()
@@ -254,7 +238,7 @@
 
   watch(
     () => props.modelValue,
-    async isOpen => {
+    async (_isOpen) => {
       // if (!isOpen) {
       //   resetForm()
       //   return
@@ -286,11 +270,11 @@
       }
     },
   )
-  function onClose (value) {
+  function onClose(value) {
     emit('update:modelValue', value)
   }
 
-  async function emitSubmit () {
+  async function emitSubmit() {
     const { valid } = (await formRef.value?.validate?.()) ?? { valid: true }
     if (!valid) return
 
@@ -299,7 +283,7 @@
       // crear: enviar form completo + detalles como array
       payload = {
         ...form,
-        Detalles: (detalles.value || []).map(d => ({
+        Detalles: (detalles.value || []).map((d) => ({
           CodigoProducto: d.CodigoProducto,
           CodLote: d.CodLote,
           CantidadFacturada: d.CantidadFacturada,
@@ -319,5 +303,5 @@
     emit('submit', payload)
   }
 
-// estado/color handled in tabs
+  // estado/color handled in tabs
 </script>

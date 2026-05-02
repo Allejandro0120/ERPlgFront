@@ -33,18 +33,17 @@ export const recepcionService = {
   /**
    * Obtiene la lista de estados de recepción
    */
-  getRecepcionEstados: () =>
-    withCache('recepcion_estados', () => api.get('v1/reception/states')),
+  getRecepcionEstados: () => withCache('recepcion_estados', () => api.get('v1/reception/states')),
 
   /**
    * Obtiene los detalles de una recepción por su ID
    * @param {number} id - ID de la recepción
    */
-  getRecepcionById: id => api.get(`v1/reception/reports/unique/${id}`),
+  getRecepcionById: (id) => api.get(`v1/reception/reports/unique/${id}`),
 
   /**
    * Obtiene los detalles de un producto específico dentro de una recepción por su ID
    * @param {*} id  - ID del detalle de la recepción
    */
-  getDetalleRecepcionById: id => api.get(`v1/reception/reports/unique/details/${id}`),
+  getDetalleRecepcionById: (id) => api.get(`v1/reception/reports/unique/details/${id}`),
 }

@@ -1,22 +1,19 @@
 <template>
   <v-dialog
+    max-width="440"
     :model-value="modelValue"
     :persistent="persistent"
-    max-width="440"
     transition="dialog-transition"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card class="pa-2">
       <div class="d-flex justify-center mt-6 mb-3">
-        <v-avatar :color="color" variant="tonal" size="64">
-          <v-icon :icon="icon" :color="color" size="32" />
+        <v-avatar :color="color" size="64" variant="tonal">
+          <v-icon :color="color" :icon="icon" size="32" />
         </v-avatar>
       </div>
 
-      <v-card-title
-        class="text-center px-4 pb-0"
-        style="word-break: break-word"
-      >
+      <v-card-title class="text-center px-4 pb-0" style="word-break: break-word">
         <slot name="title">
           <span class="text-title-medium font-weight-bold">{{ title }}</span>
         </slot>
@@ -29,37 +26,16 @@
       </v-card-text>
 
       <v-card-actions class="justify-end mt-2">
-        <slot name="actions" :accept="accept" :cancel="cancel">
+        <slot :accept="accept" :cancel="cancel" name="actions">
           <template v-if="actions">
-            <v-btn
-              variant="outlined"
-              class="me-2 px-4"
-              color="outline"
-              height="40"
-              @click="cancel"
-            >
-              <span style="color: rgb(var(--v-theme-brand-grey-2))">{{
-                labelCancel
-              }}</span>
+            <v-btn class="me-2 px-4" color="outline" height="40" variant="outlined" @click="cancel">
+              <span style="color: rgb(var(--v-theme-brand-grey-2))">{{ labelCancel }}</span>
             </v-btn>
-            <v-btn
-              variant="flat"
-              :color="color"
-              class="px-4"
-              height="40"
-              @click="accept"
-            >
+            <v-btn class="px-4" :color="color" height="40" variant="flat" @click="accept">
               {{ labelConfirm }}
             </v-btn>
           </template>
-          <v-btn
-            v-else
-            variant="flat"
-            block
-            height="44"
-            :color="color"
-            @click="accept"
-          >
+          <v-btn v-else block :color="color" height="44" variant="flat" @click="accept">
             {{ labelConfirm }}
           </v-btn>
         </slot>
@@ -69,19 +45,19 @@
 </template>
 
 <script setup>
-defineProps({
-  modelValue: Boolean,
-  title: { type: String, default: "" },
-  message: { type: String, default: "" },
-  color: { type: String, default: "primary" },
-  icon: { type: String, default: "mdi-help-circle-outline" },
-  actions: { type: Boolean, default: true },
-  persistent: { type: Boolean, default: false },
-  labelConfirm: { type: String, default: "Confirmar" },
-  labelCancel: { type: String, default: "Cancelar" },
-});
+  defineProps({
+    modelValue: Boolean,
+    title: { type: String, default: '' },
+    message: { type: String, default: '' },
+    color: { type: String, default: 'primary' },
+    icon: { type: String, default: 'mdi-help-circle-outline' },
+    actions: { type: Boolean, default: true },
+    persistent: { type: Boolean, default: false },
+    labelConfirm: { type: String, default: 'Confirmar' },
+    labelCancel: { type: String, default: 'Cancelar' },
+  })
 
-const emit = defineEmits(["update:modelValue", "accept", "cancel"]);
-const accept = () => emit("accept");
-const cancel = () => emit("cancel");
+  const emit = defineEmits(['update:modelValue', 'accept', 'cancel'])
+  const accept = () => emit('accept')
+  const cancel = () => emit('cancel')
 </script>

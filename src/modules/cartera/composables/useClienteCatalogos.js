@@ -3,7 +3,7 @@ import { clienteService } from '@/api/services/clienteService'
 import { globalService } from '@/api/services/globalService'
 import { mercanciaService } from '@/api/services/mercanciaService'
 
-export function useClienteCatalogos () {
+export function useClienteCatalogos() {
   const tipoDocumentos = ref([])
   const listaPrecios = ref([])
   const actividadesCiiu = ref([])
@@ -16,7 +16,7 @@ export function useClienteCatalogos () {
     ...actividadesCiiu.value,
   ])
 
-  const setCatalogosLectura = cliente => {
+  const setCatalogosLectura = (cliente) => {
     if (cliente.IdTipoDocumento) {
       tipoDocumentos.value = [
         {
@@ -34,9 +34,7 @@ export function useClienteCatalogos () {
       ]
     }
     if (cliente.IdCiiu) {
-      actividadesCiiu.value = [
-        { IdCiiu: cliente.IdCiiu, display: cliente.NombreCiiu },
-      ]
+      actividadesCiiu.value = [{ IdCiiu: cliente.IdCiiu, display: cliente.NombreCiiu }]
     }
     const depSet = new Map()
 
@@ -47,7 +45,7 @@ export function useClienteCatalogos () {
       })
     }
 
-    for (const s of (cliente.sucursales || [])) {
+    for (const s of cliente.sucursales || []) {
       if (s.IdDepartamento && !depSet.has(s.IdDepartamento)) {
         depSet.set(s.IdDepartamento, {
           IdDepartamento: s.IdDepartamento,
@@ -58,13 +56,11 @@ export function useClienteCatalogos () {
 
     departamentos.value = Array.from(depSet.values())
     if (cliente.IdEstado !== undefined && cliente.IdEstado !== null) {
-      estadosCatalogo.value = [
-        { IdClienteEstado: cliente.IdEstado, Nombre: cliente.NombreEstado },
-      ]
+      estadosCatalogo.value = [{ IdClienteEstado: cliente.IdEstado, Nombre: cliente.NombreEstado }]
     }
 
     const uniqueTiposCorreos = new Map()
-    for (const c of (cliente.correos || [])) {
+    for (const c of cliente.correos || []) {
       if (c.IdTipoCorreo && !uniqueTiposCorreos.has(c.IdTipoCorreo)) {
         uniqueTiposCorreos.set(c.IdTipoCorreo, {
           IdTipoCorreo: c.IdTipoCorreo,
@@ -78,7 +74,7 @@ export function useClienteCatalogos () {
   const cargarTiposDocumentos = async () => {
     const response = await globalService.getTiposDocumentos()
     tipoDocumentos.value = response.data?.success
-      ? (response.data.data || []).map(item => ({
+      ? (response.data.data || []).map((item) => ({
           ...item,
           display: `${item.Codigo} - ${item.Nombre}`,
         }))
@@ -87,7 +83,7 @@ export function useClienteCatalogos () {
   const cargarListaPrecios = async () => {
     const response = await mercanciaService.getListasPrecios()
     listaPrecios.value = response.data?.success
-      ? (response.data.data || []).map(item => ({
+      ? (response.data.data || []).map((item) => ({
           ...item,
           display: item.NombreLista,
         }))
@@ -97,7 +93,7 @@ export function useClienteCatalogos () {
   const cargarActividadCiiu = async () => {
     const response = await globalService.getActividadesCiiu()
     actividadesCiiu.value = response.data?.success
-      ? (response.data.data || []).map(item => ({
+      ? (response.data.data || []).map((item) => ({
           ...item,
           display: `${item.Codigo} - ${item.Descripcion}`,
         }))
@@ -165,7 +161,7 @@ export function useClienteCatalogos () {
       },
     ]
 
-    const results = await Promise.allSettled(jobs.map(job => job.run()))
+    const results = await Promise.allSettled(jobs.map((job) => job.run()))
     const failed = []
 
     for (const [index, result] of results.entries()) {

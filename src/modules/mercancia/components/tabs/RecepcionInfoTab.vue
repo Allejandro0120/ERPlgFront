@@ -25,13 +25,7 @@
       >
         <template #selection="{ item }">
           <v-chip class="estado-chip" :color="item.color" label variant="tonal">
-            <v-icon
-              class="ml-1"
-              :color="item.color"
-              icon="$circle"
-              size="10"
-              start
-            />
+            <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
             {{ item.Nombre }}
           </v-chip>
         </template>
@@ -39,13 +33,7 @@
         <template #item="{ item, props: itemProps }">
           <v-list-item v-bind="itemProps" title="">
             <v-chip :color="item.color" label variant="tonal">
-              <v-icon
-                class="ml-1"
-                :color="item.color"
-                icon="$circle"
-                size="10"
-                start
-              />
+              <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
               {{ item.Nombre }}
             </v-chip>
           </v-list-item>
@@ -165,7 +153,7 @@
 </template>
 
 <script setup>
-  import { computed, onMounted, toRefs } from 'vue'
+  import { computed, toRefs } from 'vue'
   import { formatDate, formatDateTime } from '@/shared/utils/dateFormatter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { rules } from '@/shared/utils/validationRules'
@@ -183,16 +171,14 @@
   const { form, estadosCatalogo, isReadonly, proveedores, cedis, bodegas } = toRefs(props)
 
   const estadosConColor = computed(() =>
-    (estadosCatalogo.value || []).map(estado => ({
+    (estadosCatalogo.value || []).map((estado) => ({
       ...estado,
       color: getEstadoColor(estado.Nombre, DOMINIOS_ESTADO.ACTA),
     })),
   )
 
   const fechaFacturaRecibidaDisplay = computed(() => {
-    return props.form.FechaFacturaRecibida
-      ? formatDate(props.form.FechaFacturaRecibida)
-      : ''
+    return props.form.FechaFacturaRecibida ? formatDate(props.form.FechaFacturaRecibida) : ''
   })
 
   const fechaActaDisplay = computed(() => {

@@ -1,5 +1,5 @@
 <template>
-  <Toaster position="top-right" richColors />
+  <Toaster position="top-right" rich-colors />
   <v-app>
     <GlobalLoading />
     <GlobalConfirm />
@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { Toaster } from 'vue-sonner'
-import GlobalLoading from '@/plugins/loading/GlobalLoading.vue'
-import GlobalConfirm from '@/plugins/confirm/GlobalConfirm.vue'
+  import { Toaster } from 'vue-sonner'
+  import GlobalConfirm from '@/plugins/confirm/GlobalConfirm.vue'
+  import GlobalLoading from '@/plugins/loading/GlobalLoading.vue'
 </script>

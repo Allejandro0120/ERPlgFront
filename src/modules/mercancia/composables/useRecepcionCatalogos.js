@@ -2,26 +2,33 @@ import { ref } from 'vue'
 import { proveedorService } from '@/api/services/proveedorService'
 import { recepcionService } from '@/api/services/recepcionService'
 
-export function useRecepcionCatalogos () {
+export function useRecepcionCatalogos() {
   const estadosCatalogo = ref([])
   const proveedores = ref([])
   const cedis = ref([])
   const bodegas = ref([])
 
-  const setCatalogosLectura = acta => {
+  const setCatalogosLectura = (acta) => {
     if (!acta) {
       return
     }
 
-    if (acta.IdEstado !== undefined && acta.IdEstado !== null // ensure at least the actual estado is present for read-only views
-      && !estadosCatalogo.value.some(e => e.IdEstado === acta.IdEstado)) {
+    if (
+      acta.IdEstado !== undefined &&
+      acta.IdEstado !== null && // ensure at least the actual estado is present for read-only views
+      !estadosCatalogo.value.some((e) => e.IdEstado === acta.IdEstado)
+    ) {
       estadosCatalogo.value = [
         { IdEstado: acta.IdEstado, Nombre: acta.NombreEstado },
         ...estadosCatalogo.value,
       ]
     }
 
-    if (acta.IdProveedor !== undefined && acta.IdProveedor !== null && !proveedores.value.some(p => p.IdProveedor === acta.IdProveedor)) {
+    if (
+      acta.IdProveedor !== undefined &&
+      acta.IdProveedor !== null &&
+      !proveedores.value.some((p) => p.IdProveedor === acta.IdProveedor)
+    ) {
       proveedores.value = [
         { IdProveedor: acta.IdProveedor, Nombre: acta.NombreProveedor },
         ...proveedores.value,
@@ -50,7 +57,7 @@ export function useRecepcionCatalogos () {
         fallback: () => (proveedores.value = []),
       },
     ]
-    const results = await Promise.allSettled(jobs.map(job => job.run()))
+    const results = await Promise.allSettled(jobs.map((job) => job.run()))
     const failed = []
 
     for (const [index, result] of results.entries()) {
@@ -70,7 +77,7 @@ export function useRecepcionCatalogos () {
     try {
       const response = await proveedorService.getProveedores()
       proveedores.value = response.data?.success
-        ? response.data.data.map(p => ({
+        ? response.data.data.map((p) => ({
             IdProveedor: p.IdProveedor,
             Nombre: `${p.NumeroIdentificacion} - ${p.NombreProveedor}`,
           }))

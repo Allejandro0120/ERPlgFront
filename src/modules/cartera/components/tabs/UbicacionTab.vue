@@ -2,98 +2,98 @@
   <v-row class="mt-2">
     <v-col cols="12">
       <v-autocomplete
-        v-model="ui.idDepartamento"
-        name="idDepartamento"
         id="idDepartamento"
-        label="Departamento"
-        :items="departamentos"
+        v-model="ui.idDepartamento"
+        :clearable="!isReadonly"
         item-title="NombreDepartamento"
         item-value="IdDepartamento"
+        :items="departamentos"
+        label="Departamento"
+        name="idDepartamento"
         prepend-inner-icon="mdi-map-outline"
-        :rules="[rules.required]"
         :readonly="isReadonly"
+        :rules="[rules.required]"
         @update:model-value="onDepartamentoChange"
-        :clearable="!isReadonly"
       />
     </v-col>
     <v-col cols="12" sm="6">
       <v-autocomplete
-        v-model="ui.idMunicipio"
-        name="idMunicipio"
         id="idMunicipio"
-        label="Municipio"
-        :items="municipios"
+        v-model="ui.idMunicipio"
+        :clearable="!isReadonly"
+        :disabled="!ui.idDepartamento"
         item-title="NombreMunicipio"
         item-value="IdMunicipio"
-        prepend-inner-icon="mdi-city-variant-outline"
-        :disabled="!ui.idDepartamento"
+        :items="municipios"
+        label="Municipio"
         :loading="loadingMunicipios"
-        :rules="[rules.required]"
+        name="idMunicipio"
+        prepend-inner-icon="mdi-city-variant-outline"
         :readonly="isReadonly"
+        :rules="[rules.required]"
         @update:model-value="onMunicipioChange"
-        :clearable="!isReadonly"
       />
     </v-col>
     <v-col cols="12" sm="6">
       <v-autocomplete
-        v-model="form.IdCentroPoblado"
-        name="IdCentroPoblado"
         id="IdCentroPoblado"
-        label="Centro Poblado"
-        :items="centrosPoblados"
+        v-model="form.IdCentroPoblado"
+        :clearable="!isReadonly"
+        :disabled="!ui.idMunicipio"
         item-title="NombreCentroPoblado"
         item-value="IdCentroPoblado"
-        prepend-inner-icon="mdi-home-group"
-        :disabled="!ui.idMunicipio"
+        :items="centrosPoblados"
+        label="Centro Poblado"
         :loading="loadingCentrosPoblados"
-        :rules="[rules.required]"
+        name="IdCentroPoblado"
+        prepend-inner-icon="mdi-home-group"
         :readonly="isReadonly"
-        :clearable="!isReadonly"
+        :rules="[rules.required]"
       />
     </v-col>
     <v-col cols="12">
       <v-text-field
-        v-model="form.Direccion"
-        name="Direccion"
         id="Direccion"
-        label="Dirección"
-        prepend-inner-icon="mdi-map-marker-outline"
-        :rules="[rules.required]"
-        :readonly="isReadonly"
+        v-model="form.Direccion"
         :clearable="!isReadonly"
+        label="Dirección"
+        name="Direccion"
+        prepend-inner-icon="mdi-map-marker-outline"
+        :readonly="isReadonly"
+        :rules="[rules.required]"
       />
     </v-col>
   </v-row>
 </template>
 
 <script setup>
-import { toRefs } from "vue";
-import { rules } from "@/shared/utils/validationRules";
+  import { toRefs } from 'vue'
+  import { rules } from '@/shared/utils/validationRules'
 
-const emit = defineEmits(["departamento-change", "municipio-change"]);
+  const emit = defineEmits(['departamento-change', 'municipio-change'])
 
-const props = defineProps({
-  form: { type: Object, required: true },
-  ui: { type: Object, required: true },
-  departamentos: { type: Array, default: () => [] },
-  municipios: { type: Array, default: () => [] },
-  centrosPoblados: { type: Array, default: () => [] },
-  isReadonly: { type: Boolean, default: false },
-  loadingMunicipios: { type: Boolean, default: false },
-  loadingCentrosPoblados: { type: Boolean, default: false },
-});
+  const props = defineProps({
+    form: { type: Object, required: true },
+    ui: { type: Object, required: true },
+    departamentos: { type: Array, default: () => [] },
+    municipios: { type: Array, default: () => [] },
+    centrosPoblados: { type: Array, default: () => [] },
+    isReadonly: { type: Boolean, default: false },
+    loadingMunicipios: { type: Boolean, default: false },
+    loadingCentrosPoblados: { type: Boolean, default: false },
+  })
 
-const {
-  form,
-  ui,
-  departamentos,
-  municipios,
-  centrosPoblados,
-  isReadonly,
-  loadingMunicipios,
-  loadingCentrosPoblados,
-} = toRefs(props);
+  const {
+    form,
+    ui,
+    departamentos,
+    municipios,
+    centrosPoblados,
+    isReadonly,
+    loadingMunicipios,
+    loadingCentrosPoblados,
+  } = toRefs(props)
 
-const onDepartamentoChange = (value) => emit("departamento-change", value);
-const onMunicipioChange = (value) => emit("municipio-change", value);
+  const onDepartamentoChange = (value) => emit('departamento-change', value)
+  const onMunicipioChange = (value) => emit('municipio-change', value)
 </script>

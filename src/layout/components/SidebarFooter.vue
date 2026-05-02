@@ -6,12 +6,12 @@
     <!-- Chip versión -->
     <div class="px-2 pb-3 d-flex align-center justify-center mt-2">
       <v-chip
-        :size="rail ? 'x-small' : 'small'"
-        variant="tonal"
+        class="font-weight-medium"
         color="white"
         label
         rounded="xl"
-        class="font-weight-medium"
+        :size="rail ? 'x-small' : 'small'"
+        variant="tonal"
       >
         {{ rail ? version : `Sanamos ERP V${version}` }}
       </v-chip>
@@ -20,21 +20,21 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  rail: { type: Boolean, default: false },
-  user: {
-    type: Object,
-    default: () => ({
-      name: "Alex Johnson",
-      role: "Administrador",
-      avatar: null,
-      gender: "m", // 'm' | 'f' | null
-    }),
-  },
-  version: { type: String, default: "1.0.0" },
-});
+  const { rail, version } = defineProps({
+    rail: { type: Boolean, default: false },
+    user: {
+      type: Object,
+      default: () => ({
+        name: 'Alex Johnson',
+        role: 'Administrador',
+        avatar: null,
+        gender: 'm', // 'm' | 'f' | null
+      }),
+    },
+    version: { type: String, default: '1.0.0' },
+  })
 
-defineEmits(["logout", "change-password"]);
+  defineEmits(['logout', 'change-password'])
 </script>
 
 <style scoped></style>

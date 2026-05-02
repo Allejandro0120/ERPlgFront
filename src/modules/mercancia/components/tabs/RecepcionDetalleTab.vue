@@ -26,13 +26,15 @@
   import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
-  const props = defineProps({
+  const { form, detalleHeaders } = defineProps({
     form: { type: Object, required: true },
     detalleHeaders: { type: Array, default: () => [] },
   })
 
-  const estadoProductoLabel = aceptado => (aceptado ? 'Aceptado' : 'Rechazado')
-  const estadoProductoColor = nombre => getEstadoColor(nombre, DOMINIOS_ESTADO.PRODCUTO_ACTA)
+  const estadoProductoLabel = (aceptado) => (aceptado ? 'Aceptado' : 'Rechazado')
+  function estadoProductoColor(nombre) {
+    return getEstadoColor(nombre, DOMINIOS_ESTADO.PRODCUTO_ACTA)
+  }
 </script>
 
 <style scoped></style>

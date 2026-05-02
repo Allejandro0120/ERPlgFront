@@ -16,17 +16,10 @@
     <div
       v-if="sucursales.length === 0"
       class="d-flex flex-column align-center justify-center py-12 rounded-lg"
-      style="
-        border: 2px dashed rgba(0, 0, 0, 0.1);
-        background: rgba(0, 0, 0, 0.015);
-      "
+      style="border: 2px dashed rgba(0, 0, 0, 0.1); background: rgba(0, 0, 0, 0.015)"
     >
-      <v-icon class="mb-3" color="grey-lighten-1" size="44">{{
-        "mdi-store-off-outline"
-      }}</v-icon>
-      <p class="text-body-2 text-grey-darken-1 mb-1">
-        Sin sucursales registradas
-      </p>
+      <v-icon class="mb-3" color="grey-lighten-1" size="44">{{ 'mdi-store-off-outline' }}</v-icon>
+      <p class="text-body-2 text-grey-darken-1 mb-1">Sin sucursales registradas</p>
       <p v-if="!isReadonly" class="text-caption text-grey">
         Haz clic en "Agregar sucursal" para añadir la primera
       </p>
@@ -43,14 +36,10 @@
       <template #[`item.Direccion`]="{ item }">
         <div class="py-1">
           <div class="text-body-2 text-truncate" style="max-width: 250px">
-            {{ item.Direccion || "—" }}
+            {{ item.Direccion || '—' }}
           </div>
           <div class="text-caption text-grey">
-            {{
-              item.NombreDepartamento
-                ? `Depto: ${item.NombreDepartamento}`
-                : "Depto: —"
-            }}
+            {{ item.NombreDepartamento ? `Depto: ${item.NombreDepartamento}` : 'Depto: —' }}
           </div>
         </div>
       </template>
@@ -62,7 +51,7 @@
           variant="tonal"
         >
           <v-icon icon="$circle" size="14" start />
-          {{ item.Habilitada ? "Habilitada" : "Deshabilitada" }}
+          {{ item.Habilitada ? 'Habilitada' : 'Deshabilitada' }}
         </v-chip>
       </template>
     </base-table-local>
@@ -75,7 +64,7 @@
 
   const emit = defineEmits(['add'])
 
-  const props = defineProps({
+  const { sucursales, headers, rowActions, isReadonly } = defineProps({
     sucursales: { type: Array, default: () => [] },
     headers: { type: Array, default: () => [] },
     rowActions: { type: Array, default: () => [] },

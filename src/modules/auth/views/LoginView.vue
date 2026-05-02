@@ -1,23 +1,18 @@
 <template>
-  <v-container fluid class="fill-height bg-background pa-0">
-    <v-row
-      align="center"
-      justify="center"
-      density="compact"
-      class="fill-height"
-    >
-      <v-col cols="12" sm="8" md="6" lg="4" class="px-4">
+  <v-container class="fill-height bg-background pa-0" fluid>
+    <v-row align="center" class="fill-height" density="compact" justify="center">
+      <v-col class="px-4" cols="12" lg="4" md="6" sm="8">
         <!-- Tarjeta de Login -->
-        <v-card class="px-10 py-14 mx-auto rounded-xl" max-width="440" border>
+        <v-card border class="px-10 py-14 mx-auto rounded-xl" max-width="440">
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <img
-              :src="Logo"
               alt="Sanamos Santander"
-              width="180"
-              height="100"
-              style="object-fit: contain"
               fetchpriority="high"
+              height="100"
+              :src="Logo"
+              style="object-fit: contain"
+              width="180"
             />
           </div>
 
@@ -51,38 +46,36 @@
               <v-text-field
                 id="campo-contrasena"
                 v-model="form.Contrasena"
+                :append-inner-icon="showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
+                autocomplete="current-password"
                 label="Contraseña"
                 placeholder="••••••••"
                 prepend-inner-icon="mdi-lock-outline"
-                :append-inner-icon="
-                  showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'
-                "
-                :type="showPassword ? 'text' : 'password'"
-                autocomplete="current-password"
                 required
                 :rules="[rules.requiredPassword]"
+                :type="showPassword ? 'text' : 'password'"
                 @click:append-inner="showPassword = !showPassword"
               />
             </div>
 
             <!-- Botón Submit -->
             <v-btn
-              type="submit"
-              color="primary"
               block
+              color="primary"
+              :disabled="loadingLogin"
               height="48"
               :loading="loadingLogin"
-              :disabled="loadingLogin"
+              type="submit"
             >
               Iniciar Sesión
-              <v-icon end icon="mdi-login" class="ml-2" />
+              <v-icon class="ml-2" end icon="mdi-login" />
             </v-btn>
 
             <!-- Olvidaste tu contraseña -->
             <div class="text-center mt-6">
               <a
-                href="#"
                 class="text-body-medium font-weight-medium text-primary text-decoration-none link-hover"
+                href="#"
               >
                 ¿Olvidaste tu contraseña?
               </a>
@@ -102,96 +95,95 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth.store";
-import { useUiStore } from "@/stores/ui.store";
-import { authService } from "@/api/services/authService";
-import { $toast } from "@/plugins/toast";
-import { $loading } from "@/plugins/loading/loading";
-import Logo from "/sanamos_logo_horizontal.webp";
+  import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import { authService } from '@/api/services/authService'
+  import { $loading } from '@/plugins/loading/loading'
+  import { $toast } from '@/plugins/toast'
+  import { useAuthStore } from '@/stores/auth.store'
+  import { useUiStore } from '@/stores/ui.store'
+  import Logo from '/sanamos_logo_horizontal.webp'
 
-// ─── Composables ─────────────────────────────────────────────────────────────
-const router = useRouter();
-const authStore = useAuthStore();
-const uiStore = useUiStore();
+  // ─── Composables ─────────────────────────────────────────────────────────────
+  const router = useRouter()
+  const authStore = useAuthStore()
+  const uiStore = useUiStore()
 
-// ─── Estado ──────────────────────────────────────────────────────────────────
-const formRef = ref(null);
-const showPassword = ref(false);
-const loadingLogin = ref(false);
+  // ─── Estado ──────────────────────────────────────────────────────────────────
+  const formRef = ref(null)
+  const showPassword = ref(false)
+  const loadingLogin = ref(false)
 
-const form = ref({
-  Codigo: "",
-  Contrasena: "",
-});
+  const form = ref({
+    Codigo: '',
+    Contrasena: '',
+  })
 
-// ─── Reglas de validación ────────────────────────────────────────────────────
-const rules = {
-  /** Valida que el campo no esté vacío ni contenga solo espacios (Usuario) */
-  required: (v) => (v && v.trim().length > 0) || "Este campo es obligatorio",
+  // ─── Reglas de validación ────────────────────────────────────────────────────
+  const rules = {
+    /** Valida que el campo no esté vacío ni contenga solo espacios (Usuario) */
+    required: (v) => (v && v.trim().length > 0) || 'Este campo es obligatorio',
 
-  /** Valida que la contraseña no esté vacía; permite espacios en blanco */
-  requiredPassword: (v) =>
-    (v !== null && v !== undefined && v.length > 0) ||
-    "Este campo es obligatorio",
-};
-
-// ─── Handlers ────────────────────────────────────────────────────────────────
-const handleLogin = async () => {
-  const { valid } = await formRef.value.validate();
-
-  if (!valid) {
-    $toast.error("Por favor completa todos los campos");
-    return;
+    /** Valida que la contraseña no esté vacía; permite espacios en blanco */
+    requiredPassword: (v) =>
+      (v !== null && v !== undefined && v.length > 0) || 'Este campo es obligatorio',
   }
 
-  try {
-    $loading.show();
-    loadingLogin.value = true;
+  // ─── Handlers ────────────────────────────────────────────────────────────────
+  async function handleLogin() {
+    const { valid } = await formRef.value.validate()
 
-    await authService.login(form.value);
-
-    const profileResponse = await authService.profile();
-    const profileData = profileResponse.data.data;
-
-    authStore.setAuth({
-      Nombre: profileData.nombre,
-      Rol: profileData.rol,
-      authenticated: true,
-    });
-
-    authStore.setProfile(profileData);
-
-    const firstRoute = authStore.firstRoute;
-
-    if (firstRoute) {
-      uiStore.setActiveModule(firstRoute.module);
+    if (!valid) {
+      $toast.error('Por favor completa todos los campos')
+      return
     }
 
-    $toast.success("¡Bienvenido!");
+    try {
+      $loading.show()
+      loadingLogin.value = true
 
-    // Navega pero mantén el loading hasta que la ruta se cargue
-    await router.push(firstRoute?.path || "/");
-  } catch (error) {
-    // El manejo de error se delega al interceptor de axios o al servicio
-  } finally {
-    loadingLogin.value = false;
-    $loading.hide();
+      await authService.login(form.value)
+
+      const profileResponse = await authService.profile()
+      const profileData = profileResponse.data.data
+
+      authStore.setAuth({
+        Nombre: profileData.nombre,
+        Rol: profileData.rol,
+        authenticated: true,
+      })
+
+      authStore.setProfile(profileData)
+
+      const firstRoute = authStore.firstRoute
+
+      if (firstRoute) {
+        uiStore.setActiveModule(firstRoute.module)
+      }
+
+      $toast.success('¡Bienvenido!')
+
+      // Navega pero mantén el loading hasta que la ruta se cargue
+      await router.push(firstRoute?.path || '/')
+    } catch {
+      // El manejo de error se delega al interceptor de axios o al servicio
+    } finally {
+      loadingLogin.value = false
+      $loading.hide()
+    }
   }
-};
 
-// ─── Utilidades ──────────────────────────────────────────────────────────────
-const year = new Date().getFullYear();
+  // ─── Utilidades ──────────────────────────────────────────────────────────────
+  const year = new Date().getFullYear()
 </script>
 
 <style scoped>
-.link-hover:hover {
-  text-decoration: underline !important;
-}
+  .link-hover:hover {
+    text-decoration: underline !important;
+  }
 
-/* Aumentar contraste - labels más oscuros para pasar WCAG AA */
-:deep() .v-label {
-  color: #0f172a !important;
-}
+  /* Aumentar contraste - labels más oscuros para pasar WCAG AA */
+  :deep() .v-label {
+    color: #0f172a !important;
+  }
 </style>

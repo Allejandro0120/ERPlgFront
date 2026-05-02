@@ -63,7 +63,7 @@
     mode: {
       type: String,
       default: 'create',
-      validator: v => ['create', 'edit', 'view'].includes(v),
+      validator: (v) => ['create', 'edit', 'view'].includes(v),
     },
     correo: {
       type: Object,
@@ -97,10 +97,7 @@
       })[props.mode],
   )
   const labelConfirm = computed(
-    () =>
-      ({ create: 'Agregar Correo', edit: 'Guardar Cambios', view: '' })[
-        props.mode
-      ],
+    () => ({ create: 'Agregar Correo', edit: 'Guardar Cambios', view: '' })[props.mode],
   )
 
   const formRef = ref(null)
@@ -121,12 +118,11 @@
     emit,
     isReadonly,
     hasChanges,
-    confirmClose: options => $confirm.warning(options),
-    message:
-      'Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?',
+    confirmClose: (options) => $confirm.warning(options),
+    message: 'Tienes cambios sin guardar en el correo. ¿Deseas salir de todas formas?',
   })
 
-  function resetForm () {
+  function resetForm() {
     form.value = { ...formInitial }
     formSnapshot.value = null
     formRef.value?.resetValidation()
@@ -134,7 +130,7 @@
 
   watch(
     () => props.modelValue,
-    isOpen => {
+    (isOpen) => {
       if (!isOpen) {
         resetForm()
         return
@@ -151,7 +147,7 @@
     },
   )
 
-  async function submitForm () {
+  async function submitForm() {
     const { valid } = await formRef.value.validate()
     if (!valid) {
       $toast.error('Por favor corrige los errores marcados')

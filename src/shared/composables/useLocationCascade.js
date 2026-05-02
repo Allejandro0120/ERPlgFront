@@ -1,10 +1,10 @@
-import { ref } from "vue";
+import { ref } from 'vue'
 
 function extractData(response) {
   if (response?.data?.success) {
-    return response.data.data || [];
+    return response.data.data || []
   }
-  return [];
+  return []
 }
 
 /**
@@ -15,71 +15,78 @@ export function useLocationCascade({
   form,
   fetchMunicipios,
   fetchCentrosPoblados,
-  idDepartamentoKey = "idDepartamento",
-  idMunicipioKey = "idMunicipio",
-  idCentroPobladoKey = "IdCentroPoblado",
+  idDepartamentoKey = 'idDepartamento',
+  idMunicipioKey = 'idMunicipio',
+  idCentroPobladoKey = 'IdCentroPoblado',
   autoSelectSingleCentro = true,
   onError,
 }) {
-  const municipios = ref([]);
-  const centrosPoblados = ref([]);
-  const loadingMunicipios = ref(false);
-  const loadingCentrosPoblados = ref(false);
+  const municipios = ref([])
+  const centrosPoblados = ref([])
+  const loadingMunicipios = ref(false)
+  const loadingCentrosPoblados = ref(false)
 
   const handleError = (error, stage) => {
-    if (typeof onError === "function") {
-      onError(error, stage);
-      return;
+    if (typeof onError === 'function') {
+      onError(error, stage)
+      return
     }
-    console.error(`Error en cascada de ubicacion (${stage}):`, error);
-  };
+    console.error(`Error en cascada de ubicacion (${stage}):`, error)
+  }
 
   async function loadMunicipios(idDepartamento) {
-    municipios.value = [];
-    if (!idDepartamento) return;
+    municipios.value = []
+    if (!idDepartamento) {
+      return
+    }
 
-    loadingMunicipios.value = true;
+    loadingMunicipios.value = true
     try {
-      const response = await fetchMunicipios(idDepartamento);
-      municipios.value = extractData(response);
+      const response = await fetchMunicipios(idDepartamento)
+      municipios.value = extractData(response)
     } catch (error) {
-      handleError(error, "municipios");
+      handleError(error, 'municipios')
     } finally {
-      loadingMunicipios.value = false;
+      loadingMunicipios.value = false
     }
   }
 
-  async function loadCentrosPoblados(idMunicipio, { allowAutoSelect = autoSelectSingleCentro } = {}) {
-    centrosPoblados.value = [];
-    if (!idMunicipio) return;
+  async function loadCentrosPoblados(
+    idMunicipio,
+    { allowAutoSelect = autoSelectSingleCentro } = {},
+  ) {
+    centrosPoblados.value = []
+    if (!idMunicipio) {
+      return
+    }
 
-    loadingCentrosPoblados.value = true;
+    loadingCentrosPoblados.value = true
     try {
-      const response = await fetchCentrosPoblados(idMunicipio);
-      const data = extractData(response);
-      centrosPoblados.value = data;
+      const response = await fetchCentrosPoblados(idMunicipio)
+      const data = extractData(response)
+      centrosPoblados.value = data
 
       if (allowAutoSelect && data.length === 1) {
-        form.value[idCentroPobladoKey] = data[0].IdCentroPoblado;
+        form.value[idCentroPobladoKey] = data[0].IdCentroPoblado
       }
     } catch (error) {
-      handleError(error, "centros-poblados");
+      handleError(error, 'centros-poblados')
     } finally {
-      loadingCentrosPoblados.value = false;
+      loadingCentrosPoblados.value = false
     }
   }
 
   async function onDepartamentoChange(idDepartamento) {
-    ui.value[idMunicipioKey] = null;
-    form.value[idCentroPobladoKey] = null;
-    centrosPoblados.value = [];
+    ui.value[idMunicipioKey] = null
+    form.value[idCentroPobladoKey] = null
+    centrosPoblados.value = []
 
-    await loadMunicipios(idDepartamento);
+    await loadMunicipios(idDepartamento)
   }
 
   async function onMunicipioChange(idMunicipio) {
-    form.value[idCentroPobladoKey] = null;
-    await loadCentrosPoblados(idMunicipio);
+    form.value[idCentroPobladoKey] = null
+    await loadCentrosPoblados(idMunicipio)
   }
 
   async function preloadLocation({
@@ -87,45 +94,46 @@ export function useLocationCascade({
     idMunicipio = null,
     idCentroPoblado = null,
   } = {}) {
-    ui.value[idDepartamentoKey] = idDepartamento;
-    await loadMunicipios(idDepartamento);
+    ui.value[idDepartamentoKey] = idDepartamento
+    await loadMunicipios(idDepartamento)
 
-    ui.value[idMunicipioKey] = idMunicipio;
-    await loadCentrosPoblados(idMunicipio, { allowAutoSelect: false });
+    ui.value[idMunicipioKey] = idMunicipio
+    await loadCentrosPoblados(idMunicipio, { allowAutoSelect: false })
 
-    form.value[idCentroPobladoKey] = idCentroPoblado;
+    form.value[idCentroPobladoKey] = idCentroPoblado
   }
 
   function setLocationDataLectura(data) {
-    const idDep = data.idDepartamento ?? data.IdDepartamento;
-    const nomDep = data.nombreDepartamento ?? data.NombreDepartamento;
-    const idMun = data.idMunicipio ?? data.IdMunicipio;
-    const nomMun = data.nombreMunicipio ?? data.NombreMunicipio;
-    const idCentro = data.idCentroPoblado ?? data.IdCentroPoblado;
-    const nomCentro = data.nombreCentroPoblado ?? data.NombreCentroPoblado;
+    const idDep = data.idDepartamento ?? data.IdDepartamento
+    const idMun = data.idMunicipio ?? data.IdMunicipio
+    const nomMun = data.nombreMunicipio ?? data.NombreMunicipio
+    const idCentro = data.idCentroPoblado ?? data.IdCentroPoblado
+    const nomCentro = data.nombreCentroPoblado ?? data.NombreCentroPoblado
 
-    ui.value[idDepartamentoKey] = idDep;
-    ui.value[idMunicipioKey] = idMun;
-    form.value[idCentroPobladoKey] = idCentro;
+    ui.value[idDepartamentoKey] = idDep
+    ui.value[idMunicipioKey] = idMun
+    form.value[idCentroPobladoKey] = idCentro
 
     if (idMun && nomMun) {
-      municipios.value = [{ IdMunicipio: idMun, NombreMunicipio: nomMun }];
+      municipios.value = [{ IdMunicipio: idMun, NombreMunicipio: nomMun }]
     }
     if (idCentro && nomCentro) {
-     centrosPoblados.value = [{ IdCentroPoblado: idCentro, NombreCentroPoblado: nomCentro }];
+      centrosPoblados.value = [{ IdCentroPoblado: idCentro, NombreCentroPoblado: nomCentro }]
     }
   }
 
   function resetLocationState({ clearSelections = true } = {}) {
-    municipios.value = [];
-    centrosPoblados.value = [];
-    loadingMunicipios.value = false;
-    loadingCentrosPoblados.value = false;
+    municipios.value = []
+    centrosPoblados.value = []
+    loadingMunicipios.value = false
+    loadingCentrosPoblados.value = false
 
-    if (!clearSelections) return;
-    ui.value[idDepartamentoKey] = null;
-    ui.value[idMunicipioKey] = null;
-    form.value[idCentroPobladoKey] = null;
+    if (!clearSelections) {
+      return
+    }
+    ui.value[idDepartamentoKey] = null
+    ui.value[idMunicipioKey] = null
+    form.value[idCentroPobladoKey] = null
   }
 
   return {
@@ -138,5 +146,5 @@ export function useLocationCascade({
     preloadLocation,
     setLocationDataLectura,
     resetLocationState,
-  };
+  }
 }

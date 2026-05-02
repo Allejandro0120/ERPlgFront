@@ -36,35 +36,17 @@
           <v-tab value="identificacion">
             <v-icon icon="mdi-card-account-details-outline" start />
             Identificación
-            <v-badge
-              v-if="tabErrors.identificacion"
-              class="ml-2"
-              color="error"
-              dot
-              inline
-            />
+            <v-badge v-if="tabErrors.identificacion" class="ml-2" color="error" dot inline />
           </v-tab>
           <v-tab value="ubicacion">
             <v-icon icon="mdi-map-marker-outline" start />
             Ubicación
-            <v-badge
-              v-if="tabErrors.ubicacion"
-              class="ml-2"
-              color="error"
-              dot
-              inline
-            />
+            <v-badge v-if="tabErrors.ubicacion" class="ml-2" color="error" dot inline />
           </v-tab>
           <v-tab value="comercial">
             <v-icon icon="mdi-tag-outline" start />
             Comercial
-            <v-badge
-              v-if="tabErrors.comercial"
-              class="ml-2"
-              color="error"
-              dot
-              inline
-            />
+            <v-badge v-if="tabErrors.comercial" class="ml-2" color="error" dot inline />
           </v-tab>
           <v-tab value="correos">
             <v-icon icon="mdi-email-multiple-outline" start />
@@ -125,11 +107,7 @@
 
           <!-- ── Tab 3: Comercial ───────────────────────────────── -->
           <v-tabs-window-item eager value="comercial">
-            <comercial-tab
-              :form="form"
-              :is-readonly="isReadonly"
-              :lista-precios="listaPrecios"
-            />
+            <comercial-tab :form="form" :is-readonly="isReadonly" :lista-precios="listaPrecios" />
           </v-tabs-window-item>
 
           <!-- ── Tab 4: Correos ─────────────────────────────────── -->
@@ -166,10 +144,7 @@
   import { $confirm } from '@/plugins/confirm/confirm.js'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import {
-    getChangedFields,
-    hasObjectChanges,
-  } from '@/shared/composables/useChangePayload'
+  import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useLocationCascade } from '@/shared/composables/useLocationCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
@@ -191,7 +166,7 @@
     mode: {
       type: String,
       default: 'create',
-      validator: v => ['create', 'edit', 'view'].includes(v),
+      validator: (v) => ['create', 'edit', 'view'].includes(v),
     },
     cliente: { type: Object, default: null },
   })
@@ -206,15 +181,14 @@
   const clienteDisplayName = computed(() => {
     const nombre = props.cliente?.Nombre?.trim()
     if (nombre) return nombre
-    if (props.cliente?.NumeroIdentificacion)
-      return props.cliente.NumeroIdentificacion
+    if (props.cliente?.NumeroIdentificacion) return props.cliente.NumeroIdentificacion
     if (props.cliente?.IdCliente) return `#${props.cliente.IdCliente}`
     return ''
   })
 
   const dialogTitle = computed(() => {
-    const baseTitle
-      = {
+    const baseTitle =
+      {
         create: 'Crear Cliente',
         edit: 'Editar Cliente',
         view: 'Detalle del Cliente',
@@ -235,10 +209,7 @@
       })[props.mode],
   )
   const labelConfirm = computed(
-    () =>
-      ({ create: 'Crear Cliente', edit: 'Guardar Cambios', view: '' })[
-        props.mode
-      ],
+    () => ({ create: 'Crear Cliente', edit: 'Guardar Cambios', view: '' })[props.mode],
   )
 
   // ─── Estado global ────────────────────────────────────────────────────────────
@@ -336,7 +307,7 @@
     emit,
     isReadonly,
     hasChanges,
-    confirmClose: options => $confirm.warning(options),
+    confirmClose: (options) => $confirm.warning(options),
   })
 
   // ─── Tab errors ───────────────────────────────────────────────────────────────
@@ -368,7 +339,7 @@
   })
 
   // ─── Precarga del cliente ─────────────────────────────────────────────────────
-  async function precargarCliente (cliente) {
+  async function precargarCliente(cliente) {
     if (isReadonly.value) {
       setLocationDataLectura(cliente)
     } else {
@@ -401,7 +372,7 @@
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────────
-  function resetForm () {
+  function resetForm() {
     form.value = { ...formInitial }
     ui.value = { ...uiInitial }
     resetLocationState()
@@ -413,12 +384,12 @@
 
   // ─── Watch apertura ───────────────────────────────────────────────────────────
 
-  async function inicializarModoLectura () {
+  async function inicializarModoLectura() {
     setCatalogosLectura(props.cliente)
     await precargarCliente(props.cliente)
   }
 
-  async function inicializarModoEdicion () {
+  async function inicializarModoEdicion() {
     const { ok } = await cargarCatalogos()
     if (!ok) {
       $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
@@ -426,7 +397,7 @@
     await precargarCliente(props.cliente)
   }
 
-  async function inicializarModoCreacion () {
+  async function inicializarModoCreacion() {
     const { ok } = await cargarCatalogos()
     if (!ok) {
       $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
@@ -438,9 +409,10 @@
 
   watch(
     () => props.modelValue,
-    async isOpen => {
+    async (isOpen) => {
       if (!isOpen) {
-        resetForm(); return
+        resetForm()
+        return
       }
       $loading.show()
       try {
@@ -456,13 +428,11 @@
   )
 
   // ─── Submit ───────────────────────────────────────────────────────────────────
-  async function submitForm () {
+  async function submitForm() {
     const { valid } = await formRef.value.validate()
 
     if (!valid) {
-      const primerTabConError = Object.keys(tabErrors.value).find(
-        k => tabErrors.value[k],
-      )
+      const primerTabConError = Object.keys(tabErrors.value).find((k) => tabErrors.value[k])
       if (primerTabConError) ui.value.tab = primerTabConError
       $toast.error('Por favor corrige los errores en los campos marcados')
       return

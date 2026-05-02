@@ -1,4 +1,3 @@
-
 /* ─── Variables CSS para estilos globales ────────────────────────────────────── */
 :root {
   --btn-letter-spacing: 0.025em;
@@ -52,5 +51,4 @@
 /* Evita que el focus de campos cambie el color de íconos dentro de chips (estado) */
 .estado-chip .v-icon {
   color: inherit !important;
- 
 }

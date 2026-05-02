@@ -10,5 +10,5 @@ export default [
     name: 'cotizaciones',
     component: () => import('./views/CotizacionesView.vue'),
     meta: { title: 'Gestión de Cotizaciones', permiso: 'Cotizaciones.READ' },
-  }
+  },
 ]

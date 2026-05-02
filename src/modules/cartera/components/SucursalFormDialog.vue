@@ -37,7 +37,7 @@
               prepend-inner-icon="mdi-phone-outline"
               :readonly="isReadonly"
               :rules="[rules.required]"
-              @keydown="blockKey ($event, allow.onlyDigits)"
+              @keydown="blockKey($event, allow.onlyDigits)"
             />
           </v-col>
 
@@ -134,19 +134,8 @@
               :readonly="isReadonly"
             >
               <template #selection="{ item }">
-                <v-chip
-                  class="estado-chip"
-                  :color="item.color"
-                  label
-                  variant="tonal"
-                >
-                  <v-icon
-                    class="ml-1"
-                    :color="item.color"
-                    icon="$circle"
-                    size="10"
-                    start
-                  />
+                <v-chip class="estado-chip" :color="item.color" label variant="tonal">
+                  <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
                   {{ item.label }}
                 </v-chip>
               </template>
@@ -154,13 +143,7 @@
               <template #item="{ item, props: itemProps }">
                 <v-list-item v-bind="itemProps" title="">
                   <v-chip :color="item.color" label variant="tonal">
-                    <v-icon
-                      class="ml-1"
-                      :color="item.color"
-                      icon="$circle"
-                      size="10"
-                      start
-                    />
+                    <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
                     {{ item.label }}
                   </v-chip>
                 </v-list-item>
@@ -192,7 +175,7 @@
     mode: {
       type: String,
       default: 'create',
-      validator: v => ['create', 'edit', 'view'].includes(v),
+      validator: (v) => ['create', 'edit', 'view'].includes(v),
     },
     sucursal: {
       type: Object,
@@ -227,21 +210,18 @@
       })[props.mode],
   )
   const labelConfirm = computed(
-    () =>
-      ({ create: 'Agregar Sucursal', edit: 'Guardar Cambios', view: '' })[
-        props.mode
-      ],
+    () => ({ create: 'Agregar Sucursal', edit: 'Guardar Cambios', view: '' })[props.mode],
   )
 
   // ─── Estado ───────────────────────────────────────────────────────────────────
   const formRef = ref(null)
-  const loadingPrecarga = ref(false)
+  const _loadingPrecarga = ref(false)
 
   const opcionesEstado = computed(() =>
     [
       { label: 'Habilitada', value: true },
       { label: 'Deshabilitada', value: false },
-    ].map(op => ({
+    ].map((op) => ({
       ...op,
       color: getEstadoColor(op.value, DOMINIOS_ESTADO.SUCURSAL),
     })),
@@ -293,13 +273,12 @@
     emit,
     isReadonly,
     hasChanges,
-    confirmClose: options => $confirm.warning(options),
-    message:
-      'Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?',
+    confirmClose: (options) => $confirm.warning(options),
+    message: 'Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?',
   })
 
   // ─── Precarga al editar/ver ───────────────────────────────────────────────────
-  async function precargarSucursal (suc) {
+  async function precargarSucursal(suc) {
     if (isReadonly.value) {
       setLocationDataLectura(suc)
     } else {
@@ -323,7 +302,7 @@
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────────
-  function resetForm () {
+  function resetForm() {
     form.value = { ...formInitial }
     ui.value = { ...uiInitial }
     resetLocationState()
@@ -334,7 +313,7 @@
   // ─── Watch apertura ───────────────────────────────────────────────────────────
   watch(
     () => props.modelValue,
-    async isOpen => {
+    async (isOpen) => {
       if (!isOpen) {
         resetForm()
         return
@@ -354,7 +333,7 @@
   )
 
   // ─── Submit ───────────────────────────────────────────────────────────────────
-  async function submitForm () {
+  async function submitForm() {
     const { valid } = await formRef.value.validate()
     if (!valid) {
       $toast.error('Por favor corrige los errores marcados')

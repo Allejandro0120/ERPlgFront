@@ -1,11 +1,10 @@
-import router from '../router'
 import { createPinia } from 'pinia'
-
-// Plugins
-import vuetify from './vuetify'
-import toast from './toast'
+import router from '../router'
 import confirm from './confirm/confirm'
 import loading from './loading/loading'
+import toast from './toast'
+// Plugins
+import vuetify from './vuetify'
 
 export function registerPlugins(app) {
   app.use(vuetify)

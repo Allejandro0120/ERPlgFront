@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const ACCESS_TOKEN_HINT_KEY = 'erp_access_token_present'
 
 function setAccessTokenHint(isPresent) {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    return
+  }
 
   try {
     if (isPresent) {
@@ -19,7 +21,9 @@ function setAccessTokenHint(isPresent) {
 }
 
 function hasAccessTokenHint() {
-  if (typeof window === 'undefined') return false
+  if (typeof window === 'undefined') {
+    return false
+  }
 
   try {
     return window.localStorage.getItem(ACCESS_TOKEN_HINT_KEY) === '1'
@@ -42,13 +46,11 @@ export const useAuthStore = defineStore('auth', () => {
   const orderedMenu = computed(() => {
     return menu.value
       .slice()
-      .sort((a, b) => a.OrdenMenu - b.OrdenMenu)
-      .map(group => ({
+      .toSorted((a, b) => a.OrdenMenu - b.OrdenMenu)
+      .map((group) => ({
         ...group,
         Alias: group.Alias || group.Nombre?.toLowerCase(),
-        secciones: group.secciones
-          .slice()
-          .sort((a, b) => a.OrdenMenu - b.OrdenMenu)
+        secciones: group.secciones.slice().toSorted((a, b) => a.OrdenMenu - b.OrdenMenu),
       }))
   })
 
@@ -64,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
       module: firstGroup.Alias,
       moduleNombre: firstGroup.Nombre,
       section: firstSection.Ruta,
-      sectionNombre: firstSection.Nombre
+      sectionNombre: firstSection.Nombre,
     }
   })
 
