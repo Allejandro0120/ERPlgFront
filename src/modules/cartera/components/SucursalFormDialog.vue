@@ -1,15 +1,15 @@
 <template>
   <base-dialog
-    :model-value="modelValue"
-    :title="dialogTitle"
-    :icon="dialogIcon"
     color="primary"
-    :label-confirm="labelConfirm"
-    :show-actions="!isReadonly"
-    max-width="800"
-    @update:model-value="onRequestClose"
-    @accept="submitForm"
     :disable-confirm="isEditing && !hasChanges"
+    :icon="dialogIcon"
+    :label-confirm="labelConfirm"
+    max-width="800"
+    :model-value="modelValue"
+    :show-actions="!isReadonly"
+    :title="dialogTitle"
+    @accept="submitForm"
+    @update:model-value="onRequestClose"
   >
     <template #content>
       <v-form ref="formRef">
@@ -18,12 +18,12 @@
           <v-col cols="12">
             <v-text-field
               v-model="form.NombreSucursal"
-              name="NombreSucursal"
-              label="Nombre de la Sucursal"
-              prepend-inner-icon="mdi-store-outline"
-              :rules="[rules.required]"
-              :readonly="isReadonly"
               :clearable="!isReadonly"
+              label="Nombre de la Sucursal"
+              name="NombreSucursal"
+              prepend-inner-icon="mdi-store-outline"
+              :readonly="isReadonly"
+              :rules="[rules.required]"
             />
           </v-col>
 
@@ -31,12 +31,12 @@
           <v-col cols="12" sm="6">
             <v-text-field
               v-model="form.Telefono"
-              name="Telefono"
-              label="Teléfono"
-              prepend-inner-icon="mdi-phone-outline"
-              :rules="[rules.required]"
-              :readonly="isReadonly"
               :clearable="!isReadonly"
+              label="Teléfono"
+              name="Telefono"
+              prepend-inner-icon="mdi-phone-outline"
+              :readonly="isReadonly"
+              :rules="[rules.required]"
               @keydown="blockKey ($event, allow.onlyDigits)"
             />
           </v-col>
@@ -45,13 +45,13 @@
           <v-col cols="12" sm="6">
             <v-text-field
               v-model="form.CorreoGeneral"
-              name="CorreoGeneral"
-              label="Correo Electrónico"
-              type="email"
-              prepend-inner-icon="mdi-email-outline"
-              :rules="[rules.required, rules.email]"
-              :readonly="isReadonly"
               :clearable="!isReadonly"
+              label="Correo Electrónico"
+              name="CorreoGeneral"
+              prepend-inner-icon="mdi-email-outline"
+              :readonly="isReadonly"
+              :rules="[rules.required, rules.email]"
+              type="email"
             />
           </v-col>
 
@@ -59,15 +59,15 @@
           <v-col cols="12">
             <v-autocomplete
               v-model="ui.idDepartamento"
-              name="idDepartamento"
-              label="Departamento"
-              :items="departamentos"
+              :clearable="!isReadonly"
               item-title="NombreDepartamento"
               item-value="IdDepartamento"
+              :items="departamentos"
+              label="Departamento"
+              name="idDepartamento"
               prepend-inner-icon="mdi-map-outline"
-              :rules="[rules.required]"
               :readonly="isReadonly"
-              :clearable="!isReadonly"
+              :rules="[rules.required]"
               @update:model-value="onDepartamentoChange"
             />
           </v-col>
@@ -76,17 +76,17 @@
           <v-col cols="12" sm="6">
             <v-autocomplete
               v-model="ui.idMunicipio"
-              name="idMunicipio"
-              label="Municipio"
-              :items="municipios"
+              :clearable="!isReadonly"
+              :disabled="!ui.idDepartamento"
               item-title="NombreMunicipio"
               item-value="IdMunicipio"
-              prepend-inner-icon="mdi-city-variant-outline"
-              :disabled="!ui.idDepartamento"
+              :items="municipios"
+              label="Municipio"
               :loading="loadingMunicipios"
-              :rules="[rules.required]"
+              name="idMunicipio"
+              prepend-inner-icon="mdi-city-variant-outline"
               :readonly="isReadonly"
-              :clearable="!isReadonly"
+              :rules="[rules.required]"
               @update:model-value="onMunicipioChange"
             />
           </v-col>
@@ -95,17 +95,17 @@
           <v-col cols="12" sm="6">
             <v-autocomplete
               v-model="form.IdCentroPoblado"
-              name="IdCentroPoblado"
-              label="Centro Poblado"
-              :items="centrosPoblados"
+              :clearable="!isReadonly"
+              :disabled="!ui.idMunicipio"
               item-title="NombreCentroPoblado"
               item-value="IdCentroPoblado"
-              prepend-inner-icon="mdi-home-group"
-              :disabled="!ui.idMunicipio"
+              :items="centrosPoblados"
+              label="Centro Poblado"
               :loading="loadingCentrosPoblados"
-              :rules="[rules.required]"
+              name="IdCentroPoblado"
+              prepend-inner-icon="mdi-home-group"
               :readonly="isReadonly"
-              :clearable="!isReadonly"
+              :rules="[rules.required]"
             />
           </v-col>
 
@@ -113,39 +113,39 @@
           <v-col cols="12">
             <v-text-field
               v-model="form.Direccion"
-              name="Direccion"
-              label="Dirección"
-              prepend-inner-icon="mdi-map-marker-outline"
-              :rules="[rules.required]"
-              :readonly="isReadonly"
               :clearable="!isReadonly"
+              label="Dirección"
+              name="Direccion"
+              prepend-inner-icon="mdi-map-marker-outline"
+              :readonly="isReadonly"
+              :rules="[rules.required]"
             />
           </v-col>
           <!-- Estado (solo edición / vista) -->
           <v-col v-if="isEditing || isReadonly" cols="12" sm="6">
             <v-select
               v-model="form.Habilitada"
-              name="Habilitada"
-              label="Estado"
-              :items="opcionesEstado"
               item-title="label"
               item-value="value"
+              :items="opcionesEstado"
+              label="Estado"
+              name="Habilitada"
               prepend-inner-icon="mdi-domain"
               :readonly="isReadonly"
             >
               <template #selection="{ item }">
                 <v-chip
-                  label
                   class="estado-chip"
                   :color="item.color"
+                  label
                   variant="tonal"
                 >
                   <v-icon
-                    icon="$circle"
-                    :color="item.color"
-                    start
-                    size="10"
                     class="ml-1"
+                    :color="item.color"
+                    icon="$circle"
+                    size="10"
+                    start
                   />
                   {{ item.label }}
                 </v-chip>
@@ -153,13 +153,13 @@
 
               <template #item="{ item, props: itemProps }">
                 <v-list-item v-bind="itemProps" title="">
-                  <v-chip label :color="item.color" variant="tonal">
+                  <v-chip :color="item.color" label variant="tonal">
                     <v-icon
-                      icon="$circle"
-                      :color="item.color"
-                      start
-                      size="10"
                       class="ml-1"
+                      :color="item.color"
+                      icon="$circle"
+                      size="10"
+                      start
                     />
                     {{ item.label }}
                   </v-chip>
@@ -174,200 +174,201 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
-import BaseDialog from "@/shared/ui/BaseDialog.vue";
-import { globalService } from "@/api/services/globalService";
-import { $confirm } from "@/plugins/confirm/confirm.js";
-import { $toast } from "@/plugins/toast";
-import { $loading } from "@/plugins/loading/loading";
-import { useConfirmRequestClose } from "@/shared/composables/useConfirmRequestClose";
-import { useLocationCascade } from "@/shared/composables/useLocationCascade";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
-import { rules } from "@/shared/utils/validationRules";
-import { allow, blockKey  } from "@/shared/utils/inputKeyFilter";
+  import { computed, ref, watch } from 'vue'
+  import { globalService } from '@/api/services/globalService'
+  import { $confirm } from '@/plugins/confirm/confirm.js'
+  import { $loading } from '@/plugins/loading/loading'
+  import { $toast } from '@/plugins/toast'
+  import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
+  import { useLocationCascade } from '@/shared/composables/useLocationCascade'
+  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import { allow, blockKey } from '@/shared/utils/inputKeyFilter'
+  import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
+  import { rules } from '@/shared/utils/validationRules'
 
-// ─── Props & Emits ────────────────────────────────────────────────────────────
-const props = defineProps({
-  modelValue: Boolean,
-  mode: {
-    type: String,
-    default: "create",
-    validator: (v) => ["create", "edit", "view"].includes(v),
-  },
-  sucursal: {
-    type: Object,
-    default: null,
-  },
-  departamentos: {
-    type: Array,
-    default: () => [],
-  },
-});
+  // ─── Props & Emits ────────────────────────────────────────────────────────────
+  const props = defineProps({
+    modelValue: Boolean,
+    mode: {
+      type: String,
+      default: 'create',
+      validator: v => ['create', 'edit', 'view'].includes(v),
+    },
+    sucursal: {
+      type: Object,
+      default: null,
+    },
+    departamentos: {
+      type: Array,
+      default: () => [],
+    },
+  })
 
-const emit = defineEmits(["update:modelValue", "submit"]);
+  const emit = defineEmits(['update:modelValue', 'submit'])
 
-// ─── Computed modo ────────────────────────────────────────────────────────────
-const isReadonly = computed(() => props.mode === "view");
-const isEditing = computed(() => props.mode === "edit");
+  // ─── Computed modo ────────────────────────────────────────────────────────────
+  const isReadonly = computed(() => props.mode === 'view')
+  const isEditing = computed(() => props.mode === 'edit')
 
-const dialogTitle = computed(
-  () =>
-    ({
-      create: "Agregar Sucursal",
-      edit: "Editar Sucursal",
-      view: "Detalle de Sucursal",
-    })[props.mode],
-);
-const dialogIcon = computed(
-  () =>
-    ({
-      create: 'mdi-store-plus-outline',
-      edit: 'mdi-store-edit-outline',
-      view: 'mdi-store-outline',
-    })[props.mode],
-);
-const labelConfirm = computed(
-  () =>
-    ({ create: "Agregar Sucursal", edit: "Guardar Cambios", view: "" })[
-      props.mode
-    ],
-);
+  const dialogTitle = computed(
+    () =>
+      ({
+        create: 'Agregar Sucursal',
+        edit: 'Editar Sucursal',
+        view: 'Detalle de Sucursal',
+      })[props.mode],
+  )
+  const dialogIcon = computed(
+    () =>
+      ({
+        create: 'mdi-store-plus-outline',
+        edit: 'mdi-store-edit-outline',
+        view: 'mdi-store-outline',
+      })[props.mode],
+  )
+  const labelConfirm = computed(
+    () =>
+      ({ create: 'Agregar Sucursal', edit: 'Guardar Cambios', view: '' })[
+        props.mode
+      ],
+  )
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
-const formRef = ref(null);
+  // ─── Estado ───────────────────────────────────────────────────────────────────
+  const formRef = ref(null)
+  const loadingPrecarga = ref(false)
 
-const opcionesEstado = computed(() =>
-  [
-    { label: "Habilitada", value: true },
-    { label: "Deshabilitada", value: false },
-  ].map((op) => ({
-    ...op,
-    color: getEstadoColor(op.value, DOMINIOS_ESTADO.SUCURSAL),
-  })),
-);
-const formInitial = {
-  NombreSucursal: "",
-  Telefono: "",
-  CorreoGeneral: "",
-  Direccion: "",
-  IdCentroPoblado: null,
-  Habilitada: true,
-};
-
-const uiInitial = {
-  idDepartamento: null,
-  idMunicipio: null,
-};
-
-const form = ref({ ...formInitial });
-const ui = ref({ ...uiInitial });
-const formSnapshot = ref(null);
-
-const {
-  municipios,
-  centrosPoblados,
-  loadingMunicipios,
-  loadingCentrosPoblados,
-  onDepartamentoChange,
-  onMunicipioChange,
-  preloadLocation,
-  setLocationDataLectura,
-  resetLocationState,
-} = useLocationCascade({
-  ui,
-  form,
-  fetchMunicipios: globalService.getMunicipiosByDepartamento,
-  fetchCentrosPoblados: globalService.getCentrosPobladosByMunicipio,
-  onError: (error, stage) => {
-    console.error(`Error en sucursal (${stage}):`, error);
-  },
-});
-
-const hasChanges = computed(() => {
-  if (!formSnapshot.value) return false;
-  return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value);
-});
-
-const { onRequestClose } = useConfirmRequestClose({
-  emit,
-  isReadonly,
-  hasChanges,
-  confirmClose: (options) => $confirm.warning(options),
-  message:
-    "Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?",
-});
-
-// ─── Precarga al editar/ver ───────────────────────────────────────────────────
-async function precargarSucursal(suc) {
-  if (isReadonly.value) {
-    setLocationDataLectura(suc);
-  } else {
-    await preloadLocation({
-      idDepartamento: suc.IdDepartamento ?? null,
-      idMunicipio: suc.IdMunicipio ?? null,
-      idCentroPoblado: suc.IdCentroPoblado ?? null,
-    });
+  const opcionesEstado = computed(() =>
+    [
+      { label: 'Habilitada', value: true },
+      { label: 'Deshabilitada', value: false },
+    ].map(op => ({
+      ...op,
+      color: getEstadoColor(op.value, DOMINIOS_ESTADO.SUCURSAL),
+    })),
+  )
+  const formInitial = {
+    NombreSucursal: '',
+    Telefono: '',
+    CorreoGeneral: '',
+    Direccion: '',
+    IdCentroPoblado: null,
+    Habilitada: true,
   }
 
-  form.value = {
-    NombreSucursal: suc.NombreSucursal ?? "",
-    Telefono: suc.Telefono ?? "",
-    CorreoGeneral: suc.CorreoGeneral ?? "",
-    Direccion: suc.Direccion ?? "",
-    IdCentroPoblado: suc.IdCentroPoblado ?? null,
-    Habilitada: suc.Habilitada ?? true,
-  };
+  const uiInitial = {
+    idDepartamento: null,
+    idMunicipio: null,
+  }
 
-  formSnapshot.value = { ...form.value };
-}
+  const form = ref({ ...formInitial })
+  const ui = ref({ ...uiInitial })
+  const formSnapshot = ref(null)
 
-// ─── Reset ────────────────────────────────────────────────────────────────────
-const resetForm = () => {
-  form.value = { ...formInitial };
-  ui.value = { ...uiInitial };
-  resetLocationState();
-  formSnapshot.value = null;
-  formRef.value?.resetValidation();
-};
+  const {
+    municipios,
+    centrosPoblados,
+    loadingMunicipios,
+    loadingCentrosPoblados,
+    onDepartamentoChange,
+    onMunicipioChange,
+    preloadLocation,
+    setLocationDataLectura,
+    resetLocationState,
+  } = useLocationCascade({
+    ui,
+    form,
+    fetchMunicipios: globalService.getMunicipiosByDepartamento,
+    fetchCentrosPoblados: globalService.getCentrosPobladosByMunicipio,
+    onError: (error, stage) => {
+      console.error(`Error en sucursal (${stage}):`, error)
+    },
+  })
 
-// ─── Watch apertura ───────────────────────────────────────────────────────────
-watch(
-  () => props.modelValue,
-  async (isOpen) => {
-    if (!isOpen) {
-      resetForm();
-      return;
-    }
+  const hasChanges = computed(() => {
+    if (!formSnapshot.value) return false
+    return JSON.stringify(form.value) !== JSON.stringify(formSnapshot.value)
+  })
 
-    if (props.sucursal && props.mode !== "create") {
-      $loading.show();
-      try {
-        await precargarSucursal(props.sucursal);
-      } finally {
-        $loading.hide();
-      }
+  const { onRequestClose } = useConfirmRequestClose({
+    emit,
+    isReadonly,
+    hasChanges,
+    confirmClose: options => $confirm.warning(options),
+    message:
+      'Tienes cambios sin guardar en la sucursal. ¿Deseas salir de todas formas?',
+  })
+
+  // ─── Precarga al editar/ver ───────────────────────────────────────────────────
+  async function precargarSucursal (suc) {
+    if (isReadonly.value) {
+      setLocationDataLectura(suc)
     } else {
-      formSnapshot.value = { ...form.value };
+      await preloadLocation({
+        idDepartamento: suc.IdDepartamento ?? null,
+        idMunicipio: suc.IdMunicipio ?? null,
+        idCentroPoblado: suc.IdCentroPoblado ?? null,
+      })
     }
-  },
-);
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
-const submitForm = async () => {
-  const { valid } = await formRef.value.validate();
-  if (!valid) {
-    $toast.error("Por favor corrige los errores marcados");
-    return;
+    form.value = {
+      NombreSucursal: suc.NombreSucursal ?? '',
+      Telefono: suc.Telefono ?? '',
+      CorreoGeneral: suc.CorreoGeneral ?? '',
+      Direccion: suc.Direccion ?? '',
+      IdCentroPoblado: suc.IdCentroPoblado ?? null,
+      Habilitada: suc.Habilitada ?? true,
+    }
+
+    formSnapshot.value = { ...form.value }
   }
 
-  // Solo pasamos lo que el padre necesita para construir el objeto local.
-  const payload = {
-    ...form.value,
-    ...(props.sucursal?.IdSucursal ? { IdSucursal: props.sucursal.IdSucursal } : {}),
-    IdDepartamento: ui.value.idDepartamento,
-    IdMunicipio: ui.value.idMunicipio,
-  };
+  // ─── Reset ────────────────────────────────────────────────────────────────────
+  function resetForm () {
+    form.value = { ...formInitial }
+    ui.value = { ...uiInitial }
+    resetLocationState()
+    formSnapshot.value = null
+    formRef.value?.resetValidation()
+  }
 
-  emit("submit", { payload, mode: props.mode });
-};
+  // ─── Watch apertura ───────────────────────────────────────────────────────────
+  watch(
+    () => props.modelValue,
+    async isOpen => {
+      if (!isOpen) {
+        resetForm()
+        return
+      }
+
+      if (props.sucursal && props.mode !== 'create') {
+        $loading.show()
+        try {
+          await precargarSucursal(props.sucursal)
+        } finally {
+          $loading.hide()
+        }
+      } else {
+        formSnapshot.value = { ...form.value }
+      }
+    },
+  )
+
+  // ─── Submit ───────────────────────────────────────────────────────────────────
+  async function submitForm () {
+    const { valid } = await formRef.value.validate()
+    if (!valid) {
+      $toast.error('Por favor corrige los errores marcados')
+      return
+    }
+
+    // Solo pasamos lo que el padre necesita para construir el objeto local.
+    const payload = {
+      ...form.value,
+      ...(props.sucursal?.IdSucursal ? { IdSucursal: props.sucursal.IdSucursal } : {}),
+      IdDepartamento: ui.value.idDepartamento,
+      IdMunicipio: ui.value.idMunicipio,
+    }
+
+    emit('submit', { payload, mode: props.mode })
+  }
 </script>

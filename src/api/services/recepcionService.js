@@ -1,5 +1,5 @@
-import api from "@/api/axios";
-import { withCache } from "@/api/utils/apiCache";
+import api from '@/api/axios'
+import { withCache } from '@/api/utils/apiCache'
 
 export const recepcionService = {
   /**
@@ -14,9 +14,9 @@ export const recepcionService = {
   getRecepciones: (
     page = 1,
     limit = 10,
-    search = "",
-    sortBy = "",
-    sortOrder = "asc",
+    search = '',
+    sortBy = '',
+    sortOrder = 'asc',
     filters = {},
   ) => {
     const params = new URLSearchParams({
@@ -26,16 +26,25 @@ export const recepcionService = {
       ...(sortBy && { sortBy }),
       ...(sortOrder && { sortOrder }),
       ...filters,
-    });
+    })
 
-    return api.get(`v1/reception/reports?${params.toString()}`);
+    return api.get(`v1/reception/reports?${params.toString()}`)
   },
   /**
    * Obtiene la lista de estados de recepción
    */
   getRecepcionEstados: () =>
-    withCache("recepcion_estados", () => api.get("v1/reception/states")),
+    withCache('recepcion_estados', () => api.get('v1/reception/states')),
 
-  createActa: (reportData) => api.post("v1/reception/create", reportData),
-  
-};
+  /**
+   * Obtiene los detalles de una recepción por su ID
+   * @param {number} id - ID de la recepción
+   */
+  getRecepcionById: id => api.get(`v1/reception/reports/unique/${id}`),
+
+  /**
+   * Obtiene los detalles de un producto específico dentro de una recepción por su ID
+   * @param {*} id  - ID del detalle de la recepción
+   */
+  getDetalleRecepcionById: id => api.get(`v1/reception/reports/unique/details/${id}`),
+}

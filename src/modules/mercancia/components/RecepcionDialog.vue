@@ -1,275 +1,323 @@
 <template>
   <base-dialog
-    :model-value="modelValue"
-    :title="dialogTitle"
-    :icon="dialogIcon"
     color="primary"
+    :disable-confirm="disableConfirm"
+    :icon="dialogIcon"
     :label-confirm="labelConfirm"
-    :show-actions="!isReadonly"
     max-width="1200"
-    @update:model-value="onClose"
+    :model-value="modelValue"
+    :show-actions="!isReadonly"
+    :title="dialogTitle"
     @accept="emitSubmit"
+    @update:model-value="onClose"
   >
     <template #content>
       <v-form ref="formRef">
-        <v-row density="compact">
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.NroActa"
-              label="Número de Acta"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-              prepend-inner-icon="mdi-file"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-select
-              v-model="form.EstadoActa"
-              :items="estados"
-              item-title="label"
-              item-value="value"
-              label="Estado"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-              prepend-inner-icon="mdi-note-check"
-            >
-              <template #selection="{ item }">
-                <v-chip
-                  label
-                  class="estado-chip"
-                  variant="tonal"
-                  :color="estadoColor(item.value)"
-                >
-                  <v-icon
-                    icon="mdi-tag"
-                    :color="estadoColor(item.value)"
-                    start
-                    size="12"
-                    class="ml-1"
-                  />
-                  {{ item.title || item.label }}
-                </v-chip>
-              </template>
-              <template #item="{ item, props }">
-                <v-list-item v-bind="props">
-                  <template #prepend>
-                    <v-icon
-                      icon="mdi-tag"
-                      :color="estadoColor(item.value)"
-                      size="12"
-                      class="ml-1"
-                    />
-                  </template>
-                  <v-list-item-title>{{
-                    item.title || item.label
-                  }}</v-list-item-title>
-                </v-list-item>
-              </template>
-            </v-select>
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              v-model="form.ProveedorNombre"
-              label="Proveedor"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-              prepend-inner-icon="mdi-truck"
-            />
-          </v-col>
+        <v-tabs v-model="ui.tab" class="mb-4" color="primary">
+          <v-tab value="info">
+            <v-icon icon="mdi-file-document-outline" start />
+            Información
+          </v-tab>
+          <v-tab value="detalle">
+            <v-icon icon="mdi-format-list-bulleted" start />
+            Detalle
+          </v-tab>
+        </v-tabs>
 
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.PrefijoFacturaRecibida"
-              label="Prefijo Factura"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-              prepend-inner-icon="mdi-invoice-outline"
+        <v-tabs-window v-model="ui.tab">
+          <v-tabs-window-item eager value="info">
+            <recepcion-info-tab
+              :bodegas="bodegasCascada"
+              :cedis="cedis"
+              :estados-catalogo="estadosCatalogo"
+              :form="form"
+              :is-readonly="isReadonly"
+              :proveedores="proveedores"
+              @cedi-change="onCediChange"
+            />
+          </v-tabs-window-item>
 
+          <v-tabs-window-item eager value="detalle">
+            <recepcion-detalle-tab
+              :detalle-headers="detalleHeaders"
+              :form="form"
             />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.NumeroFacturaRecibida"
-              label="Número Factura"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-             prepend-inner-icon="mdi-invoice-text-outline"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.FechaFacturaRecibida"
-              label="Fecha Factura"
-              type="date"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-              prepend-inner-icon="mdi-calendar"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="form.FechaActa"
-              label="Fecha Acta"
-              type="date"
-              density="compact"
-              variant="outlined"
-              prepend-inner-icon="mdi-calendar"
-              :readonly="isReadonly"
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-textarea
-              v-model="form.Observaciones"
-              label="Observaciones / Orden de compra"
-              density="compact"
-              variant="outlined"
-              :readonly="isReadonly"
-            />
-          </v-col>
-        </v-row>
-
-        <v-divider class="my-4" />
-
-        <div class="text-subtitle-1 font-weight-bold mb-3">Detalle</div>
-        <base-table-local
-          :headers="detalleHeaders"
-          :items="form.Detalles"
-          :loading="false"
-          item-key="IdProducto"
-          class="rounded-lg border"
-          :searchable="false"
-        >
-          <template #item.Aceptado="{ item }">
-            <v-chip
-              :color="estadoProductoColor(estadoProductoLabel(item.Aceptado))"
-              size="small"
-              variant="tonal"
-            >
-              {{ estadoProductoLabel(item.Aceptado) }}
-            </v-chip>
-          </template>
-        </base-table-local>
+          </v-tabs-window-item>
+        </v-tabs-window>
       </v-form>
     </template>
   </base-dialog>
 </template>
 
 <script setup>
-import { reactive, computed, watch, ref } from "vue";
-import BaseDialog from "@/shared/ui/BaseDialog.vue";
-import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
+  import { computed, reactive, ref, watch } from 'vue'
+  import { infraestructuraService } from '@/api/services/infraestructuraService'
+  import { $confirm } from '@/plugins/confirm/confirm.js'
+  import { $loading } from '@/plugins/loading/loading'
+  import { $toast } from '@/plugins/toast'
+  import {
+    getChangedFields,
+    hasObjectChanges,
+  } from '@/shared/composables/useChangePayload'
+  import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
+  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  // colors handled inside tabs
+  import { useRecepcionCatalogos } from '../composables/useRecepcionCatalogos'
+  import { useRecepcionDetalles } from '../composables/useRecepcionDetalles'
+  import RecepcionDetalleTab from './tabs/RecepcionDetalleTab.vue'
+  import RecepcionInfoTab from './tabs/RecepcionInfoTab.vue'
 
-const props = defineProps({
-  modelValue: Boolean,
-  mode: {
-    type: String,
-    default: "create",
-    validator: (v) => ["create", "edit", "view"].includes(v),
-  },
-  acta: { type: Object, default: null },
-});
+  const props = defineProps({
+    modelValue: Boolean,
+    mode: {
+      type: String,
+      default: 'create',
+      validator: v => ['create', 'edit', 'view'].includes(v),
+    },
+    acta: { type: Object, default: null },
+  })
 
-const emit = defineEmits(["update:modelValue", "submit"]);
+  const emit = defineEmits(['update:modelValue', 'submit'])
 
-const estados = [
-  { label: "Borrador", value: "Borrador" },
-  { label: "Pendiente", value: "Pendiente" },
-  { label: "Cerrada", value: "Cerrada" },
-];
-const formRef = ref(null);
+  // ─── Computed modo ────────────────────────────────────────────────────────────
+  const isReadonly = computed(() => props.mode === 'view')
+  const isEditing = computed(() => props.mode === 'edit')
+  const isCreating = computed(() => props.mode === 'create')
 
-const blankActa = () => ({
-  IdActa: null,
-  NroActa: "",
-  IdProveedor: null,
-  ProveedorNombre: "",
-  Observaciones: "",
-  PrefijoFacturaRecibida: "",
-  NumeroFacturaRecibida: "",
-  FechaFacturaRecibida: "",
-  FechaActa: "",
-  EstadoActa: "Borrador",
-  Detalles: [],
-});
+  const formRef = ref(null)
+  const ui = ref({ tab: 'info' })
 
-const form = reactive(blankActa());
+  function formInitial () {
+    return {
+      IdActa: null,
+      NroActa: '',
+      Acta: '',
+      IdProveedor: null,
+      NombreProveedor: '',
+      Observaciones: '',
+      PrefijoFacturaRecibida: '',
+      NumeroFacturaRecibida: '',
+      FechaFacturaRecibida: '',
+      FechaActa: '',
+      EstadoActa: 'Borrador',
+      IdEstado: null,
+      IdCedi: null,
+      IdBodega: null,
+      Detalles: [],
+    }
+  }
 
-const detalleHeaders = [
-  { title: "Producto", key: "NombreProducto", sortable: false },
-  { title: "Lote", key: "IdLote", sortable: false },
-  {
-    title: "Facturado",
-    key: "CantidadFacturada",
-    align: "center",
-    sortable: false,
-  },
-  {
-    title: "Recibido",
-    key: "CantidadRecibida",
-    align: "center",
-    sortable: false,
-  },
-  {
-    title: "Muestra",
-    key: "CantidadMuestra",
-    align: "center",
-    sortable: false,
-  },
-  { title: "Estado", key: "Aceptado", align: "center", sortable: false },
-  { title: "Obs.", key: "ObservacionesProducto", sortable: false },
-];
+  const form = reactive(formInitial())
+  const formSnapshot = ref(null)
 
-const isReadonly = computed(() => props.mode === "view");
-const dialogTitle = computed(
-  () =>
-    ({
-      create: "Crear Acta",
-      edit: "Editar Acta",
-      view: "Detalle del Acta",
-    })[props.mode],
-);
-const dialogIcon = computed(
-  () =>
-    ({
-      create: 'mdi-file-plus',
-      edit: 'mdi-file-edit',
-      view: 'mdi-file-eye',
-    })[props.mode],
-);
-const labelConfirm = computed(
-  () =>
-    ({
-      create: "Crear Acta",
-      edit: "Guardar Cambios",
-      view: "",
-    })[props.mode],
-);
+  // Composables
+  const {
+    estadosCatalogo,
+    proveedores,
+    cedis,
+    bodegas,
+    setCatalogosLectura,
+    cargarCatalogos,
+  } = useRecepcionCatalogos()
 
-watch(
-  () => props.acta,
-  (val) => {
-    Object.assign(form, blankActa(), val || {});
-  },
-  { immediate: true },
-);
+  const {
+    bodegas: bodegasCascada,
+    onCediChange,
+    preloadInfraestructura,
+    setInfraestructuraLectura,
+  } = useInfraestructuraCascade({
+    ui,
+    form: ref(form),
+    services: infraestructuraService,
+    keys: {
+      idCedi: 'IdCedi',
+      idBodega: 'IdBodega',
+    },
+  })
 
-function onClose(value) {
-  emit("update:modelValue", value);
-}
+  const {
+    detalles,
+    detallesSnapshot,
+    hydrateDetalles,
+    setDetallesSnapshot,
+    resetDetalles,
+    hasDetallesChanges,
+    getDetallesChanges,
+  } = useRecepcionDetalles()
 
-function emitSubmit() {
-  emit("submit", { ...form, Detalles: [...form.Detalles] });
-}
+  const detalleHeaders = [
+    { title: 'Producto', key: 'CodigoProducto', sortable: false },
+    { title: 'Lote', key: 'CodLote', sortable: false },
+    {
+      title: 'Facturado',
+      key: 'CantidadFacturada',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      title: 'Recibido',
+      key: 'CantidadRecibida',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      title: 'Muestra',
+      key: 'CantidadMuestra',
+      align: 'center',
+      sortable: false,
+    },
+    { title: 'Estado', key: 'Aceptado', align: 'center', sortable: false },
+    { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
+  ]
+  const DetallerowActions = [
+    {
+      label: 'Ver detalle',
+      icon: '$eye',
+      color: 'blue-darken-3',
+      action: item => verDetalle(item),
+    },
+    {
+      label: 'Editar',
+      icon: '$pencil',
+      color: 'purple-darken-3',
+      action: item => editarCliente(item),
+    },
+  ]
 
-const estadoColor = (estado) => getEstadoColor(estado, DOMINIOS_ESTADO.ACTA);
-const estadoProductoColor = (estado) =>
-  getEstadoColor(estado, DOMINIOS_ESTADO.PRODCUTO_ACTA);
-const estadoProductoLabel = (aceptado) => (aceptado ? "Aceptado" : "Rechazado");
+  const dialogTitle = computed(
+    () =>
+      ({ create: 'Crear Acta', edit: 'Editar Acta', view: 'Detalle del Acta' })[
+        props.mode
+      ],
+  )
+  const dialogIcon = computed(
+    () =>
+      ({ create: 'mdi-file-plus', edit: 'mdi-file-edit', view: 'mdi-file-eye' })[
+        props.mode
+      ],
+  )
+  const labelConfirm = computed(
+    () =>
+      ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
+  )
+
+  const disableConfirm = computed(() => isEditing.value && !hasChanges.value)
+
+  const hasChanges = computed(() => {
+    const formChanged = formSnapshot.value
+      ? hasObjectChanges(form, formSnapshot.value)
+      : false
+    const detallesChanged = hasDetallesChanges()
+    return formChanged || detallesChanged
+  })
+
+  async function precargarActa (acta) {
+    if (!acta) {
+      Object.assign(form, formInitial())
+      resetDetalles()
+      formSnapshot.value = null
+      return
+    }
+
+    if (isReadonly.value) {
+      setInfraestructuraLectura(acta)
+    } else {
+      // Si es modo edición, precargamos en cascada para traer bodegas del cedi según el idCedi
+      await preloadInfraestructura({
+        idCedi: acta.IdCedi,
+        idBodega: acta.IdBodega,
+      })
+    }
+
+    form.IdActa = acta.IdActa
+    form.Acta = acta.Acta
+    form.NroActa = acta.Acta
+    form.PrefijoFacturaRecibida = acta.PrefijoFacturaRecibida
+    form.NumeroFacturaRecibida = acta.NumeroFacturaRecibida
+    form.FechaFacturaRecibida = acta.FechaFacturaRecibida
+    form.FechaActa = acta.FechaActa
+    form.Observaciones = acta.Observaciones
+    form.IdEstado = acta.IdEstado
+    form.IdProveedor = acta.IdProveedor
+    form.IdCedi = acta.IdCedi
+    form.IdBodega = acta.IdBodega
+
+    // Detalles: composable maneja locales y snapshot
+    hydrateDetalles(acta.detalles || [])
+    // Vincular la referencia de detalles con el form para compatibilidad con tabs existentes
+    form.Detalles = detalles.value
+
+    // Snapshots
+    formSnapshot.value = { ...form }
+    setDetallesSnapshot(detallesSnapshot.value || [])
+  }
+
+  watch(
+    () => props.modelValue,
+    async isOpen => {
+      // if (!isOpen) {
+      //   resetForm()
+      //   return
+      // }
+
+      $loading.show()
+      try {
+        if (isReadonly.value && props.acta) {
+          setCatalogosLectura(props.acta)
+          await precargarActa(props.acta)
+        } else {
+          const catalogResult = await cargarCatalogos()
+          if (!catalogResult.ok) {
+            $toast.warning(
+              'Algunos catálogos no se cargaron. Puedes continuar, pero revisa los campos de selección.',
+            )
+          }
+          if (props.acta && !isCreating.value) {
+            await precargarActa(props.acta)
+          } else {
+            formSnapshot.value = { ...form.value }
+            setDetallesSnapshot([])
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar datos:', error)
+      } finally {
+        $loading.hide()
+      }
+    },
+  )
+  function onClose (value) {
+    emit('update:modelValue', value)
+  }
+
+  async function emitSubmit () {
+    const { valid } = (await formRef.value?.validate?.()) ?? { valid: true }
+    if (!valid) return
+
+    let payload = {}
+    if (isCreating.value) {
+      // crear: enviar form completo + detalles como array
+      payload = {
+        ...form,
+        Detalles: (detalles.value || []).map(d => ({
+          CodigoProducto: d.CodigoProducto,
+          CodLote: d.CodLote,
+          CantidadFacturada: d.CantidadFacturada,
+          CantidadRecibida: d.CantidadRecibida,
+          CantidadMuestra: d.CantidadMuestra,
+          Aceptado: d.Aceptado,
+        })),
+      }
+    } else {
+      // editar: armar patch del form + payload de detalles (eliminados/upserts)
+      const formPatch = getChangedFields(form, formSnapshot.value) || {}
+      const detallesPayload = getDetallesChanges()
+      payload = { ...formPatch }
+      if (detallesPayload) payload.Detalles = detallesPayload
+    }
+
+    emit('submit', payload)
+  }
+
+// estado/color handled in tabs
 </script>

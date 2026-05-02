@@ -4,9 +4,9 @@
       <v-btn
         v-if="!isReadonly"
         color="primary"
-        variant="tonal"
-        size="small"
         prepend-icon="$plus"
+        size="small"
+        variant="tonal"
         @click="emit('add')"
       >
         Agregar sucursal
@@ -21,8 +21,8 @@
         background: rgba(0, 0, 0, 0.015);
       "
     >
-      <v-icon size="44" color="grey-lighten-1" class="mb-3">{{
-        'mdi-store-off-outline'
+      <v-icon class="mb-3" color="grey-lighten-1" size="44">{{
+        "mdi-store-off-outline"
       }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">
         Sin sucursales registradas
@@ -34,11 +34,11 @@
 
     <base-table-local
       v-else
+      empty-text="Sin sucursales registradas"
       :headers="headers"
       :items="sucursales.map((s, idx) => ({ ...s, indice: idx + 1 }))"
-      :row-actions="rowActions"
-      empty-text="Sin sucursales registradas"
       :items-per-page="5"
+      :row-actions="rowActions"
     >
       <template #[`item.Direccion`]="{ item }">
         <div class="py-1">
@@ -46,7 +46,11 @@
             {{ item.Direccion || "—" }}
           </div>
           <div class="text-caption text-grey">
-            {{ departamentoLabel(item.IdDepartamento) }}
+            {{
+              item.NombreDepartamento
+                ? `Depto: ${item.NombreDepartamento}`
+                : "Depto: —"
+            }}
           </div>
         </div>
       </template>
@@ -57,7 +61,7 @@
           size="small"
           variant="tonal"
         >
-          <v-icon icon="$circle" size="14" start></v-icon>
+          <v-icon icon="$circle" size="14" start />
           {{ item.Habilitada ? "Habilitada" : "Deshabilitada" }}
         </v-chip>
       </template>
@@ -66,34 +70,15 @@
 </template>
 
 <script setup>
-import { computed, toRefs } from "vue";
-import BaseTableLocal from "@/shared/ui/BaseTableLocal.vue";
-import { getEstadoColor, DOMINIOS_ESTADO } from "@/shared/utils/statusColors";
+  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
-const emit = defineEmits(["add"]);
+  const emit = defineEmits(['add'])
 
-const props = defineProps({
-  sucursales: { type: Array, default: () => [] },
-  headers: { type: Array, default: () => [] },
-  rowActions: { type: Array, default: () => [] },
-  isReadonly: { type: Boolean, default: false },
-  departamentos: { type: Array, default: () => [] },
-});
-
-const { sucursales, headers, rowActions, isReadonly, departamentos } =
-  toRefs(props);
-
-const deptoMap = computed(() =>
-  Object.fromEntries(
-    (departamentos.value || []).map((d) => [
-      d.IdDepartamento,
-      d.NombreDepartamento,
-    ]),
-  ),
-);
-
-const departamentoLabel = (id) => {
-  const nombre = deptoMap.value[id];
-  return nombre ? `Depto: ${nombre}` : "Depto: —";
-};
+  const props = defineProps({
+    sucursales: { type: Array, default: () => [] },
+    headers: { type: Array, default: () => [] },
+    rowActions: { type: Array, default: () => [] },
+    isReadonly: { type: Boolean, default: false },
+  })
 </script>

@@ -1,236 +1,212 @@
-import { ref, computed } from "vue";
+import { computed, ref } from 'vue'
 import {
-  hasCollectionChanges,
   getChangedCollectionPayload,
-} from "@/shared/composables/useChangePayload";
+  hasCollectionChanges,
+} from '@/shared/composables/useChangePayload'
 
-const sucursalPatchFields = [
-  "NombreSucursal",
-  "Telefono",
-  "CorreoGeneral",
-  "Direccion",
-  "IdCentroPoblado",
-  "Habilitada",
-];
+// ─── Campos que se envían al API en un PATCH ──────────────────────────────────
+const SUCURSAL_PATCH_FIELDS = [
+  'NombreSucursal',
+  'Telefono',
+  'CorreoGeneral',
+  'Direccion',
+  'IdCentroPoblado',
+  'Habilitada',
+]
 
-export function useClienteSucursales({ isReadonly }) {
-  let localSucursalCounter = 0;
+// ─── Campos de display (nombres legibles, solo para mostrar) ──────────────────
+// No se incluyen en snapshots ni en payloads al API.
+const SUCURSAL_DISPLAY_FIELDS = [
+  'NombreDepartamento',
+  'NombreMunicipio',
+  'NombreCentroPoblado',
+]
 
-  const sucursales = ref([]);
-  const sucursalesSnapshot = ref([]);
+// ─── Campos que se guardan en el snapshot para comparar cambios ───────────────
+// Incluye IDs de ubicación porque aunque no van al patch, sí indican un cambio.
+const SUCURSAL_SNAPSHOT_FIELDS = [
+  'IdSucursal',
+  ...SUCURSAL_PATCH_FIELDS,
+  'IdDepartamento',
+  'IdMunicipio',
+]
 
+// Construye un objeto con solo los campos indicados, aplicando un valor por
+// defecto cuando el campo es undefined o null (para comparaciones consistentes).
+function pickFields (source, fields, defaults = {}) {
+  return Object.fromEntries(
+    fields.map(key => [key, source[key] ?? defaults[key] ?? null]),
+  )
+}
+
+const SUCURSAL_DEFAULTS = {
+  NombreSucursal: '',
+  Telefono: '',
+  CorreoGeneral: '',
+  Direccion: '',
+  Habilitada: true,
+}
+
+export function useClienteSucursales ({ isReadonly }) {
+  let localSucursalCounter = 0
+
+  // ─── Estado ─────────────────────────────────────────────────────────────────
+  const sucursales = ref([])
+  const sucursalesSnapshot = ref([])
   const sucursalDialog = ref({
     open: false,
-    mode: "create",
+    mode: 'create',
     sucursal: null,
     editIdx: null,
-  });
+  })
 
-  function apiSucursalToLocal(apiSucursal) {
+  // ─── Transformadores ─────────────────────────────────────────────────────────
+
+  // API → estado local: agrega LocalId y campos de display
+  function apiSucursalToLocal (apiSucursal) {
     return {
       LocalId: ++localSucursalCounter,
-      IdDepartamento: apiSucursal.IdDepartamento ?? null,
-      IdMunicipio: apiSucursal.IdMunicipio ?? null,
-      IdSucursal: apiSucursal.IdSucursal,
-      NombreSucursal: apiSucursal.NombreSucursal ?? "",
-      Telefono: apiSucursal.Telefono ?? "",
-      CorreoGeneral: apiSucursal.CorreoGeneral ?? "",
-      Direccion: apiSucursal.Direccion ?? "",
-      IdCentroPoblado: apiSucursal.IdCentroPoblado ?? null,
-      Habilitada: apiSucursal.Habilitada ?? true,
-      NombreDepartamento: apiSucursal.NombreDepartamento,
-      NombreMunicipio: apiSucursal.NombreMunicipio,
-      NombreCentroPoblado: apiSucursal.NombreCentroPoblado,
-    };
+      ...pickFields(apiSucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS),
+      ...pickFields(apiSucursal, SUCURSAL_DISPLAY_FIELDS),
+    }
   }
 
-  function localSucursalToApi(sucursal, includeId = true) {
-    const payload = {
-      NombreSucursal: sucursal.NombreSucursal,
-      Telefono: sucursal.Telefono,
-      CorreoGeneral: sucursal.CorreoGeneral,
-      Direccion: sucursal.Direccion,
-      IdCentroPoblado: sucursal.IdCentroPoblado,
-      Habilitada: sucursal.Habilitada,
-    };
+  // Estado local → snapshot: solo campos comparables, sin LocalId ni display
+  function sucursalSerializable (sucursal) {
+    return pickFields(sucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS)
+  }
 
+  // Estado local → payload API
+  function localSucursalToApi (sucursal, includeId = false) {
+    const payload = pickFields(sucursal, SUCURSAL_PATCH_FIELDS, SUCURSAL_DEFAULTS)
     if (includeId && sucursal.IdSucursal) {
-      payload.IdSucursal = sucursal.IdSucursal;
+      payload.IdSucursal = sucursal.IdSucursal
     }
-
-    return payload;
+    return payload
   }
 
-  function sucursalSerializable(sucursal) {
+  // Estado local → objeto para el diálogo hijo (incluye display para precarga de ubicación)
+  function toDialogSucursal (sucursal) {
     return {
-      IdSucursal: sucursal.IdSucursal ?? null,
-      NombreSucursal: sucursal.NombreSucursal ?? "",
-      Telefono: sucursal.Telefono ?? "",
-      CorreoGeneral: sucursal.CorreoGeneral ?? "",
-      Direccion: sucursal.Direccion ?? "",
-      IdCentroPoblado: sucursal.IdCentroPoblado ?? null,
-      Habilitada: sucursal.Habilitada ?? true,
-      IdDepartamento: sucursal.IdDepartamento ?? null,
-      IdMunicipio: sucursal.IdMunicipio ?? null,
-    };
-  }
-
-  function toDialogSucursal(sucursal) {
-    return {
-      IdSucursal: sucursal.IdSucursal,
-      NombreSucursal: sucursal.NombreSucursal,
-      Telefono: sucursal.Telefono,
-      CorreoGeneral: sucursal.CorreoGeneral,
-      Direccion: sucursal.Direccion,
-      IdCentroPoblado: sucursal.IdCentroPoblado,
-      Habilitada: sucursal.Habilitada,
-      IdDepartamento: sucursal.IdDepartamento,
-      IdMunicipio: sucursal.IdMunicipio,
-      NombreDepartamento: sucursal.NombreDepartamento,
-      NombreMunicipio: sucursal.NombreMunicipio,
-      NombreCentroPoblado: sucursal.NombreCentroPoblado,
-    };
-  }
-
-  function abrirAgregarSucursal() {
-    sucursalDialog.value = {
-      open: true,
-      mode: "create",
-      sucursal: null,
-      editIdx: null,
-    };
-  }
-
-  function abrirEditarSucursal(idx) {
-    const sucursal = sucursales.value[idx];
-    sucursalDialog.value = {
-      open: true,
-      mode: "edit",
-      editIdx: idx,
-      sucursal: toDialogSucursal(sucursal),
-    };
-  }
-
-  function abrirVerSucursal(idx) {
-    const sucursal = sucursales.value[idx];
-    sucursalDialog.value = {
-      open: true,
-      mode: "view",
-      editIdx: idx,
-      sucursal: toDialogSucursal(sucursal),
-    };
-  }
-
-  function handleEditarSucursal(item) {
-    const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
-    if (idx !== -1) {
-      abrirEditarSucursal(idx);
+      ...pickFields(sucursal, SUCURSAL_SNAPSHOT_FIELDS, SUCURSAL_DEFAULTS),
+      ...pickFields(sucursal, SUCURSAL_DISPLAY_FIELDS),
     }
   }
 
-  function handleVerSucursal(item) {
-    const idx = sucursales.value.findIndex((s) => s.LocalId === item.LocalId);
-    if (idx !== -1) {
-      abrirVerSucursal(idx);
+  // ─── Diálogo ─────────────────────────────────────────────────────────────────
+
+  function abrirSucursalDialog (mode, idx = null) {
+    sucursalDialog.value = {
+      open: true,
+      mode,
+      editIdx: idx,
+      sucursal: idx === null ? null : toDialogSucursal(sucursales.value[idx]),
     }
   }
 
-  function onSucursalSubmit({ payload, mode }) {
-    const local = {
-      NombreSucursal: payload.NombreSucursal,
-      Telefono: payload.Telefono,
-      CorreoGeneral: payload.CorreoGeneral,
-      Direccion: payload.Direccion,
-      IdCentroPoblado: payload.IdCentroPoblado,
-      Habilitada: payload.Habilitada,
-      IdDepartamento: payload.IdDepartamento,
-      IdMunicipio: payload.IdMunicipio,
-    };
+  // Busca por LocalId y delega a abrirSucursalDialog
+  function abrirPorLocalId (localId, mode) {
+    const idx = sucursales.value.findIndex(s => s.LocalId === localId)
+    if (idx !== -1) {
+      abrirSucursalDialog(mode, idx)
+    }
+  }
 
-    if (mode === "create") {
+  function abrirAgregarSucursal () {
+    abrirSucursalDialog('create')
+  }
+
+  // ─── Acciones de tabla ────────────────────────────────────────────────────────
+
+  const sucursalesHeaders = computed(() => [
+    { title: '#', key: 'indice', sortable: false, align: 'left' },
+    { title: 'Nombre', key: 'NombreSucursal', sortable: false },
+    { title: 'Dirección', key: 'Direccion', sortable: false },
+    { title: 'Teléfono', key: 'Telefono', sortable: false },
+    { title: 'Correo', key: 'CorreoGeneral', sortable: false },
+    { title: 'Estado', key: 'Habilitada', sortable: false, align: 'center' },
+  ])
+
+  const sucursalRowActions = computed(() => [
+    {
+      label: 'Editar',
+      icon: '$pencil',
+      visible: !isReadonly.value,
+      action: item => abrirPorLocalId(item.LocalId, 'edit'),
+    },
+    {
+      label: 'Ver detalle',
+      icon: '$eye',
+      visible: isReadonly.value,
+      action: item => abrirPorLocalId(item.LocalId, 'view'),
+    },
+  ])
+
+  // ─── Mutaciones de lista ──────────────────────────────────────────────────────
+
+  function onSucursalSubmit ({ payload, mode }) {
+    const localFields = {
+      ...pickFields(payload, SUCURSAL_PATCH_FIELDS, SUCURSAL_DEFAULTS),
+      IdDepartamento: payload.IdDepartamento ?? null,
+      IdMunicipio: payload.IdMunicipio ?? null,
+    }
+
+    if (mode === 'create') {
       sucursales.value.push({
         LocalId: ++localSucursalCounter,
         IdSucursal: null,
-        ...local,
-      });
-    } else if (mode === "edit" && sucursalDialog.value.editIdx !== null) {
-      const idx = sucursalDialog.value.editIdx;
-      sucursales.value[idx] = {
-        ...sucursales.value[idx],
-        ...local,
-      };
+        ...localFields,
+      })
+    } else if (mode === 'edit' && sucursalDialog.value.editIdx !== null) {
+      const idx = sucursalDialog.value.editIdx
+      sucursales.value[idx] = { ...sucursales.value[idx], ...localFields }
     }
 
-    sucursalDialog.value.open = false;
+    sucursalDialog.value.open = false
   }
 
-  const sucursalesHeaders = computed(() => [
-    { title: "#", key: "indice", sortable: false, align: "left" },
-    { title: "Nombre", key: "NombreSucursal", sortable: false },
-    { title: "Dirección", key: "Direccion", sortable: false },
-    { title: "Teléfono", key: "Telefono", sortable: false },
-    { title: "Correo", key: "CorreoGeneral", sortable: false },
-    { title: "Estado", key: "Habilitada", sortable: false, align: "center" },
-  ]);
+  // ─── Hidratación y snapshot ───────────────────────────────────────────────────
 
-  const sucursalRowActions = [
-    {
-      label: "Editar",
-      icon: "$pencil",
-      action: (item) => handleEditarSucursal(item),
-      visible: () => !isReadonly.value,
-    },
-    {
-      label: "Ver detalle",
-      icon: "$eye",
-      action: (item) => handleVerSucursal(item),
-      visible: () => isReadonly.value,
-    },
-  ];
-
-  function hydrateSucursales(apiSucursales = []) {
+  function hydrateSucursales (apiSucursales = []) {
     const locales = Array.isArray(apiSucursales)
       ? apiSucursales.map(apiSucursalToLocal)
-      : [];
-
-    sucursales.value = locales;
-    sucursalesSnapshot.value = locales.map(sucursalSerializable);
+      : []
+    sucursales.value = locales
+    sucursalesSnapshot.value = locales.map(sucursalSerializable)
   }
 
-  function setSucursalesSnapshot(snapshot = []) {
-    sucursalesSnapshot.value = snapshot;
+  function setSucursalesSnapshot (snapshot = []) {
+    sucursalesSnapshot.value = snapshot
   }
 
-  function resetSucursales() {
-    sucursales.value = [];
-    sucursalesSnapshot.value = [];
-    sucursalDialog.value = {
-      open: false,
-      mode: "create",
-      sucursal: null,
-      editIdx: null,
-    };
+  function resetSucursales () {
+    sucursales.value = []
+    sucursalesSnapshot.value = []
+    sucursalDialog.value = { open: false, mode: 'create', sucursal: null, editIdx: null }
   }
 
-  function hasSucursalesChanges() {
+  // ─── Detección de cambios ─────────────────────────────────────────────────────
+
+  function hasSucursalesChanges () {
     return hasCollectionChanges(
       sucursales.value,
       sucursalesSnapshot.value,
       sucursalSerializable,
-    );
+    )
   }
 
-  function getSucursalesChanges() {
+  function getSucursalesChanges () {
     return getChangedCollectionPayload({
       currentList: sucursales.value,
       snapshotList: sucursalesSnapshot.value,
-      idKey: "IdSucursal",
-      patchFields: sucursalPatchFields,
-      toCreatePayload: (item) => localSucursalToApi(item, false),
-      toFallbackPayload: (item) => localSucursalToApi(item, true),
-    });
+      idKey: 'IdSucursal',
+      patchFields: SUCURSAL_PATCH_FIELDS,
+      toCreatePayload: item => localSucursalToApi(item, false),
+      toFallbackPayload: item => localSucursalToApi(item, true),
+    })
   }
 
+  // ─── API pública ──────────────────────────────────────────────────────────────
   return {
     sucursales,
     sucursalesSnapshot,
@@ -244,5 +220,5 @@ export function useClienteSucursales({ isReadonly }) {
     resetSucursales,
     hasSucursalesChanges,
     getSucursalesChanges,
-  };
+  }
 }
