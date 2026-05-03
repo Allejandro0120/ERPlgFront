@@ -18,6 +18,11 @@
           {{ estadoProductoLabel(item.Aceptado) }}
         </v-chip>
       </template>
+      <template #item.Observaciones="{ item }">
+        <div class="text-body-2 text-truncate" style="max-width: 240px">
+          {{ item.Observaciones || '—' }}
+        </div>
+      </template>
     </base-table-local>
   </div>
 </template>

@@ -12,6 +12,12 @@
     @update:model-value="onRequestClose"
   >
     <template #content>
+      <detalle-form-dialog
+        v-model="detalleDialog.open"
+        :detalle="detalleDialog.detalle"
+        :mode="detalleDialog.mode"
+        @submit="onDetalleSubmit"
+      />
       <v-form ref="formRef">
         <v-tabs v-model="ui.tab" class="mb-4" color="primary">
           <v-tab value="info">
@@ -55,16 +61,17 @@
 <script setup>
   import { computed, reactive, ref, watch } from 'vue'
   import { infraestructuraService } from '@/api/services/infraestructuraService'
+  import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import { $confirm } from '@/plugins/confirm/confirm'
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
-  import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
+  import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
   // colors handled inside tabs
-  import { useRecepcionCatalogos } from '../composables/useRecepcionCatalogos'
-  import { useRecepcionDetalles } from '../composables/useRecepcionDetalles'
+  import { useRecepcionCatalogos } from '../../composables/recepcion/useRecepcionCatalogos'
+  import { useRecepcionDetalles } from '../../composables/recepcion/useRecepcionDetalles'
+  import DetalleFormDialog from './DetalleFormDialog.vue'
   import RecepcionDetalleTab from './tabs/RecepcionDetalleTab.vue'
   import RecepcionInfoTab from './tabs/RecepcionInfoTab.vue'
 
@@ -128,7 +135,6 @@
 
   const {
     detalles,
-    detallesSnapshot,
     detalleDialog,
     detalleHeaders,
     detallerowActions,

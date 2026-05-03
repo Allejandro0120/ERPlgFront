@@ -35,6 +35,7 @@ const ESTADO_COLORS = {
 // ─── Mapeo semántico para valores booleanos por dominio ───────────────────────
 const BOOLEAN_KEYS = {
   [DOMINIOS_ESTADO.SUCURSAL]: { true: 'habilitada', false: 'deshabilitada' },
+  [DOMINIOS_ESTADO.PRODCUTO_ACTA]: { true: 'aceptado', false: 'rechazado' },
 }
 
 /**

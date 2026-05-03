@@ -13,7 +13,7 @@ const PRODUCTO_PATCH_FIELDS = [
   'CantidadRecibida',
   'CantidadMuestra',
   'Aceptado',
-  'ObservacionesProducto',
+  'Observaciones',
 ]
 
 // CAMPOS DE DISPLAY (solo para mostrar, no van en payloads ni snapshots)
@@ -47,7 +47,7 @@ const PRODUCTO_DEFAULTS = {
   CantidadRecibida: 0,
   CantidadMuestra: 0,
   Aceptado: false,
-  ObservacionesProducto: '',
+  Observaciones: '',
 }
 
 export function useRecepcionDetalles({ isReadonly }) {
@@ -137,7 +137,7 @@ export function useRecepcionDetalles({ isReadonly }) {
       sortable: false,
     },
     { title: 'Estado', key: 'Aceptado', align: 'center', sortable: false },
-    { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
+    { title: 'Obs.', key: 'Observaciones', sortable: false },
   ])
 
   const detallerowActions = computed(() => [

@@ -26,6 +26,12 @@ export const rules = {
     (getter, message = 'El valor debe ser diferente') =>
     (v) =>
       v !== getter() || message,
+  numeric: (v) => {
+    if (v === null || v === undefined || v === '') {
+      return true
+    }
+    return /^\d+$/.test(String(v)) || 'Solo se permiten valores numéricos'
+  },
   matchesWith:
     (getter, message = 'Los valores no coinciden') =>
     (v) =>
