@@ -208,6 +208,28 @@ export function useInfraestructuraCascade({
     }
   }
 
+  function resetInfraestructuraState({ clearSelections = true } = {}) {
+    bodegas.value = []
+    zonas.value = []
+    pasillos.value = []
+    estantes.value = []
+    loading.value = {
+      bodegas: false,
+      zonas: false,
+      pasillos: false,
+      estantes: false,
+    }
+
+    if (!clearSelections) {
+      return
+    }
+    ui.value[cascadeKeys.idCedi] = null
+    ui.value[cascadeKeys.idBodega] = null
+    ui.value[cascadeKeys.idZona] = null
+    ui.value[cascadeKeys.idPasillo] = null
+    form.value[cascadeKeys.idEstante] = null
+  }
+
   return {
     bodegas,
     zonas,
@@ -220,5 +242,6 @@ export function useInfraestructuraCascade({
     onPasilloChange,
     preloadInfraestructura,
     setInfraestructuraLectura,
+    resetInfraestructuraState,
   }
 }

@@ -8,8 +8,8 @@
     :model-value="modelValue"
     :show-actions="!isReadonly"
     :title="dialogTitle"
-    @accept="emitSubmit"
-    @update:model-value="onClose"
+    @accept="submitForm"
+    @update:model-value="onRequestClose"
   >
     <template #content>
       <v-form ref="formRef">
@@ -38,7 +38,13 @@
           </v-tabs-window-item>
 
           <v-tabs-window-item eager value="detalle">
-            <recepcion-detalle-tab :detalle-headers="detalleHeaders" :form="form" />
+            <recepcion-detalle-tab
+              :detalles="detalles"
+              :headers="detalleHeaders"
+              :is-readonly="isReadonly"
+              :row-actions="detallerowActions"
+              @add="abrirAgregarDetalle"
+            />
           </v-tabs-window-item>
         </v-tabs-window>
       </v-form>
@@ -51,8 +57,10 @@
   import { infraestructuraService } from '@/api/services/infraestructuraService'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
+  import { $confirm } from '@/plugins/confirm/confirm'
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
+  import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
   // colors handled inside tabs
   import { useRecepcionCatalogos } from '../composables/useRecepcionCatalogos'
@@ -77,33 +85,38 @@
   const isEditing = computed(() => props.mode === 'edit')
   const isCreating = computed(() => props.mode === 'create')
 
-  const formRef = ref(null)
-  const ui = ref({ tab: 'info' })
+  const actaDisplayName = computed(() => {
+    const nombre = props.acta?.Acta
+    if (nombre) return nombre
+    return ''
+  })
+  const dialogTitle = computed(() => {
+    const baseTitle =
+      {
+        create: 'Crear Acta',
+        edit: 'Editar Acta',
+        view: 'Detalle del Acta',
+      }[props.mode] || 'Acta'
 
-  function formInitial() {
-    return {
-      IdActa: null,
-      NroActa: '',
-      Acta: '',
-      IdProveedor: null,
-      NombreProveedor: '',
-      Observaciones: '',
-      PrefijoFacturaRecibida: '',
-      NumeroFacturaRecibida: '',
-      FechaFacturaRecibida: '',
-      FechaActa: '',
-      EstadoActa: 'Borrador',
-      IdEstado: null,
-      IdCedi: null,
-      IdBodega: null,
-      Detalles: [],
+    if (props.mode === 'create' || !actaDisplayName.value) {
+      return baseTitle
     }
-  }
 
-  const form = reactive(formInitial())
-  const formSnapshot = ref(null)
+    return `${baseTitle}: ${actaDisplayName.value}`
+  })
+  const dialogIcon = computed(
+    () =>
+      ({
+        create: 'mdi-file-plus',
+        edit: 'mdi-file-edit',
+        view: 'mdi-file-eye',
+      })[props.mode],
+  )
+  const labelConfirm = computed(
+    () => ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
+  )
 
-  // Composables
+  const formRef = ref(null)
   const {
     estadosCatalogo,
     proveedores,
@@ -114,10 +127,52 @@
   } = useRecepcionCatalogos()
 
   const {
+    detalles,
+    detallesSnapshot,
+    detalleDialog,
+    detalleHeaders,
+    detallerowActions,
+    abrirAgregarDetalle,
+    onDetalleSubmit,
+    hydrateDetalles,
+    setDetallesSnapshot,
+    resetDetalles,
+    hasDetallesChanges,
+    getDetallesChanges,
+  } = useRecepcionDetalles({ isReadonly })
+
+  const formInitial = {
+    IdActa: null,
+    NroActa: '',
+    Acta: '',
+    IdProveedor: null,
+    NombreProveedor: '',
+    Observaciones: '',
+    PrefijoFacturaRecibida: '',
+    NumeroFacturaRecibida: '',
+    FechaFacturaRecibida: '',
+    FechaActa: '',
+    EstadoActa: 'Borrador',
+    IdEstado: null,
+    IdCedi: null,
+    IdBodega: null,
+    Detalles: [],
+  }
+
+  const uiInitial = {
+    tab: 'info',
+  }
+  const form = ref({ ...formInitial })
+  const ui = reactive({ ...uiInitial })
+  const formSnapshot = ref(null)
+
+  // cascada infraestructura
+  const {
     bodegas: bodegasCascada,
     onCediChange,
     preloadInfraestructura,
     setInfraestructuraLectura,
+    resetInfraestructuraState,
   } = useInfraestructuraCascade({
     ui,
     form: ref(form),
@@ -128,81 +183,44 @@
     },
   })
 
-  const {
-    detalles,
-    detallesSnapshot,
-    hydrateDetalles,
-    setDetallesSnapshot,
-    resetDetalles,
-    hasDetallesChanges,
-    getDetallesChanges,
-  } = useRecepcionDetalles()
-
-  const detalleHeaders = [
-    { title: 'Producto', key: 'CodigoProducto', sortable: false },
-    { title: 'Lote', key: 'CodLote', sortable: false },
-    {
-      title: 'Facturado',
-      key: 'CantidadFacturada',
-      align: 'center',
-      sortable: false,
-    },
-    {
-      title: 'Recibido',
-      key: 'CantidadRecibida',
-      align: 'center',
-      sortable: false,
-    },
-    {
-      title: 'Muestra',
-      key: 'CantidadMuestra',
-      align: 'center',
-      sortable: false,
-    },
-    { title: 'Estado', key: 'Aceptado', align: 'center', sortable: false },
-    { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
-  ]
-  const _DetallerowActions = [
-    {
-      label: 'Ver detalle',
-      icon: '$eye',
-      color: 'blue-darken-3',
-      action: (item) => verDetalle(item),
-    },
-    {
-      label: 'Editar',
-      icon: '$pencil',
-      color: 'purple-darken-3',
-      action: (item) => editarCliente(item),
-    },
-  ]
-
-  const dialogTitle = computed(
-    () => ({ create: 'Crear Acta', edit: 'Editar Acta', view: 'Detalle del Acta' })[props.mode],
-  )
-  const dialogIcon = computed(
-    () => ({ create: 'mdi-file-plus', edit: 'mdi-file-edit', view: 'mdi-file-eye' })[props.mode],
-  )
-  const labelConfirm = computed(
-    () => ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
-  )
-
-  const disableConfirm = computed(() => isEditing.value && !hasChanges.value)
-
   const hasChanges = computed(() => {
-    const formChanged = formSnapshot.value ? hasObjectChanges(form, formSnapshot.value) : false
+    if (!formSnapshot.value) return false
+    const formChanged = hasObjectChanges(form.value, formSnapshot.value)
     const detallesChanged = hasDetallesChanges()
     return formChanged || detallesChanged
   })
 
-  async function precargarActa(acta) {
-    if (!acta) {
-      Object.assign(form, formInitial())
-      resetDetalles()
-      formSnapshot.value = null
-      return
-    }
+  const { onRequestClose } = useConfirmRequestClose({
+    emit,
+    isReadonly,
+    hasChanges,
+    confirmClose: (options) => $confirm.warning(options),
+  })
 
+  const disableConfirm = computed(() => isEditing.value && !hasChanges.value)
+
+  const campoATab = {
+    IdProveedor: 'info',
+    IdCedi: 'info',
+    IdBodega: 'info',
+    PrefijoFacturaRecibida: 'info',
+    NumeroFacturaRecibida: 'info',
+    FechaFacturaRecibida: 'info',
+    FechaActa: 'info',
+    Observaciones: 'info',
+  }
+
+  const tabErrors = computed(() => {
+    const result = { info: false }
+    if (!formRef.value) return result
+    for (const { id } of formRef.value.errors ?? []) {
+      const tab = campoATab[id]
+      if (tab) result[tab] = true
+    }
+    return result
+  })
+
+  async function precargarActa(acta) {
     if (isReadonly.value) {
       setInfraestructuraLectura(acta)
     } else {
@@ -213,94 +231,102 @@
       })
     }
 
-    form.IdActa = acta.IdActa
-    form.Acta = acta.Acta
-    form.NroActa = acta.Acta
-    form.PrefijoFacturaRecibida = acta.PrefijoFacturaRecibida
-    form.NumeroFacturaRecibida = acta.NumeroFacturaRecibida
-    form.FechaFacturaRecibida = acta.FechaFacturaRecibida
-    form.FechaActa = acta.FechaActa
-    form.Observaciones = acta.Observaciones
-    form.IdEstado = acta.IdEstado
-    form.IdProveedor = acta.IdProveedor
-    form.IdCedi = acta.IdCedi
-    form.IdBodega = acta.IdBodega
+    form.value.IdActa = acta.IdActa
+    form.value.Acta = acta.Acta
+    form.value.NroActa = acta.Acta
+    form.value.PrefijoFacturaRecibida = acta.PrefijoFacturaRecibida
+    form.value.NumeroFacturaRecibida = acta.NumeroFacturaRecibida
+    form.value.FechaFacturaRecibida = acta.FechaFacturaRecibida
+    form.value.FechaActa = acta.FechaActa
+    form.value.Observaciones = acta.Observaciones
+    form.value.IdEstado = acta.IdEstado
+    form.value.IdProveedor = acta.IdProveedor
+    form.value.IdCedi = acta.IdCedi
+    form.value.IdBodega = acta.IdBodega
 
     // Detalles: composable maneja locales y snapshot
     hydrateDetalles(acta.detalles || [])
-    // Vincular la referencia de detalles con el form para compatibilidad con tabs existentes
-    form.Detalles = detalles.value
 
     // Snapshots
-    formSnapshot.value = { ...form }
-    setDetallesSnapshot(detallesSnapshot.value || [])
+    formSnapshot.value = { ...form.value }
+  }
+
+  function resetForm() {
+    form.value = { ...formInitial }
+    ui.value = { ...uiInitial }
+    resetInfraestructuraState()
+    resetDetalles()
+    formSnapshot.value = null
+    formRef.value?.resetValidation()
+  }
+
+  async function inicializarModoLectura() {
+    setCatalogosLectura(props.acta)
+    await precargarActa(props.acta)
+  }
+  async function inicializarModoEdicion() {
+    const { ok } = await cargarCatalogos()
+    if (!ok) {
+      $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
+    }
+    await precargarActa(props.acta)
+  }
+
+  async function inicializarModoCreacion() {
+    const { ok } = await cargarCatalogos()
+    if (!ok) {
+      $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
+    }
+    formSnapshot.value = { ...form.value }
+    setDetallesSnapshot([])
   }
 
   watch(
     () => props.modelValue,
-    async (_isOpen) => {
-      // if (!isOpen) {
-      //   resetForm()
-      //   return
-      // }
-
+    async (isOpen) => {
+      if (!isOpen) {
+        resetForm()
+        return
+      }
       $loading.show()
       try {
-        if (isReadonly.value && props.acta) {
-          setCatalogosLectura(props.acta)
-          await precargarActa(props.acta)
-        } else {
-          const catalogResult = await cargarCatalogos()
-          if (!catalogResult.ok) {
-            $toast.warning(
-              'Algunos catálogos no se cargaron. Puedes continuar, pero revisa los campos de selección.',
-            )
-          }
-          if (props.acta && !isCreating.value) {
-            await precargarActa(props.acta)
-          } else {
-            formSnapshot.value = { ...form.value }
-            setDetallesSnapshot([])
-          }
-        }
+        if (isReadonly.value && props.acta) await inicializarModoLectura()
+        else if (isCreating.value) await inicializarModoCreacion()
+        else await inicializarModoEdicion()
       } catch (error) {
-        console.error('Error al cargar datos:', error)
+        console.error('Error al inicializar diálogo:', error)
       } finally {
         $loading.hide()
       }
     },
   )
-  function onClose(value) {
-    emit('update:modelValue', value)
-  }
+  async function submitForm() {
+    const { valid } = await formRef.value.validate()
 
-  async function emitSubmit() {
-    const { valid } = (await formRef.value?.validate?.()) ?? { valid: true }
-    if (!valid) return
-
-    let payload = {}
-    if (isCreating.value) {
-      // crear: enviar form completo + detalles como array
-      payload = {
-        ...form,
-        Detalles: (detalles.value || []).map((d) => ({
-          CodigoProducto: d.CodigoProducto,
-          CodLote: d.CodLote,
-          CantidadFacturada: d.CantidadFacturada,
-          CantidadRecibida: d.CantidadRecibida,
-          CantidadMuestra: d.CantidadMuestra,
-          Aceptado: d.Aceptado,
-        })),
-      }
-    } else {
-      // editar: armar patch del form + payload de detalles (eliminados/upserts)
-      const formPatch = getChangedFields(form, formSnapshot.value) || {}
-      const detallesPayload = getDetallesChanges()
-      payload = { ...formPatch }
-      if (detallesPayload) payload.Detalles = detallesPayload
+    if (!valid) {
+      const primerTabConError = Object.keys(tabErrors.value).find((k) => tabErrors.value[k])
+      if (primerTabConError) ui.value.tab = primerTabConError
+      $toast.error('Por favor corrige los errores en los campos marcados')
+      return
     }
 
-    emit('submit', payload)
+    const confirmado = await $confirm.confirm({
+      title: isCreating.value ? '¿Crear Acta?' : '¿Guardar cambios?',
+      message: isCreating.value
+        ? 'Se registrará una nueva acta con los datos ingresados.'
+        : `Se actualizará la información de <strong>${form.value.Acta}</strong>.`,
+      labelConfirm: isCreating.value ? 'Sí, crear' : 'Sí, guardar',
+      labelCancel: 'Cancelar',
+    })
+    if (!confirmado) return
+
+    const changes = getChangedFields(form.value, formSnapshot.value)
+    const detalleCambios = getDetallesChanges()
+    if (detalleCambios.length > 0) {
+      changes.detalles = detalleCambios
+    }
+
+    emit('submit', { payload: changes, mode: props.mode })
   }
 
   // estado/color handled in tabs
