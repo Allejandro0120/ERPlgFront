@@ -20,6 +20,7 @@ export function useInfraestructuraCascade({
     idZona: 'IdZona',
     idPasillo: 'IdPasillo',
     idEstante: 'IdEstante',
+    idUbicacion: 'IdUbicacion',
   },
   autoSelect = true,
   onError,
@@ -30,12 +31,14 @@ export function useInfraestructuraCascade({
   const zonas = ref([])
   const pasillos = ref([])
   const estantes = ref([])
+  const ubicaciones = ref([])
 
   const loading = ref({
     bodegas: false,
     zonas: false,
     pasillos: false,
     estantes: false,
+    ubicaciones: false,
   })
 
   const handleError = (error, stage) => {
@@ -117,11 +120,32 @@ export function useInfraestructuraCascade({
       estantes.value = extractData(resp)
       if (autoSelect && estantes.value.length === 1) {
         form.value[cascadeKeys.idEstante] = estantes.value[0].IdEstante
+        await onEstanteChange(estantes.value[0].IdEstante)
       }
     } catch (error) {
       handleError(error, 'estantes')
     } finally {
       loading.value.estantes = false
+    }
+  }
+
+  async function loadUbicaciones(idEstante) {
+    ubicaciones.value = []
+    if (!idEstante) {
+      return
+    }
+    loading.value.ubicaciones = true
+    try {
+      const resp = await services.getUbicacionByEstante(idEstante)
+      const data = extractData(resp)
+      ubicaciones.value = Array.isArray(data) ? data : [data]
+      if (autoSelect && ubicaciones.value.length === 1) {
+        form.value[cascadeKeys.idUbicacion] = ubicaciones.value[0].IdUbicacion
+      }
+    } catch (error) {
+      handleError(error, 'ubicaciones')
+    } finally {
+      loading.value.ubicaciones = false
     }
   }
 
@@ -132,9 +156,11 @@ export function useInfraestructuraCascade({
     form.value[cascadeKeys.idZona] = null
     form.value[cascadeKeys.idPasillo] = null
     form.value[cascadeKeys.idEstante] = null
+    form.value[cascadeKeys.idUbicacion] = null
     zonas.value = []
     pasillos.value = []
     estantes.value = []
+    ubicaciones.value = []
     await loadBodegas(idCedi)
   }
 
@@ -142,21 +168,42 @@ export function useInfraestructuraCascade({
     ui.value[cascadeKeys.idZona] = null
     form.value[cascadeKeys.idPasillo] = null
     form.value[cascadeKeys.idEstante] = null
+    form.value[cascadeKeys.idUbicacion] = null
     pasillos.value = []
     estantes.value = []
+    ubicaciones.value = []
     await loadZonas(idBodega)
   }
 
   async function onZonaChange(idZona) {
     ui.value[cascadeKeys.idPasillo] = null
     form.value[cascadeKeys.idEstante] = null
+    form.value[cascadeKeys.idUbicacion] = null
     estantes.value = []
+    ubicaciones.value = []
     await loadPasillos(idZona)
   }
 
   async function onPasilloChange(idPasillo) {
     ui.value[cascadeKeys.idEstante] = null
+    form.value[cascadeKeys.idUbicacion] = null
+    estantes.value = []
+    ubicaciones.value = []
     await loadEstantes(idPasillo)
+  }
+
+  async function onEstanteChange(idEstante) {
+    const previousUbicacion = form.value[cascadeKeys.idUbicacion]
+    ui.value[cascadeKeys.idEstante] = idEstante
+    form.value[cascadeKeys.idUbicacion] = null
+    await loadUbicaciones(idEstante)
+
+    if (
+      previousUbicacion &&
+      ubicaciones.value.some((item) => item.IdUbicacion === previousUbicacion)
+    ) {
+      form.value[cascadeKeys.idUbicacion] = previousUbicacion
+    }
   }
 
   async function preloadInfraestructura({ idCedi = null, idBodega = null } = {}) {
@@ -177,12 +224,15 @@ export function useInfraestructuraCascade({
     const nomPasillo = data.NombrePasillo
     const idEstante = data.IdEstante
     const nomEstante = data.NombreEstante
+    const idUbicacion = data.IdUbicacion
+    const nomUbicacion = data.NombreUbicacion
 
     if (ui.value) {
       ui.value[cascadeKeys.idCedi] = idCedi
       ui.value[cascadeKeys.idBodega] = idBodega
       ui.value[cascadeKeys.idZona] = idZona
       ui.value[cascadeKeys.idPasillo] = idPasillo
+      ui.value[cascadeKeys.idEstante] = idEstante
     }
 
     form.value[cascadeKeys.idCedi] = idCedi
@@ -190,6 +240,7 @@ export function useInfraestructuraCascade({
     form.value[cascadeKeys.idZona] = idZona
     form.value[cascadeKeys.idPasillo] = idPasillo
     form.value[cascadeKeys.idEstante] = idEstante
+    form.value[cascadeKeys.idUbicacion] = idUbicacion
 
     if (idCedi && nomCedi) {
       // In Reception we might only need these, the select takes the array
@@ -206,6 +257,36 @@ export function useInfraestructuraCascade({
     if (idEstante && nomEstante) {
       estantes.value = [{ IdEstante: idEstante, NombreEstante: nomEstante }]
     }
+    if (idUbicacion && nomUbicacion) {
+      ubicaciones.value = [{ IdUbicacion: idUbicacion, NombreUbicacion: nomUbicacion }]
+    }
+  }
+
+  function resetInfraestructuraState({ clearSelections = true } = {}) {
+    bodegas.value = []
+    zonas.value = []
+    pasillos.value = []
+    estantes.value = []
+    ubicaciones.value = []
+    loading.value = {
+      bodegas: false,
+      zonas: false,
+      pasillos: false,
+      estantes: false,
+      ubicaciones: false,
+    }
+
+    if (!clearSelections) {
+      return
+    }
+    ui.value[cascadeKeys.idCedi] = null
+    ui.value[cascadeKeys.idBodega] = null
+    ui.value[cascadeKeys.idZona] = null
+    ui.value[cascadeKeys.idPasillo] = null
+    ui.value[cascadeKeys.idEstante] = null
+    ui.value[cascadeKeys.idUbicacion] = null
+    form.value[cascadeKeys.idEstante] = null
+    form.value[cascadeKeys.idUbicacion] = null
   }
 
   return {
@@ -213,12 +294,15 @@ export function useInfraestructuraCascade({
     zonas,
     pasillos,
     estantes,
+    ubicaciones,
     loading,
     onCediChange,
     onBodegaChange,
     onZonaChange,
     onPasilloChange,
+    onEstanteChange,
     preloadInfraestructura,
     setInfraestructuraLectura,
+    resetInfraestructuraState,
   }
 }

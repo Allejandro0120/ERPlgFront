@@ -82,7 +82,7 @@
 <script setup>
   import { onMounted, ref } from 'vue'
   import { clienteService } from '@/api/services/clienteService'
-  import ClienteDialog from '@/modules/cartera/components/ClienteDialog.vue'
+  import ClienteDialog from '@/modules/cartera/components/cliente/ClienteDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import BaseTable from '@/shared/ui/BaseTable.vue'

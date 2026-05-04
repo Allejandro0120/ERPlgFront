@@ -41,7 +41,7 @@
             @update:model-value="onFilterChange"
           />
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="5">
           <date-range-filter
             v-model="dateRange"
             preset-value="30days"
@@ -78,7 +78,7 @@
 <script setup>
   import { onMounted, ref } from 'vue'
   import { recepcionService } from '@/api/services/recepcionService'
-  import RecepcionDialog from '@/modules/mercancia/components/RecepcionDialog.vue'
+  import RecepcionDialog from '@/modules/mercancia/components/recepcion/RecepcionDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import BaseTable from '@/shared/ui/BaseTable.vue'

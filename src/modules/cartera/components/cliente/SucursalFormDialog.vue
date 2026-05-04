@@ -215,7 +215,6 @@
 
   // ─── Estado ───────────────────────────────────────────────────────────────────
   const formRef = ref(null)
-  const _loadingPrecarga = ref(false)
 
   const opcionesEstado = computed(() =>
     [

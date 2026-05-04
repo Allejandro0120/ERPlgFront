@@ -13,7 +13,6 @@
       <v-select
         id="Estado"
         v-model="form.IdEstado"
-        density="compact"
         item-title="Nombre"
         item-value="IdEstado"
         :items="estadosConColor"

@@ -3,10 +3,10 @@
     <div class="text-subtitle-1 font-weight-bold mb-3">Detalle</div>
     <base-table-local
       class="rounded-lg border"
-      :headers="detalleHeaders"
-      item-key="IdProducto"
-      :items="form.Detalles"
+      :headers="headers"
+      :items="detalles"
       :loading="false"
+      :row-actions="rowActions"
       :searchable="false"
     >
       <template #item.Aceptado="{ item }">
@@ -18,6 +18,11 @@
           {{ estadoProductoLabel(item.Aceptado) }}
         </v-chip>
       </template>
+      <template #item.Observaciones="{ item }">
+        <div class="text-body-2 text-truncate" style="max-width: 240px">
+          {{ item.Observaciones || '—' }}
+        </div>
+      </template>
     </base-table-local>
   </div>
 </template>
@@ -26,9 +31,11 @@
   import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
-  const { form, detalleHeaders } = defineProps({
-    form: { type: Object, required: true },
-    detalleHeaders: { type: Array, default: () => [] },
+  const { detalles, headers, rowActions, isReadonly } = defineProps({
+    detalles: { type: Array, default: () => [] },
+    headers: { type: Array, default: () => [] },
+    rowActions: { type: Array, default: () => [] },
+    isReadonly: { type: Boolean, default: false },
   })
 
   const estadoProductoLabel = (aceptado) => (aceptado ? 'Aceptado' : 'Rechazado')
