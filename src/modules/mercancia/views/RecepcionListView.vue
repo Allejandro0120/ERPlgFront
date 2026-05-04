@@ -140,7 +140,14 @@
       color: 'purple-darken-3',
       action: (item) => abrirDialog('edit', item),
     },
+    {
+      label: 'Descargar PDF',
+      icon: '$pdf',
+      color: 'red-darken-3',
+      action: (item) => descargarPdf(item),
+    },
   ]
+
   const estados = ref([])
   const estadoSeleccionado = ref(null)
   const dateRange = ref({ start: null, end: null })
@@ -250,6 +257,37 @@
     } catch (error) {
       if (!error._toastShown) {
         $toast.error('Error inesperado al cargar el acta')
+      }
+    } finally {
+      $loading.hide()
+    }
+  }
+
+  async function descargarPdf(item) {
+    $loading.show()
+    try {
+      const res = await recepcionService.getRecepcionPDF(item.IdActa)
+      if (res && res.data) {
+        const blob = new Blob([res.data], { type: 'application/pdf' })
+        if (blob.size > 0) {
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.style.display = 'none'
+          link.href = url
+          link.download = `Acta_Recepcion_${item.Acta}.pdf`
+          document.body.appendChild(link)
+          link.click()
+          window.URL.revokeObjectURL(url) // Revoke the object URL after download
+          document.body.removeChild(link)
+        } else {
+          $toast.error('El archivo PDF está vacío.')
+        }
+      } else {
+        $toast.error('No se pudo generar el PDF.')
+      }
+    } catch (error) {
+      if (!error._toastShown) {
+        $toast.error('Error inesperado al descargar el PDF')
       }
     } finally {
       $loading.hide()

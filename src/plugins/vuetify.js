@@ -35,6 +35,7 @@ export default createVuetify({
       info: 'mdi-information-outline',
       help: 'mdi-help-circle-outline',
       alert: 'mdi-alert-circle-outline',
+      pdf: 'mdi-file-pdf-box',
     },
     sets: { mdi },
   },

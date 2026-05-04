@@ -46,4 +46,10 @@ export const recepcionService = {
    * @param {*} id  - ID del detalle de la recepción
    */
   getDetalleRecepcionById: (id) => api.get(`v1/reception/reports/unique/details/${id}`),
+
+  /**
+   * Obtiene los detalles de un producto específico dentro de una recepción por su ID para obtener la data correspondiente a la generacion del pdf
+   * @param {*} id  - ID del detalle de la recepción
+   */
+  getRecepcionPDF: (id) => api.get(`v1/reception/reports/pdf/${id}`, { responseType: 'blob' }),
 }
