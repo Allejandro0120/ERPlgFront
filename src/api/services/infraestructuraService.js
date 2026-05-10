@@ -30,7 +30,7 @@ export const infraestructuraService = {
    * @param {*} IdZone  Id de la zona
    */
   getPasillosByZona: (IdZone) =>
-    withCache(`zona_${IdZone}_pasillos`, () => api.get(`infraestructure/zones/${IdZone}/aisles`)),
+    withCache(`zona_${IdZone}_pasillos`, () => api.get(`v1/infraestructure/zones/${IdZone}/aisles`)),
 
   /**
    *  Obtiene la lista de estantes asociadas a un pasillo
@@ -38,7 +38,7 @@ export const infraestructuraService = {
    */
   getEstantesByPasillo: (IdPasillo) =>
     withCache(`pasillo_${IdPasillo}_estantes`, () =>
-      api.get(`infraestructure/aisles/${IdPasillo}/shelves`),
+      api.get(`v1/infraestructure/aisles/${IdPasillo}/shelves`),
     ),
 
   /**
@@ -47,6 +47,6 @@ export const infraestructuraService = {
    */
   getUbicacionByEstante: (IdEstante) =>
     withCache(`estante_${IdEstante}_ubicacion`, () =>
-      api.get(`infraestructure/shelves/${IdEstante}/location`),
+      api.get(`v1/infraestructure/shelves/${IdEstante}/locations`),
     ),
 }

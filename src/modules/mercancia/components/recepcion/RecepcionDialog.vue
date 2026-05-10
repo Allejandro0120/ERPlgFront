@@ -169,7 +169,7 @@
     tab: 'info',
   }
   const form = ref({ ...formInitial })
-  const ui = reactive({ ...uiInitial })
+  const ui = ref({ ...uiInitial })
   const formSnapshot = ref(null)
 
   // cascada infraestructura
@@ -181,7 +181,7 @@
     resetInfraestructuraState,
   } = useInfraestructuraCascade({
     ui,
-    form: ref(form),
+    form,
     services: infraestructuraService,
     keys: {
       idCedi: 'IdCedi',
@@ -275,6 +275,7 @@
     if (!ok) {
       $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
     }
+    setCatalogosLectura(props.acta)
     await precargarActa(props.acta)
   }
 

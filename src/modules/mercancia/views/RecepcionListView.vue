@@ -138,7 +138,7 @@
       label: 'Editar',
       icon: '$pencil',
       color: 'purple-darken-3',
-      action: (item) => abrirDialog('edit', item),
+      action: (item) => editarActa(item),
     },
     {
       label: 'Descargar PDF',
@@ -253,6 +253,22 @@
       const res = await recepcionService.getRecepcionById(item.IdActa)
       if (res.data?.success) {
         dialog.value = { open: true, mode: 'view', acta: res.data.data }
+      }
+    } catch (error) {
+      if (!error._toastShown) {
+        $toast.error('Error inesperado al cargar el acta')
+      }
+    } finally {
+      $loading.hide()
+    }
+  }
+
+  async function editarActa(item) {
+    $loading.show()
+    try {
+      const res = await recepcionService.getRecepcionById(item.IdActa)
+      if (res.data?.success) {
+        dialog.value = { open: true, mode: 'edit', acta: res.data.data }
       }
     } catch (error) {
       if (!error._toastShown) {

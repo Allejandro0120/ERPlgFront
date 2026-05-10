@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { proveedorService } from '@/api/services/proveedorService'
 import { recepcionService } from '@/api/services/recepcionService'
+import { infraestructuraService } from '@/api/services/infraestructuraService'
 
 export function useRecepcionCatalogos() {
   const estadosCatalogo = ref([])
@@ -40,7 +41,7 @@ export function useRecepcionCatalogos() {
     }
 
     if (acta.IdBodega) {
-      bodegas.value = [{ IdBodega: acta.IdBodega, Nombre: acta.NombreBodega }]
+      bodegas.value = [{ IdBodega: acta.IdBodega, NombreBodega: acta.NombreBodega }]
     }
   }
 
@@ -55,6 +56,11 @@ export function useRecepcionCatalogos() {
         key: 'proveedores',
         run: cargarProveedores,
         fallback: () => (proveedores.value = []),
+      },
+      {
+        key: 'cedis',
+        run: cargarCedis,
+        fallback: () => (cedis.value = []),
       },
     ]
     const results = await Promise.allSettled(jobs.map((job) => job.run()))
@@ -92,6 +98,19 @@ export function useRecepcionCatalogos() {
       estadosCatalogo.value = res.data?.success ? res.data.data || [] : []
     } catch {
       estadosCatalogo.value = []
+    }
+  }
+
+  const cargarCedis = async () => {
+    try {
+      const res = await infraestructuraService.getCedis()
+      const raw = res.data?.success ? res.data.data || [] : []
+      cedis.value = raw.map((item) => ({
+        IdCedi: item.IdCedi ?? item.IdDistributionCenter ?? item.IdDistribucion ?? item.id,
+        Nombre: item.Nombre ?? item.Name ?? item.NombreCedi ?? item.name,
+      }))
+    } catch {
+      cedis.value = []
     }
   }
 
