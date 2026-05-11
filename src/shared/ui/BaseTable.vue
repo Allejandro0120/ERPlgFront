@@ -23,6 +23,12 @@
         <v-col v-if="searchable" cols="12" sm="6" md="4" lg="3">
           <v-text-field
             v-model="searchQuery"
+            aria-label="Buscar"
+            clearable
+            density="compact"
+            :disabled="loading"
+            hide-details
+            name="searchQuery"
             :placeholder="searchPlaceholder"
             prepend-inner-icon="$search"
             density="compact"
@@ -114,8 +120,10 @@
     <v-data-table-server
       v-bind="$attrs"
       :headers="computedHeaders"
+      hover
       :items="filteredItems"
       :items-length="searchQuery.trim() ? filteredItems.length : totalItems"
+      :items-per-page="tableOptions.itemsPerPage"
       :loading="loading"
       :loading-text="loadingText"
       :items-per-page="tableOptions.itemsPerPage"
@@ -440,53 +448,49 @@ const appliedSearch = ref(""); // término que se mandó a la API
 const mobileSortKey = ref(null);
 const mobileSortOrder = ref("asc");
 
-// Resetear a página 1 cuando cambia la búsqueda en tiempo real
-watch(
-  () => searchQuery.value.trim(),
-  (newQuery, oldQuery) => {
-    if (newQuery !== oldQuery && tableOptions.value.page !== 1) {
-      tableOptions.value = { ...tableOptions.value, page: 1 };
-    }
-  },
-);
+  // Resetear a página 1 cuando cambia la búsqueda en tiempo real
+  watch(
+    () => searchQuery.value.trim(),
+    (newQuery, oldQuery) => {
+      if (newQuery !== oldQuery && tableOptions.value.page !== 1) {
+        tableOptions.value = { ...tableOptions.value, page: 1 }
+      }
+    },
+  )
 
-// ── Filtro local optimizado: solo campos "searchable" ───────────────────────
-const filteredItems = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase();
-  if (!q) return props.items;
+  // ── Filtro local optimizado: solo campos "searchable" ───────────────────────
+  const filteredItems = computed(() => {
+    const q = searchQuery.value.trim().toLowerCase()
+    if (!q) return props.items
 
-  const keys = props.headers.filter((h) => h.searchable).map((h) => h.key);
+    const keys = props.headers.filter((h) => h.searchable).map((h) => h.key)
 
-  if (!keys.length) return props.items;
+    if (keys.length === 0) return props.items
 
-  return props.items.filter((item) =>
-    keys.some((key) =>
-      String(item[key] ?? "")
-        .toLowerCase()
-        .includes(q),
-    ),
-  );
-});
+    return props.items.filter((item) =>
+      keys.some((key) =>
+        String(item[key] ?? '')
+          .toLowerCase()
+          .includes(q),
+      ),
+    )
+  })
 
-// ── Paginación ────────────────────────────────────────────────────────────────
-const totalPages = computed(() => {
-  // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
-  const count = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems;
-  return Math.ceil(count / tableOptions.value.itemsPerPage) || 1;
-});
+  // ── Paginación ────────────────────────────────────────────────────────────────
+  const totalPages = computed(() => {
+    // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
+    const count = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems
+    return Math.ceil(count / tableOptions.value.itemsPerPage) || 1
+  })
 
-const paginationInfo = computed(() => {
-  // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
-  const totalCount = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems;
-  if (totalCount === 0) return "Sin registros";
-  const start =
-    (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1;
-  const end = Math.min(
-    tableOptions.value.page * tableOptions.value.itemsPerPage,
-    totalCount,
-  );
-  return `${start}–${end} de ${totalCount}`;
-});
+  const paginationInfo = computed(() => {
+    // Usar filteredItems si hay búsqueda local, sino totalItems del servidor
+    const totalCount = searchQuery.value.trim() ? filteredItems.value.length : props.totalItems
+    if (totalCount === 0) return 'Sin registros'
+    const start = (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1
+    const end = Math.min(tableOptions.value.page * tableOptions.value.itemsPerPage, totalCount)
+    return `${start}–${end} de ${totalCount}`
+  })
 
 const visiblePages = computed(() => {
   const total = totalPages.value;
@@ -546,14 +550,14 @@ function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
     return;
   }
 
-  if (props.loading) return; // ← bloquea si está cargando
+    if (props.loading) return // ← bloquea si está cargando
 
-  // Si hay búsqueda local, no hacer request al servidor
-  if (searchQuery.value.trim()) {
-    const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
-    tableOptions.value = { page, itemsPerPage, sortBy: newSortBy };
-    return;
-  }
+    // Si hay búsqueda local, no hacer request al servidor
+    if (searchQuery.value.trim()) {
+      const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy
+      tableOptions.value = { page, itemsPerPage, sortBy: newSortBy }
+      return
+    }
 
   const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy;
   const changed =
@@ -566,11 +570,11 @@ function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
   if (changed) emitLoad();
 }
 
-function onSearch() {
-  appliedSearch.value = searchQuery.value.trim(); // ← confirma el término
-  tableOptions.value = { ...tableOptions.value, page: 1 };
-  emitLoad();
-}
+  function onSearch() {
+    appliedSearch.value = searchQuery.value.trim() // ← confirma el término
+    tableOptions.value = { ...tableOptions.value, page: 1 }
+    emitLoad()
+  }
 
 function onClear() {
   searchQuery.value = "";

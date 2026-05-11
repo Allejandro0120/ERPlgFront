@@ -86,9 +86,11 @@ const router = useRouter();
 const route = useRoute();
 const { mobile } = useDisplay();
 
-const moduleTitle = computed(() => {
-  const moduleAlias = uiStore.activeModule || route.path.split("/")[1] || "";
-  if (!moduleAlias) return "Panel";
+  const moduleTitle = computed(() => {
+    // Tomamos el alias del módulo leyendo exclusivamente la ruta activa,
+    // así evitamos que cambie prematuramente al darle clic a otra opción en el sidebar sin cambiar de página.
+    const moduleAlias = route.path.split('/')[1] || ''
+    if (!moduleAlias) return 'Panel'
 
   const group = authStore.orderedMenu.find(
     (item) => getGroupAlias(item) === moduleAlias,
