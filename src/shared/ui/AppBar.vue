@@ -69,14 +69,18 @@
   const { mobile } = useDisplay()
 
   const moduleTitle = computed(() => {
-    const moduleAlias = uiStore.activeModule || route.path.split('/')[1] || ''
+    // Tomamos el alias del módulo leyendo exclusivamente la ruta activa,
+    // así evitamos que cambie prematuramente al darle clic a otra opción en el sidebar sin cambiar de página.
+    const moduleAlias = route.path.split('/')[1] || ''
     if (!moduleAlias) return 'Panel'
 
-    const group = authStore.orderedMenu.find((item) => getGroupAlias(item) === moduleAlias)
+  const group = authStore.orderedMenu.find(
+    (item) => getGroupAlias(item) === moduleAlias,
+  );
 
-    if (group?.Nombre) return group.Nombre
-    return moduleAlias.charAt(0).toUpperCase() + moduleAlias.slice(1)
-  })
+  if (group?.Nombre) return group.Nombre;
+  return moduleAlias.charAt(0).toUpperCase() + moduleAlias.slice(1);
+});
 
   const currentUser = computed(() => {
     const user = authStore.user
