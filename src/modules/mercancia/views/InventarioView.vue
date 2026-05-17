@@ -31,6 +31,9 @@
 
       <!-- Puedes añadir chips o formato para físicas, reservadas, etc. si lo necesitas -->
     </base-table>
+
+    <!-- Dialog de Historial de Movimientos -->
+    <historial-movimientos-dialog v-model="showMovimientosDialog" :product="selectedProduct" />
   </div>
 </template>
 
@@ -40,6 +43,7 @@
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
+  import HistorialMovimientosDialog from '../components/inventario/HistorialMovimientosDialog.vue'
 
   const tableRef = ref()
 
@@ -67,6 +71,14 @@
   const saldos = ref([])
   const totalItems = ref(0)
   const loadingTable = ref(false)
+
+  const showMovimientosDialog = ref(false)
+  const selectedProduct = ref(null)
+
+  const verDetalle = (item) => {
+    selectedProduct.value = item
+    showMovimientosDialog.value = true
+  }
 
   const formatearFecha = (fecha) => {
     return fecha ? formatDateTime(fecha) : 'N/A'

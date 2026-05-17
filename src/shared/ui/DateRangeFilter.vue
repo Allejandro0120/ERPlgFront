@@ -13,7 +13,7 @@
         />
       </v-col>
 
-      <v-col cols="6" sm="3">
+      <v-col cols="6" :sm="showPresetSelect ? 3 : 6">
         <v-menu
           v-model="menuStart"
           :close-on-content-click="false"
@@ -44,7 +44,7 @@
         </v-menu>
       </v-col>
 
-      <v-col cols="6" sm="3">
+      <v-col cols="6" :sm="showPresetSelect ? 3 : 6">
         <v-menu
           v-model="menuEnd"
           :close-on-content-click="false"

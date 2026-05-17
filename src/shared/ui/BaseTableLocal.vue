@@ -74,7 +74,7 @@
 
         <v-col class="d-flex ga-2" cols="12" sm="auto">
           <v-btn
-            v-if="searchable"
+            v-if="searchable || showSearchButton"
             class="text-none flex-1-1 flex-sm-0-0"
             color="primary"
             :disabled="loading"
@@ -354,6 +354,7 @@
     itemsPerPage: { type: Number, default: 10 },
     rowsPerPageOptions: { type: Array, default: () => [5, 10, 25, 50] },
     searchable: { type: Boolean, default: false },
+    showSearchButton: { type: Boolean, default: false },
     searchPlaceholder: { type: String, default: 'Buscar...' },
     rowActions: { type: Array, default: () => [] },
     actionsKey: { type: String, default: 'acciones' },

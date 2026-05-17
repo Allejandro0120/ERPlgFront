@@ -41,7 +41,7 @@
             @update:model-value="onFilterChange"
           />
         </v-col>
-        <v-col cols="12" md="5">
+        <v-col cols="12" md="4">
           <date-range-filter
             v-model="dateRange"
             preset-value="30days"
