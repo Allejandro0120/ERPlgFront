@@ -132,9 +132,8 @@
       <!-- Columna de acciones -->
       <template v-if="visibleRowActions.length > 0" #[`item.${actionsKey}`]="{ item }">
         <!-- Desktop: botones con tooltip -->
-        <!-- Desktop: botones con tooltip -->
         <div class="d-none d-md-flex align-center justify-center ga-2">
-          <template v-for="accion in visibleRowActions" :key="accion.label">
+          <template v-for="accion in getVisibleActions(item)" :key="accion.label">
             <v-tooltip
               :aria-label="accion.label"
               :disabled="accion.showLabel"
@@ -188,7 +187,7 @@
             </template>
             <v-list density="compact" elevation="8" min-width="160">
               <v-list-item
-                v-for="accion in visibleRowActions"
+                v-for="accion in getVisibleActions(item)"
                 :key="accion.label"
                 :base-color="accion.color ?? 'primary'"
                 :prepend-icon="accion.icon"
@@ -384,10 +383,20 @@
 
   const visibleRowActions = computed(() =>
     props.rowActions.filter(
-      (a) => isVisible(a) && (!a.permission || authStore.hasPermission(a.permission)),
+      (a) => a.visible !== false && (!a.permission || authStore.hasPermission(a.permission)),
     ),
   )
-
+  function getVisibleActions(item) {
+    return props.rowActions.filter((a) => {
+      const visible =
+        a.visible === undefined
+          ? true
+          : typeof a.visible === 'function'
+            ? a.visible(item)
+            : a.visible
+      return visible && (!a.permission || authStore.hasPermission(a.permission))
+    })
+  }
   const computedHeaders = computed(() => {
     const visibleHeaders = props.headers.filter((h) => isVisible(h))
     const hasActionsCol = visibleHeaders.some((h) => h.key === props.actionsKey)

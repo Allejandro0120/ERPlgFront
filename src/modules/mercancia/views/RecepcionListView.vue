@@ -139,6 +139,8 @@
       icon: '$pencil',
       color: 'purple-darken-3',
       action: (item) => editarActa(item),
+      visible: (item) => getEstadoNombre(item.IdEstadoActa) !== 'Cerrada',
+      
     },
     {
       label: 'Descargar PDF',

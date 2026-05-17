@@ -39,25 +39,14 @@
         </template>
       </v-select>
     </v-col>
-    <v-col cols="12" sm="4">
-      <template v-if="!isReadonly">
-        <v-text-field
-          v-model="form.FechaActa"
-          label="Fecha Acta"
-          prepend-inner-icon="mdi-calendar"
-          type="date"
-          variant="outlined"
-        />
-      </template>
-      <template v-else>
-        <v-text-field
-          v-model="fechaActaDisplay"
-          label="Fecha Acta"
-          prepend-inner-icon="mdi-calendar"
-          readonly
-          variant="outlined"
-        />
-      </template>
+    <v-col v-if="form.FechaActa" cols="12" sm="4">
+      <v-text-field
+        :model-value="fechaActaDisplay"
+        label="Fecha Acta"
+        prepend-inner-icon="mdi-calendar"
+        readonly
+        variant="outlined"
+      />
     </v-col>
     <v-col cols="12">
       <v-select
