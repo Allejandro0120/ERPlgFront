@@ -14,7 +14,10 @@
               {{ product?.NombreProducto || 'Producto' }}
             </span>
             <div class="d-flex align-center ga-2 mt-1">
-              <span v-if="product?.CodigoProducto" class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
+              <span
+                v-if="product?.CodigoProducto"
+                class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center"
+              >
                 <v-icon size="16" class="mr-1">mdi-barcode</v-icon>
                 {{ product.CodigoProducto }}
               </span>
