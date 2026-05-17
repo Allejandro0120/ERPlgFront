@@ -1,18 +1,28 @@
 <template>
   <div class="mt-2">
-    <div class="d-flex justify-end mb-3">
+    <!-- <div class="d-flex justify-end mb-3">
       <v-btn
         v-if="!isReadonly"
         color="primary"
         prepend-icon="$plus"
-        size="small"
+        variant="tonal"
+        @click="emit('add')"
+      >
+        Agregar sucursal
+      </v-btn>
+    </div> -->
+    <div class="d-flex align-center justify-space-between mb-3">
+       <div class="text-subtitle-1 font-weight-bold">Sucursales</div>
+      <v-btn
+        v-if="!isReadonly"
+        color="primary"
+        prepend-icon="$plus"
         variant="tonal"
         @click="emit('add')"
       >
         Agregar sucursal
       </v-btn>
     </div>
-
     <div
       v-if="sucursales.length === 0"
       class="d-flex flex-column align-center justify-center py-12 rounded-lg"
@@ -27,6 +37,7 @@
 
     <base-table-local
       v-else
+       class="rounded-lg border"
       empty-text="Sin sucursales registradas"
       :headers="headers"
       :items="sucursales.map((s, idx) => ({ ...s, indice: idx + 1 }))"

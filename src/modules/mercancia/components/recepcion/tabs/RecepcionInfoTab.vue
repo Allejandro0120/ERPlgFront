@@ -24,7 +24,7 @@
       >
         <template #selection="{ item }">
           <v-chip class="estado-chip" :color="item.color" label variant="tonal">
-            <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
+            <v-icon class="ml-1" :color="item.color" icon="mdi-tag" size="14" start />
             {{ item.Nombre }}
           </v-chip>
         </template>
@@ -32,7 +32,7 @@
         <template #item="{ item, props: itemProps }">
           <v-list-item v-bind="itemProps" title="">
             <v-chip :color="item.color" label variant="tonal">
-              <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
+              <v-icon class="ml-1" :color="item.color" icon="mdi-tag" size="14" start />
               {{ item.Nombre }}
             </v-chip>
           </v-list-item>
