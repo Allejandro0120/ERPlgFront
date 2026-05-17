@@ -36,6 +36,7 @@ export default createVuetify({
       help: 'mdi-help-circle-outline',
       alert: 'mdi-alert-circle-outline',
       pdf: 'mdi-file-pdf-box',
+      history: 'mdi-clipboard-text-clock-outline',
     },
     sets: { mdi },
   },
