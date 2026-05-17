@@ -39,8 +39,9 @@
               :estados-catalogo="estadosCatalogo"
               :form="form"
               :is-readonly="isReadonly"
+              :permisos="permisos"
               :proveedores="proveedores"
-              @cedi-change="onCediChange"
+              @cedi-change="onCediChangeBorrador"
             />
           </v-tabs-window-item>
 
@@ -49,6 +50,7 @@
               :detalles="detalles"
               :headers="detalleHeaders"
               :is-readonly="isReadonly"
+              :puede-agregar="!isReadonly && permisos.puedeAgregarDetalle"
               :row-actions="detallerowActions"
               @add="abrirAgregarDetalle"
             />
@@ -72,6 +74,10 @@
   // colors handled inside tabs
   import { useRecepcionCatalogos } from '../../composables/recepcion/useRecepcionCatalogos'
   import { useRecepcionDetalles } from '../../composables/recepcion/useRecepcionDetalles'
+  import {
+    useRecepcionPermisos,
+    ESTADOS_ACTA,
+  } from '../../composables/recepcion/useRecepcionPermisos'
   import DetalleFormDialog from './DetalleFormDialog.vue'
   import RecepcionDetalleTab from './tabs/RecepcionDetalleTab.vue'
   import RecepcionInfoTab from './tabs/RecepcionInfoTab.vue'
@@ -92,6 +98,14 @@
   const isReadonly = computed(() => props.mode === 'view')
   const isEditing = computed(() => props.mode === 'edit')
   const isCreating = computed(() => props.mode === 'create')
+
+  const estadoActaNombre = computed(() => {
+    if (isCreating.value) return ESTADOS_ACTA.BORRADOR
+    const estado = estadosCatalogo.value.find((e) => e.IdEstado === form.value.IdEstado)
+    return estado?.Nombre ?? ''
+  })
+
+  const { permisos } = useRecepcionPermisos(estadoActaNombre)
 
   const actaDisplayName = computed(() => {
     const nombre = props.acta?.Acta
@@ -146,7 +160,7 @@
     resetDetalles,
     hasDetallesChanges,
     getDetallesChanges,
-  } = useRecepcionDetalles({ isReadonly })
+  } = useRecepcionDetalles({ isReadonly, permisos })
 
   const formInitial = {
     IdActa: null,
@@ -337,5 +351,30 @@
     emit('submit', { payload: changes, mode: props.mode })
   }
 
-  // estado/color handled in tabs
+
+  async function onCediChangeBorrador(newIdCedi) {
+  const tienDetallesConUbicacion = detalles.value.some((d) => d.IdUbicacion)
+  if (tienDetallesConUbicacion) {
+    const confirmado = await $confirm.warning({
+      title: 'Cambio de Cedi',
+      message:
+        'Al cambiar el Cedi, la <strong>ubicación de los productos existentes se limpiará</strong> ya que pertenecen a otra bodega. Deberás reasignarles ubicación.',
+      labelConfirm: 'Continuar',
+      labelCancel: 'Cancelar',
+    })
+    if (!confirmado) return // revertir si cancela — ver nota abajo
+  }
+  // Limpiar ubicación de todos los detalles
+  detalles.value.forEach((d) => {
+    d.IdZona = null
+    d.IdPasillo = null
+    d.IdEstante = null
+    d.IdUbicacion = null
+    d.CodZona = ''
+    d.CodPasillo = ''
+    d.CodEstante = ''
+    d.CodUbicacion = ''
+  })
+  onCediChange(newIdCedi)
+}
 </script>

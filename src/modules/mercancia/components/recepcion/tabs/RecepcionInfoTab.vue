@@ -5,7 +5,7 @@
         v-model="form.NroActa"
         label="Número de Acta"
         prepend-inner-icon="mdi-file"
-        :readonly="isReadonly"
+        :readonly="true"
         variant="outlined"
       />
     </v-col>
@@ -19,7 +19,7 @@
         label="Estado"
         name="Estado"
         prepend-inner-icon="mdi-note-check"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdEstado')"
         variant="outlined"
       >
         <template #selection="{ item }">
@@ -52,14 +52,14 @@
       <v-select
         id="IdProveedor"
         v-model="form.IdProveedor"
-        :clearable="!isReadonly"
+        :clearable="canEdit('IdProveedor')"
+        :readonly="!canEdit('IdProveedor')"
         item-title="Nombre"
         item-value="IdProveedor"
         :items="proveedores"
         label="Proveedor"
         name="IdProveedor"
         prepend-inner-icon="mdi-truck"
-        :readonly="isReadonly"
         :rules="[rules.required]"
       />
     </v-col>
@@ -72,7 +72,7 @@
         :items="cedis"
         label="Cedi"
         prepend-inner-icon="mdi-warehouse"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdCedi')"
         variant="outlined"
         @update:model-value="emit('cedi-change', $event)"
       />
@@ -85,7 +85,7 @@
         :items="bodegas"
         label="Bodega"
         prepend-inner-icon="mdi-door-open"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdBodega')"
         variant="outlined"
       />
     </v-col>
@@ -95,7 +95,7 @@
         v-model="form.PrefijoFacturaRecibida"
         label="Prefijo Factura"
         prepend-inner-icon="mdi-invoice-outline"
-        :readonly="isReadonly"
+        :readonly="!canEdit('PrefijoFacturaRecibida')"
         variant="outlined"
       />
     </v-col>
@@ -104,12 +104,12 @@
         v-model="form.NumeroFacturaRecibida"
         label="Número Factura"
         prepend-inner-icon="mdi-invoice-text-outline"
-        :readonly="isReadonly"
+        :readonly="!canEdit('NumeroFacturaRecibida')"
         variant="outlined"
       />
     </v-col>
     <v-col cols="12" sm="4">
-      <template v-if="!isReadonly">
+      <template v-if="canEdit('FechaFacturaRecibida')">
         <v-text-field
           v-model="form.FechaFacturaRecibida"
           label="Fecha Factura"
@@ -133,7 +133,7 @@
       <v-textarea
         v-model="form.Observaciones"
         label="Observaciones / Orden de compra"
-        :readonly="isReadonly"
+        :readonly="!canEdit('Observaciones')"
         variant="outlined"
       />
     </v-col>
@@ -149,6 +149,7 @@
   const props = defineProps({
     form: { type: Object, required: true },
     isReadonly: { type: Boolean, default: false },
+    permisos: { type: Object, default: () => ({}) },
     estadosCatalogo: { type: Array, default: () => [] },
     proveedores: { type: Array, default: () => [] },
     cedis: { type: Array, default: () => [] },
@@ -156,6 +157,7 @@
   })
   const emit = defineEmits(['cedi-change'])
 
+  const canEdit = (campo) => !props.isReadonly && (props.permisos[campo] ?? false)
   const { form, estadosCatalogo, isReadonly, proveedores, cedis, bodegas } = toRefs(props)
 
   const estadosConColor = computed(() =>

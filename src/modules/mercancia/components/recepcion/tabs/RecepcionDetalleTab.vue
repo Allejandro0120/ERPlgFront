@@ -3,7 +3,7 @@
     <div class="d-flex align-center justify-space-between mb-3">
       <div class="text-subtitle-1 font-weight-bold">Productos</div>
       <v-btn
-        v-if="!isReadonly"
+        v-if="puedeAgregar"
         color="primary"
         prepend-icon="mdi-plus"
         variant="tonal"
@@ -21,7 +21,7 @@
         'mdi-package-variant-closed'
       }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">Sin productos registrados</p>
-      <p v-if="!isReadonly" class="text-caption text-grey">
+      <p v-if="puedeAgregar" class="text-caption text-grey">
         Haz clic en "Agregar producto" para añadir el primero
       </p>
     </div>
@@ -63,6 +63,7 @@
     headers: { type: Array, default: () => [] },
     rowActions: { type: Array, default: () => [] },
     isReadonly: { type: Boolean, default: false },
+    puedeAgregar: { type: Boolean, default: false },
   })
 
   const emit = defineEmits(['add'])

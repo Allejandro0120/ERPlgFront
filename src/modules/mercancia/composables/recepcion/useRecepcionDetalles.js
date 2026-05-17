@@ -51,7 +51,7 @@ const PRODUCTO_DEFAULTS = {
   ObservacionesProducto: '',
 }
 
-export function useRecepcionDetalles({ isReadonly }) {
+export function useRecepcionDetalles({ isReadonly, permisos }) {
   let localDetalleCounter = 0
 
   const detalles = ref([])
@@ -115,7 +115,7 @@ export function useRecepcionDetalles({ isReadonly }) {
   }
   function eliminarDetalle(LocalId) {
     const detalle = detalles.value.find((d) => d.LocalId === LocalId)
-    const nombre =  detalle?.CodigoProducto || 'este producto'
+    const nombre = detalle?.CodigoProducto || 'este producto'
 
     $confirm
       .warning({
@@ -162,20 +162,20 @@ export function useRecepcionDetalles({ isReadonly }) {
     {
       label: 'Editar',
       icon: '$pencil',
-      visible: !isReadonly.value,
+      visible: !isReadonly.value && permisos.value.puedeEditarDetalle,
       action: (item) => abrirPorLocalId(item.LocalId, 'edit'),
     },
     {
       label: 'Eliminar',
       icon: '$delete',
       color: 'error',
-      visible: !isReadonly.value,
+      visible: !isReadonly.value && permisos.value.puedeEliminarDetalle,
       action: (item) => eliminarDetalle(item.LocalId),
     },
     {
       label: 'Ver detalle',
       icon: '$eye',
-      visible: isReadonly.value,
+      visible: isReadonly.value || !permisos?.value?.puedeEditarDetalle,
       action: (item) => abrirPorLocalId(item.LocalId, 'view'),
     },
   ])
