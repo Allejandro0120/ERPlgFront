@@ -78,7 +78,7 @@
     <v-col cols="12" sm="6">
       <v-select
         v-model="form.IdCedi"
-        item-title="Nombre"
+        item-title="NombreCedi"
         item-value="IdCedi"
         :items="cedis"
         label="Cedi"

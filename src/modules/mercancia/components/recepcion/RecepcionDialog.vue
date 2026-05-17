@@ -17,6 +17,7 @@
         :detalle="detalleDialog.detalle"
         :mode="detalleDialog.mode"
         @submit="onDetalleSubmit"
+        :id-bodega="form.IdBodega"
       />
       <v-form ref="formRef">
         <v-tabs v-model="ui.tab" class="mb-4" color="primary">

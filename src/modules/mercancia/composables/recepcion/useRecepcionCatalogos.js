@@ -1,7 +1,7 @@
 import { ref } from 'vue'
+import { infraestructuraService } from '@/api/services/infraestructuraService'
 import { proveedorService } from '@/api/services/proveedorService'
 import { recepcionService } from '@/api/services/recepcionService'
-import { infraestructuraService } from '@/api/services/infraestructuraService'
 
 export function useRecepcionCatalogos() {
   const estadosCatalogo = ref([])
@@ -9,16 +9,12 @@ export function useRecepcionCatalogos() {
   const cedis = ref([])
   const bodegas = ref([])
 
-  const setCatalogosLectura = (acta) => {
-    if (!acta) {
-      return
-    }
+  // ─── Precarga para modo lectura: garantiza que el item actual aparezca en el select ───
 
-    if (
-      acta.IdEstado !== undefined &&
-      acta.IdEstado !== null && // ensure at least the actual estado is present for read-only views
-      !estadosCatalogo.value.some((e) => e.IdEstado === acta.IdEstado)
-    ) {
+  function setCatalogosLectura(acta) {
+    if (!acta) return
+
+    if (acta.IdEstado != null && !estadosCatalogo.value.some((e) => e.IdEstado === acta.IdEstado)) {
       estadosCatalogo.value = [
         { IdEstado: acta.IdEstado, Nombre: acta.NombreEstado },
         ...estadosCatalogo.value,
@@ -26,18 +22,17 @@ export function useRecepcionCatalogos() {
     }
 
     if (
-      acta.IdProveedor !== undefined &&
-      acta.IdProveedor !== null &&
+      acta.IdProveedor != null &&
       !proveedores.value.some((p) => p.IdProveedor === acta.IdProveedor)
     ) {
       proveedores.value = [
-        { IdProveedor: acta.IdProveedor, Nombre: acta.NombreProveedor },
+        { IdProveedor: acta.IdProveedor, Nombre: acta.NombreProveedor }, 
         ...proveedores.value,
       ]
     }
 
     if (acta.IdCedi) {
-      cedis.value = [{ IdCedi: acta.IdCedi, Nombre: acta.NombreCedi }]
+      cedis.value = [{ IdCedi: acta.IdCedi, NombreCedi: acta.NombreCedi }]
     }
 
     if (acta.IdBodega) {
@@ -45,73 +40,70 @@ export function useRecepcionCatalogos() {
     }
   }
 
-  const cargarCatalogos = async () => {
+  // ─── Loaders individuales ─────────────────────────────────────────────────
+
+  async function cargarEstados() {
+    const res = await recepcionService.getRecepcionEstados()
+    estadosCatalogo.value = res.data?.success ? res.data.data || [] : []
+  }
+
+  async function cargarProveedores() {
+    const res = await proveedorService.getProveedores()
+    const lista = res.data?.success ? res.data.data?.data || [] : []
+    proveedores.value = lista.map((p) => ({
+      IdProveedor: p.IdProveedor,
+      Nombre: `${p.NumeroIdentificacion} - ${p.Nombre}`,
+    }))
+  }
+
+  async function cargarCedis() {
+    const res = await infraestructuraService.getCedis()
+    const raw = res.data?.success ? res.data.data || [] : []
+    cedis.value = raw.map((item) => ({
+      IdCedi: item.IdCedi ?? item.IdDistributionCenter ?? item.IdDistribucion ?? item.id,
+      Nombre: item.Nombre ?? item.Name ?? item.NombreCedi ?? item.name,
+    }))
+  }
+
+  // ─── Carga en paralelo con reporte de fallos ──────────────────────────────
+
+  async function cargarCatalogos() {
     const jobs = [
       {
         key: 'estadosCatalogo',
         run: cargarEstados,
-        fallback: () => (estadosCatalogo.value = []),
+        fallback: () => {
+          estadosCatalogo.value = []
+        },
       },
       {
         key: 'proveedores',
         run: cargarProveedores,
-        fallback: () => (proveedores.value = []),
+        fallback: () => {
+          proveedores.value = []
+        },
       },
       {
         key: 'cedis',
         run: cargarCedis,
-        fallback: () => (cedis.value = []),
+        fallback: () => {
+          cedis.value = []
+        },
       },
     ]
-    const results = await Promise.allSettled(jobs.map((job) => job.run()))
+
+    const results = await Promise.allSettled(jobs.map((j) => j.run()))
     const failed = []
 
-    for (const [index, result] of results.entries()) {
+    for (const [i, result] of results.entries()) {
       if (result.status === 'rejected') {
-        jobs[index].fallback()
-        failed.push(jobs[index].key)
+        jobs[i].fallback()
+        failed.push(jobs[i].key)
+        console.error(`[RecepcionCatalogos] Error cargando ${jobs[i].key}:`, result.reason)
       }
     }
 
-    return {
-      ok: failed.length === 0,
-      failed,
-    }
-  }
-
-  const cargarProveedores = async () => {
-    try {
-      const response = await proveedorService.getProveedores()
-      proveedores.value = response.data?.success
-        ? response.data.data.map((p) => ({
-            IdProveedor: p.IdProveedor,
-            Nombre: `${p.NumeroIdentificacion} - ${p.NombreProveedor}`,
-          }))
-        : []
-    } catch {
-      proveedores.value = []
-    }
-  }
-  const cargarEstados = async () => {
-    try {
-      const res = await recepcionService.getRecepcionestadosCatalogo()
-      estadosCatalogo.value = res.data?.success ? res.data.data || [] : []
-    } catch {
-      estadosCatalogo.value = []
-    }
-  }
-
-  const cargarCedis = async () => {
-    try {
-      const res = await infraestructuraService.getCedis()
-      const raw = res.data?.success ? res.data.data || [] : []
-      cedis.value = raw.map((item) => ({
-        IdCedi: item.IdCedi ?? item.IdDistributionCenter ?? item.IdDistribucion ?? item.id,
-        Nombre: item.Nombre ?? item.Name ?? item.NombreCedi ?? item.name,
-      }))
-    } catch {
-      cedis.value = []
-    }
+    return { ok: failed.length === 0, failed }
   }
 
   return {

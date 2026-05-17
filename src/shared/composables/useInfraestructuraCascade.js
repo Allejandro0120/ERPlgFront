@@ -8,7 +8,12 @@ function extractData(response) {
 }
 
 /**
- * Maneja la cascada de infraestructura: Cedi -> Bodega -> Zona -> Pasillo -> Estante.
+ * Maneja la cascada de infraestructura: Cedi -> Bodega -> Zona -> Pasillo -> Estante -> Ubicacion.
+ *
+ * - onXxxChange: para interacción del usuario (limpia niveles inferiores y carga el siguiente)
+ * - setInfraestructuraLectura: modo view, puebla arrays con los datos ya conocidos sin hacer peticiones
+ * - preloadForEdit: modo edit, carga todos los niveles en secuencia sin pisar los IDs del form
+ * - preloadInfraestructura: carga bodegas de un cedi (usado en cabecera de acta)
  */
 export function useInfraestructuraCascade({
   ui,
@@ -25,12 +30,12 @@ export function useInfraestructuraCascade({
   autoSelect = true,
   onError,
 }) {
-  const cascadeKeys = keys
+  const k = keys
 
-  const bodegas = ref([])
-  const zonas = ref([])
-  const pasillos = ref([])
-  const estantes = ref([])
+  const bodegas   = ref([])
+  const zonas     = ref([])
+  const pasillos  = ref([])
+  const estantes  = ref([])
   const ubicaciones = ref([])
 
   const loading = ref({
@@ -41,29 +46,44 @@ export function useInfraestructuraCascade({
     ubicaciones: false,
   })
 
-  const handleError = (error, stage) => {
+  // ─── Utilidades internas ───────────────────────────────────────────────────
+
+  function handleError(error, stage) {
     if (typeof onError === 'function') {
       onError(error, stage)
-      return
+    } else {
+      console.error(`[InfraestructuraCascade] Error en ${stage}:`, error)
     }
-    console.error(`Error en cascada de infraestructura (${stage}):`, error)
   }
+
+  function clearFrom(level) {
+    const levels = ['idZona', 'idPasillo', 'idEstante', 'idUbicacion']
+    const start = levels.indexOf(level)
+    if (start === -1) return
+    for (const key of levels.slice(start)) {
+      form.value[k[key]] = null
+      if (ui.value && k[key] in ui.value) ui.value[k[key]] = null
+    }
+    if (start <= 0) zonas.value = []
+    if (start <= 1) pasillos.value = []
+    if (start <= 2) estantes.value = []
+    if (start <= 3) ubicaciones.value = []
+  }
+
+  // ─── Loaders (solo cargan el array, sin tocar el form) ────────────────────
 
   async function loadBodegas(idCedi) {
     bodegas.value = []
-    if (!idCedi) {
-      return
-    }
+    if (!idCedi) return
     loading.value.bodegas = true
     try {
-      const resp = await services.getBodegasByCedi(idCedi)
-      bodegas.value = extractData(resp)
+      bodegas.value = extractData(await services.getBodegasByCedi(idCedi))
       if (autoSelect && bodegas.value.length === 1) {
-        form.value[cascadeKeys.idBodega] = bodegas.value[0].IdBodega
+        form.value[k.idBodega] = bodegas.value[0].IdBodega
         await onBodegaChange(bodegas.value[0].IdBodega)
       }
-    } catch (error) {
-      handleError(error, 'bodegas')
+    } catch (e) {
+      handleError(e, 'bodegas')
     } finally {
       loading.value.bodegas = false
     }
@@ -71,19 +91,16 @@ export function useInfraestructuraCascade({
 
   async function loadZonas(idBodega) {
     zonas.value = []
-    if (!idBodega) {
-      return
-    }
+    if (!idBodega) return
     loading.value.zonas = true
     try {
-      const resp = await services.getZonasByBodega(idBodega)
-      zonas.value = extractData(resp)
+      zonas.value = extractData(await services.getZonasByBodega(idBodega))
       if (autoSelect && zonas.value.length === 1) {
-        form.value[cascadeKeys.idZona] = zonas.value[0].IdZona
+        form.value[k.idZona] = zonas.value[0].IdZona
         await onZonaChange(zonas.value[0].IdZona)
       }
-    } catch (error) {
-      handleError(error, 'zonas')
+    } catch (e) {
+      handleError(e, 'zonas')
     } finally {
       loading.value.zonas = false
     }
@@ -91,19 +108,16 @@ export function useInfraestructuraCascade({
 
   async function loadPasillos(idZona) {
     pasillos.value = []
-    if (!idZona) {
-      return
-    }
+    if (!idZona) return
     loading.value.pasillos = true
     try {
-      const resp = await services.getPasillosByZona(idZona)
-      pasillos.value = extractData(resp)
+      pasillos.value = extractData(await services.getPasillosByZona(idZona))
       if (autoSelect && pasillos.value.length === 1) {
-        form.value[cascadeKeys.idPasillo] = pasillos.value[0].IdPasillo
+        form.value[k.idPasillo] = pasillos.value[0].IdPasillo
         await onPasilloChange(pasillos.value[0].IdPasillo)
       }
-    } catch (error) {
-      handleError(error, 'pasillos')
+    } catch (e) {
+      handleError(e, 'pasillos')
     } finally {
       loading.value.pasillos = false
     }
@@ -111,19 +125,16 @@ export function useInfraestructuraCascade({
 
   async function loadEstantes(idPasillo) {
     estantes.value = []
-    if (!idPasillo) {
-      return
-    }
+    if (!idPasillo) return
     loading.value.estantes = true
     try {
-      const resp = await services.getEstantesByPasillo(idPasillo)
-      estantes.value = extractData(resp)
+      estantes.value = extractData(await services.getEstantesByPasillo(idPasillo))
       if (autoSelect && estantes.value.length === 1) {
-        form.value[cascadeKeys.idEstante] = estantes.value[0].IdEstante
+        form.value[k.idEstante] = estantes.value[0].IdEstante
         await onEstanteChange(estantes.value[0].IdEstante)
       }
-    } catch (error) {
-      handleError(error, 'estantes')
+    } catch (e) {
+      handleError(e, 'estantes')
     } finally {
       loading.value.estantes = false
     }
@@ -131,136 +142,144 @@ export function useInfraestructuraCascade({
 
   async function loadUbicaciones(idEstante) {
     ubicaciones.value = []
-    if (!idEstante) {
-      return
-    }
+    if (!idEstante) return
     loading.value.ubicaciones = true
     try {
-      const resp = await services.getUbicacionByEstante(idEstante)
-      const data = extractData(resp)
+      const data = extractData(await services.getUbicacionByEstante(idEstante))
       ubicaciones.value = Array.isArray(data) ? data : [data]
       if (autoSelect && ubicaciones.value.length === 1) {
-        form.value[cascadeKeys.idUbicacion] = ubicaciones.value[0].IdUbicacion
+        form.value[k.idUbicacion] = ubicaciones.value[0].IdUbicacion
       }
-    } catch (error) {
-      handleError(error, 'ubicaciones')
+    } catch (e) {
+      handleError(e, 'ubicaciones')
     } finally {
       loading.value.ubicaciones = false
     }
   }
 
-  // --- Handlers de cambio ---
+  // ─── Handlers de interacción del usuario ──────────────────────────────────
 
   async function onCediChange(idCedi) {
-    ui.value[cascadeKeys.idBodega] = null
-    form.value[cascadeKeys.idZona] = null
-    form.value[cascadeKeys.idPasillo] = null
-    form.value[cascadeKeys.idEstante] = null
-    form.value[cascadeKeys.idUbicacion] = null
-    zonas.value = []
-    pasillos.value = []
-    estantes.value = []
-    ubicaciones.value = []
+    form.value[k.idBodega] = null
+    if (ui.value) ui.value[k.idBodega] = null
+    clearFrom('idZona')
     await loadBodegas(idCedi)
   }
 
   async function onBodegaChange(idBodega) {
-    ui.value[cascadeKeys.idZona] = null
-    form.value[cascadeKeys.idPasillo] = null
-    form.value[cascadeKeys.idEstante] = null
-    form.value[cascadeKeys.idUbicacion] = null
-    pasillos.value = []
-    estantes.value = []
-    ubicaciones.value = []
+    clearFrom('idZona')
     await loadZonas(idBodega)
   }
 
   async function onZonaChange(idZona) {
-    ui.value[cascadeKeys.idPasillo] = null
-    form.value[cascadeKeys.idEstante] = null
-    form.value[cascadeKeys.idUbicacion] = null
-    estantes.value = []
-    ubicaciones.value = []
+    clearFrom('idPasillo')
     await loadPasillos(idZona)
   }
 
   async function onPasilloChange(idPasillo) {
-    ui.value[cascadeKeys.idEstante] = null
-    form.value[cascadeKeys.idUbicacion] = null
-    estantes.value = []
-    ubicaciones.value = []
+    clearFrom('idEstante')
     await loadEstantes(idPasillo)
   }
 
   async function onEstanteChange(idEstante) {
-    const previousUbicacion = form.value[cascadeKeys.idUbicacion]
-    ui.value[cascadeKeys.idEstante] = idEstante
-    form.value[cascadeKeys.idUbicacion] = null
+    const prevUbicacion = form.value[k.idUbicacion]
+    form.value[k.idUbicacion] = null
+    if (ui.value) ui.value[k.idEstante] = idEstante
     await loadUbicaciones(idEstante)
-
-    if (
-      previousUbicacion &&
-      ubicaciones.value.some((item) => item.IdUbicacion === previousUbicacion)
-    ) {
-      form.value[cascadeKeys.idUbicacion] = previousUbicacion
+    // Restaurar ubicación si sigue siendo válida en el nuevo estante
+    if (prevUbicacion && ubicaciones.value.some((u) => u.IdUbicacion === prevUbicacion)) {
+      form.value[k.idUbicacion] = prevUbicacion
     }
   }
+
+  // ─── Precarga para cabecera de acta (Cedi → Bodegas) ──────────────────────
 
   async function preloadInfraestructura({ idCedi = null, idBodega = null } = {}) {
-    ui.value[cascadeKeys.idCedi] = idCedi
+    if (ui.value) ui.value[k.idCedi] = idCedi
     await loadBodegas(idCedi)
-
-    form.value[cascadeKeys.idBodega] = idBodega
+    form.value[k.idBodega] = idBodega
   }
+
+  // ─── Modo lectura: puebla arrays con datos ya conocidos, sin peticiones ───
 
   function setInfraestructuraLectura(data) {
-    const idCedi = data.IdCedi
-    const nomCedi = data.NombreCedi
-    const idBodega = data.IdBodega
-    const nomBodega = data.NombreBodega
-    const idZona = data.IdZona
-    const nomZona = data.NombreZona
-    const idPasillo = data.IdPasillo
-    const nomPasillo = data.NombrePasillo
-    const idEstante = data.IdEstante
-    const nomEstante = data.NombreEstante
-    const idUbicacion = data.IdUbicacion
-    const nomUbicacion = data.NombreUbicacion
+    // Asignar IDs al form y ui
+    const ids = {
+      [k.idCedi]:      data.IdCedi      ?? null,
+      [k.idBodega]:    data.IdBodega    ?? null,
+      [k.idZona]:      data.IdZona      ?? null,
+      [k.idPasillo]:   data.IdPasillo   ?? null,
+      [k.idEstante]:   data.IdEstante   ?? null,
+      [k.idUbicacion]: data.IdUbicacion ?? null,
+    }
+    Object.assign(form.value, ids)
+    if (ui.value) Object.assign(ui.value, ids)
 
-    if (ui.value) {
-      ui.value[cascadeKeys.idCedi] = idCedi
-      ui.value[cascadeKeys.idBodega] = idBodega
-      ui.value[cascadeKeys.idZona] = idZona
-      ui.value[cascadeKeys.idPasillo] = idPasillo
-      ui.value[cascadeKeys.idEstante] = idEstante
-    }
-
-    form.value[cascadeKeys.idCedi] = idCedi
-    form.value[cascadeKeys.idBodega] = idBodega
-    form.value[cascadeKeys.idZona] = idZona
-    form.value[cascadeKeys.idPasillo] = idPasillo
-    form.value[cascadeKeys.idEstante] = idEstante
-    form.value[cascadeKeys.idUbicacion] = idUbicacion
-
-    if (idCedi && nomCedi) {
-      // In Reception we might only need these, the select takes the array
-    }
-    if (idBodega && nomBodega) {
-      bodegas.value = [{ IdBodega: idBodega, NombreBodega: nomBodega }]
-    }
-    if (idZona && nomZona) {
-      zonas.value = [{ IdZona: idZona, NombreZona: nomZona }]
-    }
-    if (idPasillo && nomPasillo) {
-      pasillos.value = [{ IdPasillo: idPasillo, NombrePasillo: nomPasillo }]
-    }
-    if (idEstante && nomEstante) {
-      estantes.value = [{ IdEstante: idEstante, NombreEstante: nomEstante }]
-    }
-    if (idUbicacion && nomUbicacion) {
-      ubicaciones.value = [{ IdUbicacion: idUbicacion, NombreUbicacion: nomUbicacion }]
-    }
+    // Poblar arrays para que los selects muestren el label en lugar del ID
+    if (data.IdBodega  && data.NombreBodega)  bodegas.value    = [{ IdBodega:    data.IdBodega,    NombreBodega:  data.NombreBodega  }]
+    if (data.IdZona    && data.CodZona)        zonas.value      = [{ IdZona:      data.IdZona,      CodZona:       data.CodZona       }]
+    if (data.IdPasillo && data.CodPasillo)     pasillos.value   = [{ IdPasillo:   data.IdPasillo,   CodPasillo:    data.CodPasillo    }]
+    if (data.IdEstante && data.CodEstante)     estantes.value   = [{ IdEstante:   data.IdEstante,   CodEstante:    data.CodEstante    }]
+    if (data.IdUbicacion && data.CodUbicacion) ubicaciones.value = [{ IdUbicacion: data.IdUbicacion, CodUbicacion: data.CodUbicacion  }]
   }
+
+  // ─── Modo edición: carga todos los niveles sin pisar el form ──────────────
+
+  async function preloadForEdit({ idBodega, idZona, idPasillo, idEstante, idUbicacion } = {}) {
+    // Cargar cada nivel en secuencia (cada uno depende del anterior)
+    if (idBodega) {
+      loading.value.zonas = true
+      try {
+        zonas.value = extractData(await services.getZonasByBodega(idBodega))
+      } catch (e) {
+        handleError(e, 'zonas')
+      } finally {
+        loading.value.zonas = false
+      }
+    }
+
+    if (idZona) {
+      loading.value.pasillos = true
+      try {
+        pasillos.value = extractData(await services.getPasillosByZona(idZona))
+      } catch (e) {
+        handleError(e, 'pasillos')
+      } finally {
+        loading.value.pasillos = false
+      }
+    }
+
+    if (idPasillo) {
+      loading.value.estantes = true
+      try {
+        estantes.value = extractData(await services.getEstantesByPasillo(idPasillo))
+      } catch (e) {
+        handleError(e, 'estantes')
+      } finally {
+        loading.value.estantes = false
+      }
+    }
+
+    if (idEstante) {
+      loading.value.ubicaciones = true
+      try {
+        const data = extractData(await services.getUbicacionByEstante(idEstante))
+        ubicaciones.value = Array.isArray(data) ? data : [data]
+      } catch (e) {
+        handleError(e, 'ubicaciones')
+      } finally {
+        loading.value.ubicaciones = false
+      }
+    }
+
+    // Asignar IDs al form solo cuando los arrays ya están listos
+    if (idZona)      form.value[k.idZona]      = idZona
+    if (idPasillo)   form.value[k.idPasillo]   = idPasillo
+    if (idEstante)   form.value[k.idEstante]   = idEstante
+    if (idUbicacion) form.value[k.idUbicacion] = idUbicacion
+  }
+
+  // ─── Reset ────────────────────────────────────────────────────────────────
 
   function resetInfraestructuraState({ clearSelections = true } = {}) {
     bodegas.value = []
@@ -268,25 +287,18 @@ export function useInfraestructuraCascade({
     pasillos.value = []
     estantes.value = []
     ubicaciones.value = []
-    loading.value = {
-      bodegas: false,
-      zonas: false,
-      pasillos: false,
-      estantes: false,
-      ubicaciones: false,
-    }
+    loading.value = { bodegas: false, zonas: false, pasillos: false, estantes: false, ubicaciones: false }
 
-    if (!clearSelections) {
-      return
+    if (!clearSelections) return
+
+    const nullIds = {
+      [k.idCedi]: null, [k.idBodega]: null, [k.idZona]: null,
+      [k.idPasillo]: null, [k.idEstante]: null, [k.idUbicacion]: null,
     }
-    ui.value[cascadeKeys.idCedi] = null
-    ui.value[cascadeKeys.idBodega] = null
-    ui.value[cascadeKeys.idZona] = null
-    ui.value[cascadeKeys.idPasillo] = null
-    ui.value[cascadeKeys.idEstante] = null
-    ui.value[cascadeKeys.idUbicacion] = null
-    form.value[cascadeKeys.idEstante] = null
-    form.value[cascadeKeys.idUbicacion] = null
+    if (ui.value) Object.assign(ui.value, nullIds)
+    // Solo limpia los campos que gestiona este composable en el form
+    form.value[k.idEstante]   = null
+    form.value[k.idUbicacion] = null
   }
 
   return {
@@ -303,6 +315,7 @@ export function useInfraestructuraCascade({
     onEstanteChange,
     preloadInfraestructura,
     setInfraestructuraLectura,
+    preloadForEdit,
     resetInfraestructuraState,
   }
 }

@@ -124,7 +124,7 @@
           <v-col cols="12" md="3">
             <v-autocomplete
               v-model="form.IdZona"
-              item-title="NombreZona"
+              item-title="CodZona"
               item-value="IdZona"
               :items="zonas"
               label="Zona"
@@ -139,7 +139,7 @@
             <v-autocomplete
               v-model="form.IdPasillo"
               :disabled="!form.IdZona"
-              item-title="NombrePasillo"
+              item-title="CodPasillo"
               item-value="IdPasillo"
               :items="pasillos"
               label="Pasillo"
@@ -154,7 +154,7 @@
             <v-autocomplete
               v-model="form.IdEstante"
               :disabled="!form.IdPasillo"
-              item-title="NombreEstante"
+              item-title="CodEstante"
               item-value="IdEstante"
               :items="estantes"
               label="Estante"
@@ -169,7 +169,7 @@
             <v-autocomplete
               v-model="form.IdUbicacion"
               :disabled="!form.IdEstante"
-              item-title="NombreUbicacion"
+              item-title="CodUbicacion"
               item-value="IdUbicacion"
               :items="ubicaciones"
               label="Ubicación"
@@ -365,6 +365,7 @@
     onEstanteChange,
     setInfraestructuraLectura,
     resetInfraestructuraState,
+    preloadForEdit,
   } = useInfraestructuraCascade({
     ui,
     form,
@@ -414,35 +415,17 @@
 
         if (isReadonly.value) {
           setInfraestructuraLectura({
+            ...item,
             IdBodega: props.idBodega,
-            IdZona: item.IdZona,
-            NombreZona: item.CodZona,
-            IdPasillo: item.IdPasillo,
-            NombrePasillo: item.CodPasillo,
-            IdEstante: item.IdEstante,
-            NombreEstante: item.CodEstante,
-            IdUbicacion: item.IdUbicacion,
-            NombreUbicacion: item.CodUbicacion ?? item.NombreUbicacion,
           })
         } else {
-          // Cargar zonas base de la bodega (se asume que se le pasa la bodega actual de la cabecera)
-          if (props.idBodega) {
-            ui.value.IdBodega = props.idBodega
-            await onBodegaChange(props.idBodega)
-          }
-
-          if (item.IdZona) {
-            form.value.IdZona = item.IdZona
-            await onZonaChange(item.IdZona)
-          }
-          if (item.IdPasillo) {
-            form.value.IdPasillo = item.IdPasillo
-            await onPasilloChange(item.IdPasillo)
-          }
-          if (item.IdEstante) {
-            form.value.IdEstante = item.IdEstante
-            await onEstanteChange(item.IdEstante)
-          }
+          await preloadForEdit({
+            idBodega: props.idBodega,
+            idZona: item.IdZona,
+            idPasillo: item.IdPasillo,
+            idEstante: item.IdEstante,
+            idUbicacion: item.IdUbicacion,
+          })
         }
       }
     } catch (error) {
