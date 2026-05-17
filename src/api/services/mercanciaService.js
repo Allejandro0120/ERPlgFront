@@ -39,4 +39,32 @@ export const mercanciaService = {
 
     return api.get(`v1/inventory/balances?${params.toString()}`)
   },
+
+  /**
+   * Obtiene el kardex (movimientos) de un producto específico
+   */
+  getKardex: (
+    IdProducto,
+    IdLote,
+    IdUbicacion,
+    page = 1,
+    limit = 5,
+    search = '',
+    sortBy = '',
+    sortOrder = 'desc',
+    filters = {},
+  ) => {
+    const params = new URLSearchParams({
+      ...(IdProducto && { IdProducto }),
+      ...(IdLote && { IdLote }),
+      ...(IdUbicacion && { IdUbicacion }),
+      page,
+      limit,
+      ...(search && { search }),
+      ...(sortBy && { sortBy }),
+      ...(sortOrder && { sortOrder }),
+      ...filters,
+    })
+    return api.get(`v1/inventory/kardex?${params.toString()}`)
+  },
 }

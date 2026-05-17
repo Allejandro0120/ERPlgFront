@@ -2,64 +2,61 @@
   <base-dialog
     v-model="internalValue"
     max-width="1200"
-    persistent
     title="Historial de Movimientos"
     icon="$history"
     color="blue-darken-3"
   >
     <template #content>
       <div class="pa-4 pt-0">
-        <!-- Resumen de Producto -->
-        <v-card class="mb-4 bg-grey-lighten-4 rounded-lg" elevation="0" border>
-          <v-card-text class="d-flex flex-wrap align-center justify-space-between ga-4 py-3">
-            <div>
-              <div class="text-caption text-grey-darken-1 font-weight-medium mb-1">PRODUCTO</div>
-              <div class="d-flex align-center ga-2">
-                <span class="text-h6 text-blue-darken-3 font-weight-bold mb-0">
-                  {{ product?.NombreProducto || 'ACETAMINOFEN 20MG' }}
-                </span>
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  color="blue-darken-3"
-                  class="font-weight-medium"
-                >
-                  #{{ product?.CodigoProducto || '123456' }}
-                </v-chip>
-              </div>
+        <div class="d-flex flex-wrap align-start justify-space-between ga-4 mb-4">
+          <div class="d-flex flex-column ga-1">
+            <span class="text-h6 font-weight-bold text-black mb-0">
+              {{ product?.NombreProducto || 'Producto' }}
+            </span>
+            <div class="d-flex align-center ga-2 mt-1">
+              <span v-if="product?.CodigoProducto" class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
+                <v-icon size="16" class="mr-1">mdi-barcode</v-icon>
+                {{ product.CodigoProducto }}
+              </span>
+              <span v-if="product?.CodigoProducto" class="text-grey-lighten-1">|</span>
+              <span class="text-body-2 text-blue-darken-3 font-weight-bold d-flex align-center">
+                <v-icon size="16" class="mr-1">mdi-package-variant-closed</v-icon>
+                Stock: {{ product?.CantidadDisponible || 0 }}
+              </span>
             </div>
+          </div>
 
-            <div class="d-flex ga-6 text-right">
-              <div>
-                <div class="text-caption text-grey-darken-1 mb-1">STOCK TOTAL</div>
-                <div class="text-subtitle-1 font-weight-bold">
-                  {{ product?.CantidadDisponible || '1,240' }} Unidades
-                </div>
-              </div>
-              <div>
-                <div class="text-caption text-grey-darken-1 mb-1">ÚLTIMO MOV.</div>
-                <div class="text-subtitle-1 font-weight-medium">
-                  {{ lastMovementDate || '01/05/2026' }}
-                </div>
+          <div class="d-flex ga-6 text-right">
+            <div>
+              <div class="text-caption text-grey-darken-1 mb-1">Último Mov.</div>
+              <div class="text-subtitle-1 font-weight-medium">
+                {{
+                  product?.UltimaActualizacion
+                    ? formatDateTime(product.UltimaActualizacion)
+                    : lastMovementDate || 'Sin movimientos recientes'
+                }}
               </div>
             </div>
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
 
         <!-- Controles y Tabla -->
-        <base-table-local
+        <base-table
+          ref="tableRef"
           :headers="headers"
-          :items="mockData"
+          :items="movimientos"
+          :loading="loadingTable"
+          :total-items="totalItems"
+          :items-per-page="5"
           empty-text="No se encontraron movimientos"
-          class="border rounded-lg"
+          class="rounded-lg"
           elevation="0"
           show-search-button
-          @search="handleSearch"
-          @refresh="handleRefresh"
+          @load="fetchData"
         >
           <!-- Filtros de Fecha -->
           <template #filters>
-            <v-col cols="12" sm="7" md="8" lg="6" xl="5">
+            <v-col cols="12" sm="5" md="4" lg="4">
               <date-range-filter
                 v-model="dateRange"
                 preset-value="30days"
@@ -103,26 +100,30 @@
             </div>
           </template>
 
+          <template #item.DocumentoReferencia="{ item }">
+            {{ item.DocumentoReferencia || '-' }}
+          </template>
+
           <template #item.Cantidad="{ item }">
             <span :class="getCantidadColor(item)">
               {{ formatCantidad(item) }}
             </span>
           </template>
-        </base-table-local>
+        </base-table>
       </div>
     </template>
 
     <template #actions="{ cancel }">
       <v-btn variant="outlined" color="grey-darken-1" @click="cancel"> Cerrar </v-btn>
-      <v-btn color="blue-darken-3" prepend-icon="mdi-printer"> Imprimir Reporte </v-btn>
     </template>
   </base-dialog>
 </template>
 
 <script setup>
   import { computed, ref, watch } from 'vue'
+  import { mercanciaService } from '@/api/services/mercanciaService'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import BaseTable from '@/shared/ui/BaseTable.vue'
   import DateRangeFilter from '@/shared/ui/DateRangeFilter.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
 
@@ -141,12 +142,26 @@
     set: (val) => emit('update:modelValue', val),
   })
 
+  const tableRef = ref(null)
+  const movimientos = ref([])
+  const totalItems = ref(0)
+  const loadingTable = ref(false)
+
+  const lastMovementDate = computed(() => {
+    if (movimientos.value && movimientos.value.length > 0) {
+      return formatDateTime(movimientos.value[0].FechaRegistro)
+    }
+    return null
+  })
+
   const headers = [
-    { title: 'FECHA', key: 'FechaRegistro', sortable: true },
-    { title: 'DESCRIPCIÓN', key: 'DescripcionMovimiento', sortable: true },
-    { title: 'UBICACIÓN', key: 'Ubicacion', sortable: false },
-    { title: 'LOTE', key: 'CodLote', sortable: true, searchable: true },
-    { title: 'CANTIDAD', key: 'Cantidad', sortable: true, align: 'end' },
+    { title: 'Fecha', key: 'FechaRegistro', sortable: true },
+    { title: 'Descripción', key: 'DescripcionMovimiento', sortable: true },
+    { title: 'Doc. Referencia', key: 'DocumentoReferencia', sortable: false },
+    { title: 'Lote', key: 'CodLote', sortable: true },
+    { title: 'Ubicación', key: 'Ubicacion', sortable: false },
+    { title: 'Usuario', key: 'CodigoUsuario', sortable: false },
+    { title: 'Cantidad', key: 'Cantidad', sortable: true, align: 'end' },
   ]
 
   const getDescColor = (desc) => {
@@ -176,146 +191,49 @@
   const dateRange = ref({})
 
   const handleDateRangeChange = () => {
-    // Aquí puedes asignar las fechas, y el botón Buscar ejecutará el filtrado final
+    tableRef.value?.reset()
   }
 
-  const handleSearch = () => {
-    // Lógica para realizar la búsqueda aplicando las fechas seleccionadas
-  }
+  async function fetchData({ page, itemsPerPage, sortByField, sortOrder, search }) {
+    if (!props.product?.IdProducto) return
 
-  const handleRefresh = () => {
-    // Lógica para recargar/refrescar los datos
-  }
+    loadingTable.value = true
+    try {
+      const filters = {}
+      if (dateRange.value?.start) filters.startDate = dateRange.value.start
+      if (dateRange.value?.end) filters.endDate = dateRange.value.end
 
-  const lastMovementDate = computed(() => {
-    if (mockData.length > 0) {
-      // Tomamos el primero si asumimos orden descendente
-      return new Date(mockData[0].FechaRegistro).toLocaleDateString('es-ES')
+      const response = await mercanciaService.getKardex(
+        props.product.IdProducto,
+        props.product.IdLote || null,
+        props.product.IdUbicacion || null,
+        page,
+        itemsPerPage,
+        search,
+        sortByField,
+        sortOrder,
+        filters,
+      )
+
+      if (response.data?.success) {
+        movimientos.value = response.data.data.data || []
+        totalItems.value = response.data.data.totalRecords || 0
+      }
+    } catch (error) {
+      console.error('Error al obtener movimientos:', error)
+      movimientos.value = []
+      totalItems.value = 0
+    } finally {
+      loadingTable.value = false
     }
-    return null
-  })
+  }
 
-  // Hardcoded data provided
-  const mockData = [
-    {
-      IdMovimiento: '19',
-      Cantidad: 30,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T15:14:08.870Z',
-      DescripcionMovimiento: 'Ajuste negativo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
+  watch(
+    () => props.modelValue,
+    (isOpen) => {
+      if (isOpen && tableRef.value) {
+        tableRef.value.reset()
+      }
     },
-    {
-      IdMovimiento: '18',
-      Cantidad: 10,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T15:13:57.748Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '17',
-      Cantidad: 10,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T15:13:48.480Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '16',
-      Cantidad: 10,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T15:00:03.479Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '15',
-      Cantidad: 10,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T14:52:03.240Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '14',
-      Cantidad: 1,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T14:30:23.114Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '13',
-      Cantidad: 2,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T14:30:14.508Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '12',
-      Cantidad: 2,
-      DocumentoReferencia: null,
-      FechaRegistro: '2026-05-01T14:29:33.154Z',
-      DescripcionMovimiento: 'Ajuste positivo',
-      CodigoProducto: '123456',
-      UbicacionOrigen: 'UB01',
-      UbicacionDestino: null,
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '11',
-      Cantidad: 50,
-      DocumentoReferencia: 'AR-29',
-      FechaRegistro: '2026-04-21T21:57:22.559Z',
-      DescripcionMovimiento: 'Entrada',
-      CodigoProducto: '123456',
-      UbicacionOrigen: null,
-      UbicacionDestino: 'UB01',
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-    {
-      IdMovimiento: '10',
-      Cantidad: 50,
-      DocumentoReferencia: 'AR-28',
-      FechaRegistro: '2026-04-21T21:56:56.233Z',
-      DescripcionMovimiento: 'Entrada',
-      CodigoProducto: '123456',
-      UbicacionOrigen: null,
-      UbicacionDestino: 'UB01',
-      CodigoUsuario: 'BFJEREZ',
-      CodLote: '00K-231',
-    },
-  ]
+  )
 </script>

@@ -82,7 +82,7 @@
         <!-- Botones: Buscar + Refrescar -->
         <v-col class="d-flex ga-2" cols="12" sm="auto">
           <v-btn
-            v-if="searchable"
+            v-if="searchable || showSearchButton"
             class="text-none flex-1-1 flex-sm-0-0"
             color="primary"
             :disabled="loading"
@@ -94,6 +94,7 @@
             Buscar
           </v-btn>
           <v-btn
+            v-if="!hideRefreshButton"
             class="text-none flex-1-1 flex-sm-0-0"
             color="primary"
             :disabled="loading"
@@ -364,6 +365,8 @@
     rowsPerPageOptions: { type: Array, default: () => [5, 10, 25, 50] },
     searchable: { type: Boolean, default: false },
     searchPlaceholder: { type: String, default: 'Buscar...' },
+    showSearchButton: { type: Boolean, default: false },
+    hideRefreshButton: { type: Boolean, default: false },
     rowActions: { type: Array, default: () => [] },
     actionsKey: { type: String, default: 'acciones' },
     actionsWidth: { type: String, default: '150px' },
