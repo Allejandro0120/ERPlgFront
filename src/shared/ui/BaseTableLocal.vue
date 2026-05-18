@@ -21,7 +21,6 @@
             aria-label="Buscar"
             clearable
             density="compact"
-            :disabled="loading"
             hide-details
             :name="controlNames.search"
             :placeholder="searchPlaceholder"

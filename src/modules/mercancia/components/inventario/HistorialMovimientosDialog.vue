@@ -5,6 +5,7 @@
     title="Historial de Movimientos"
     icon="$history"
     color="blue-darken-3"
+    :show-actions="false"
   >
     <template #content>
       <div class="pa-4 pt-0">
@@ -39,6 +40,11 @@
                     : lastMovementDate || 'Sin movimientos recientes'
                 }}
               </div>
+            </div>
+            <div class="d-flex align-end">
+              <v-btn color="primary" prepend-icon="$swap" @click="showAjusteDialog = true">
+                Ajuste
+              </v-btn>
             </div>
           </div>
         </div>
@@ -114,10 +120,12 @@
           </template>
         </base-table>
       </div>
-    </template>
 
-    <template #actions="{ cancel }">
-      <v-btn variant="outlined" color="grey-darken-1" @click="cancel"> Cerrar </v-btn>
+      <ajuste-inventario-dialog
+        v-model="showAjusteDialog"
+        :product="product"
+        @saved="handleAjusteSaved"
+      />
     </template>
   </base-dialog>
 </template>
@@ -129,6 +137,7 @@
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import DateRangeFilter from '@/shared/ui/DateRangeFilter.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
+  import AjusteInventarioDialog from './AjusteInventarioDialog.vue'
 
   const props = defineProps({
     modelValue: Boolean,
@@ -149,6 +158,7 @@
   const movimientos = ref([])
   const totalItems = ref(0)
   const loadingTable = ref(false)
+  const showAjusteDialog = ref(false)
 
   const lastMovementDate = computed(() => {
     if (movimientos.value && movimientos.value.length > 0) {
@@ -157,11 +167,16 @@
     return null
   })
 
+  const handleAjusteSaved = () => {
+    tableRef.value?.reset()
+    emit('update:modelValue', false) // Emitimos el evento para cerrar el modal
+  }
+
   const headers = [
     { title: 'Fecha', key: 'FechaRegistro', sortable: true },
-    { title: 'Descripción', key: 'DescripcionMovimiento', sortable: true },
+    { title: 'Descripción', key: 'DescripcionMovimiento', sortable: false },
     { title: 'Doc. Referencia', key: 'DocumentoReferencia', sortable: false },
-    { title: 'Lote', key: 'CodLote', sortable: true },
+    { title: 'Lote', key: 'CodLote', sortable: false },
     { title: 'Ubicación', key: 'Ubicacion', sortable: false },
     { title: 'Usuario', key: 'CodigoUsuario', sortable: false },
     { title: 'Cantidad', key: 'Cantidad', sortable: true, align: 'end' },

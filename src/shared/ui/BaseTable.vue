@@ -24,7 +24,6 @@
             aria-label="Buscar"
             clearable
             density="compact"
-            :disabled="loading"
             hide-details
             name="searchQuery"
             :placeholder="searchPlaceholder"
