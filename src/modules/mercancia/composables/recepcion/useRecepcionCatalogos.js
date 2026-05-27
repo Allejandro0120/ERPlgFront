@@ -26,7 +26,7 @@ export function useRecepcionCatalogos() {
       !proveedores.value.some((p) => p.IdProveedor === acta.IdProveedor)
     ) {
       proveedores.value = [
-        { IdProveedor: acta.IdProveedor, Nombre: acta.NombreProveedor }, 
+        { IdProveedor: acta.IdProveedor, Nombre: acta.NombreProveedor },
         ...proveedores.value,
       ]
     }
@@ -60,8 +60,8 @@ export function useRecepcionCatalogos() {
     const res = await infraestructuraService.getCedis()
     const raw = res.data?.success ? res.data.data || [] : []
     cedis.value = raw.map((item) => ({
-      IdCedi: item.IdCedi ?? item.IdDistributionCenter ?? item.IdDistribucion ?? item.id,
-      Nombre: item.Nombre ?? item.Name ?? item.NombreCedi ?? item.name,
+      IdCedi: item.IdCedi ,
+      NombreCedi: item.NombreCedi ,
     }))
   }
 

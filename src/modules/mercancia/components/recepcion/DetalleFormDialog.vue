@@ -18,7 +18,7 @@
           <v-col cols="12" md="12">
             <v-autocomplete
               v-model="form.IdProducto"
-              v-model:search-input="productoSearch"
+              v-model:search="productoSearch"
               :item-title="productoItemTitle"
               item-value="IdProducto"
               :items="productosItems"
@@ -29,6 +29,7 @@
               :readonly="!isCreating || isReadonly"
               :rules="[rules.required]"
               variant="outlined"
+              no-filter
               @keydown.enter.prevent="onBuscarProductoEnter"
               @update:model-value="onProductoChange"
             />
@@ -99,7 +100,7 @@
               v-model.number="form.CantidadFacturada"
               label="Cantidad Facturada"
               prepend-inner-icon="mdi-package-variant-closed"
-              readonly
+              :readonly="isReadonly"
               type="number"
               variant="outlined"
             />
@@ -223,6 +224,8 @@
   const isEditing = computed(() => props.mode === 'edit')
   const isCreating = computed(() => props.mode === 'create')
 
+  let debounceTimer = null
+
   const dialogTitle = computed(() => {
     if (isReadonly.value) return 'Ver Detalle del Producto'
     if (isEditing.value) return 'Editar Detalle del Producto'
@@ -331,12 +334,18 @@
   }
 
   watch(productoSearch, (value) => {
-    if (!isCreating.value) {
-      return
-    }
+    if (!isCreating.value) return
+
+    clearTimeout(debounceTimer)
+
     if (!value || value.trim().length < 4) {
       productosItems.value = selectedProducto.value ? [selectedProducto.value] : []
+      return
     }
+
+    debounceTimer = setTimeout(() => {
+      buscarProductos(value.trim())
+    }, 500) // 500ms de debounce
   })
 
   function onProductoChange(productId) {
@@ -397,7 +406,42 @@
   })
 
   async function precargarDetalle(det) {
-    if (!det || !det.IdDetalle) return
+    if (!det) return
+    // Si no tiene IdDetalle, es un detalle local (recién creado), cargar directo del prop
+    if (!det.IdDetalle) {
+      form.value = { ...formInitial, ...det }
+
+      // Reconstruir el producto seleccionado para el autocomplete
+      if (det.IdProducto) {
+        const currentProducto = buildProductoItem({
+          IdProducto: det.IdProducto,
+          CodigoProducto: det.CodigoProducto ?? '',
+          NombreProducto: det.NombreProducto ?? '',
+        })
+        selectedProducto.value = currentProducto
+        productosItems.value = [currentProducto]
+      }
+
+      // Cargar cascada de infraestructura si tiene ubicación
+      if (isReadonly.value) {
+        setInfraestructuraLectura({ ...det, IdBodega: props.idBodega })
+      } else if (det.IdZona) {
+        await preloadForEdit({
+          idBodega: props.idBodega,
+          idZona: det.IdZona,
+          idPasillo: det.IdPasillo,
+          idEstante: det.IdEstante,
+          idUbicacion: det.IdUbicacion,
+        })
+      } else if (props.idBodega) {
+        ui.value.IdBodega = props.idBodega
+        await onBodegaChange(props.idBodega)
+      }
+
+      formSnapshot.value = { ...form.value }
+      return
+    }
+
     $loading.show('Cargando información del detalle...')
     try {
       const response = await recepcionService.getDetalleRecepcionById(det.IdDetalle)
@@ -450,10 +494,10 @@
     () => props.modelValue,
     async (isOpen) => {
       if (isOpen) {
+        resetForm()
         if (props.detalle) {
           await precargarDetalle(props.detalle)
         } else {
-          resetForm()
           // Cargar Zonas inicialmente si tenemos la bodega
           if (props.idBodega) {
             ui.value.IdBodega = props.idBodega
@@ -482,7 +526,7 @@
     $loading.show('Guardando detalle...')
     try {
       // Aquí puedes agregar la lógica para guardar si es necesario o emitir el submit
-      emit('submit', form.value)
+      emit('submit', { payload: form.value, mode: props.mode })
       emit('update:modelValue', false)
     } catch (error) {
       console.error(error)

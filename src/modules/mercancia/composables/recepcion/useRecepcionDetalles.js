@@ -3,6 +3,7 @@ import {
   getChangedCollectionPayload,
   hasCollectionChanges,
 } from '@/shared/composables/useChangePayload'
+import { $confirm } from '@/plugins/confirm/confirm.js'
 
 // CAMPOS PARA LA API
 const PRODUCTO_PATCH_FIELDS = [
@@ -13,7 +14,7 @@ const PRODUCTO_PATCH_FIELDS = [
   'CantidadRecibida',
   'CantidadMuestra',
   'Aceptado',
-  'Observaciones',
+  'ObservacionesProducto',
 ]
 
 // CAMPOS DE DISPLAY (solo para mostrar, no van en payloads ni snapshots)
@@ -47,10 +48,10 @@ const PRODUCTO_DEFAULTS = {
   CantidadRecibida: 0,
   CantidadMuestra: 0,
   Aceptado: false,
-  Observaciones: '',
+  ObservacionesProducto: '',
 }
 
-export function useRecepcionDetalles({ isReadonly }) {
+export function useRecepcionDetalles({ isReadonly, permisos }) {
   let localDetalleCounter = 0
 
   const detalles = ref([])
@@ -112,12 +113,30 @@ export function useRecepcionDetalles({ isReadonly }) {
   function abrirAgregarDetalle() {
     abrirDetalleDialog('create')
   }
+  function eliminarDetalle(LocalId) {
+    const detalle = detalles.value.find((d) => d.LocalId === LocalId)
+    const nombre = detalle?.CodigoProducto || 'este producto'
+
+    $confirm
+      .warning({
+        title: '¿Eliminar producto?',
+        message: `Se eliminará el producto <strong>${nombre}</strong> del acta. Esta acción no se puede deshacer.`,
+        labelConfirm: 'Sí, eliminar',
+        labelCancel: 'Cancelar',
+      })
+      .then((confirmado) => {
+        if (confirmado) {
+          detalles.value = detalles.value.filter((d) => d.LocalId !== LocalId)
+        }
+      })
+  }
 
   // ─── Acciones de tabla  ─────────────────────────────────────────────────────
 
   const detalleHeaders = computed(() => [
     { title: 'Producto', key: 'CodigoProducto', sortable: false },
     { title: 'Lote', key: 'CodLote', sortable: false },
+    { title: 'Ubicación', key: 'CodUbicacion', sortable: false, align: 'center' },
     {
       title: 'Facturado',
       key: 'CantidadFacturada',
@@ -137,20 +156,27 @@ export function useRecepcionDetalles({ isReadonly }) {
       sortable: false,
     },
     { title: 'Estado', key: 'Aceptado', align: 'center', sortable: false },
-    { title: 'Obs.', key: 'Observaciones', sortable: false },
+    { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
   ])
 
   const detallerowActions = computed(() => [
     {
       label: 'Editar',
       icon: '$pencil',
-      visible: !isReadonly.value,
+      visible: !isReadonly.value && permisos.value.puedeEditarDetalle,
       action: (item) => abrirPorLocalId(item.LocalId, 'edit'),
+    },
+    {
+      label: 'Eliminar',
+      icon: '$delete',
+      color: 'error',
+      visible: !isReadonly.value && permisos.value.puedeEliminarDetalle,
+      action: (item) => eliminarDetalle(item.LocalId),
     },
     {
       label: 'Ver detalle',
       icon: '$eye',
-      visible: isReadonly.value,
+      visible: isReadonly.value || !permisos?.value?.puedeEditarDetalle,
       action: (item) => abrirPorLocalId(item.LocalId, 'view'),
     },
   ])
@@ -162,6 +188,13 @@ export function useRecepcionDetalles({ isReadonly }) {
       IdZona: payload.IdZona ?? null,
       IdPasillo: payload.IdPasillo ?? null,
       IdEstante: payload.IdEstante ?? null,
+      CodigoProducto: payload.CodigoProducto ?? '',
+      NombreProducto: payload.NombreProducto ?? '',
+      CodLote: payload.CodLote ?? '',
+      CodZona: payload.CodZona ?? '',
+      CodPasillo: payload.CodPasillo ?? '',
+      CodEstante: payload.CodEstante ?? '',
+      CodUbicacion: payload.CodUbicacion ?? '',
     }
 
     if (mode === 'create') {

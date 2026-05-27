@@ -5,7 +5,7 @@
         v-model="form.NroActa"
         label="Número de Acta"
         prepend-inner-icon="mdi-file"
-        :readonly="isReadonly"
+        :readonly="true"
         variant="outlined"
       />
     </v-col>
@@ -19,12 +19,12 @@
         label="Estado"
         name="Estado"
         prepend-inner-icon="mdi-note-check"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdEstado')"
         variant="outlined"
       >
         <template #selection="{ item }">
           <v-chip class="estado-chip" :color="item.color" label variant="tonal">
-            <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
+            <v-icon class="ml-1" :color="item.color" icon="mdi-tag" size="14" start />
             {{ item.Nombre }}
           </v-chip>
         </template>
@@ -32,7 +32,7 @@
         <template #item="{ item, props: itemProps }">
           <v-list-item v-bind="itemProps" title="">
             <v-chip :color="item.color" label variant="tonal">
-              <v-icon class="ml-1" :color="item.color" icon="$circle" size="10" start />
+              <v-icon class="ml-1" :color="item.color" icon="mdi-tag" size="14" start />
               {{ item.Nombre }}
             </v-chip>
           </v-list-item>
@@ -52,27 +52,27 @@
       <v-select
         id="IdProveedor"
         v-model="form.IdProveedor"
-        :clearable="!isReadonly"
+        :clearable="canEdit('IdProveedor')"
+        :readonly="!canEdit('IdProveedor')"
         item-title="Nombre"
         item-value="IdProveedor"
         :items="proveedores"
         label="Proveedor"
         name="IdProveedor"
         prepend-inner-icon="mdi-truck"
-        :readonly="isReadonly"
         :rules="[rules.required]"
       />
     </v-col>
 
     <v-col cols="12" sm="6">
       <v-select
-        v-model="form.IdCedi"
+        :model-value="form.IdCedi"
         item-title="NombreCedi"
         item-value="IdCedi"
         :items="cedis"
         label="Cedi"
         prepend-inner-icon="mdi-warehouse"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdCedi')"
         variant="outlined"
         @update:model-value="emit('cedi-change', $event)"
       />
@@ -85,7 +85,7 @@
         :items="bodegas"
         label="Bodega"
         prepend-inner-icon="mdi-door-open"
-        :readonly="isReadonly"
+        :readonly="!canEdit('IdBodega')"
         variant="outlined"
       />
     </v-col>
@@ -95,7 +95,7 @@
         v-model="form.PrefijoFacturaRecibida"
         label="Prefijo Factura"
         prepend-inner-icon="mdi-invoice-outline"
-        :readonly="isReadonly"
+        :readonly="!canEdit('PrefijoFacturaRecibida')"
         variant="outlined"
       />
     </v-col>
@@ -104,19 +104,38 @@
         v-model="form.NumeroFacturaRecibida"
         label="Número Factura"
         prepend-inner-icon="mdi-invoice-text-outline"
-        :readonly="isReadonly"
+        :readonly="!canEdit('NumeroFacturaRecibida')"
         variant="outlined"
       />
     </v-col>
     <v-col cols="12" sm="4">
-      <template v-if="!isReadonly">
-        <v-text-field
-          v-model="form.FechaFacturaRecibida"
-          label="Fecha Factura"
-          prepend-inner-icon="mdi-calendar"
-          type="date"
-          variant="outlined"
-        />
+      <template v-if="canEdit('FechaFacturaRecibida')">
+        <v-menu
+          v-model="menuFechaFactura"
+          :close-on-content-click="false"
+          min-width="auto"
+          offset-y
+          transition="scale-transition"
+        >
+          <template #activator="{ props: menuFechaFacturaProps }">
+            <v-text-field
+              class="cursor-pointer"
+              v-model="fechaFacturaRecibidaDisplay"
+              v-bind="menuFechaFacturaProps"
+              label="Fecha Factura"
+              prepend-inner-icon="mdi-calendar"
+              readonly
+              variant="outlined"
+            />
+          </template>
+          <v-date-picker
+            v-model="form.FechaFacturaRecibida"
+            color="primary"
+            :first-day-of-week="1"
+            locale="es"
+            @input="menuFechaFactura = false"
+          />
+        </v-menu>
       </template>
       <template v-else>
         <v-text-field
@@ -133,7 +152,7 @@
       <v-textarea
         v-model="form.Observaciones"
         label="Observaciones / Orden de compra"
-        :readonly="isReadonly"
+        :readonly="!canEdit('Observaciones')"
         variant="outlined"
       />
     </v-col>
@@ -141,7 +160,7 @@
 </template>
 
 <script setup>
-  import { computed, toRefs } from 'vue'
+  import { computed, ref, toRefs } from 'vue'
   import { formatDate, formatDateTime } from '@/shared/utils/dateFormatter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { rules } from '@/shared/utils/validationRules'
@@ -149,6 +168,7 @@
   const props = defineProps({
     form: { type: Object, required: true },
     isReadonly: { type: Boolean, default: false },
+    permisos: { type: Object, default: () => ({}) },
     estadosCatalogo: { type: Array, default: () => [] },
     proveedores: { type: Array, default: () => [] },
     cedis: { type: Array, default: () => [] },
@@ -156,8 +176,10 @@
   })
   const emit = defineEmits(['cedi-change'])
 
+  const canEdit = (campo) => !props.isReadonly && (props.permisos[campo] ?? false)
   const { form, estadosCatalogo, isReadonly, proveedores, cedis, bodegas } = toRefs(props)
 
+  const menuFechaFactura = ref(false)
   const estadosConColor = computed(() =>
     (estadosCatalogo.value || []).map((estado) => ({
       ...estado,

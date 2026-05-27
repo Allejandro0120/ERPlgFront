@@ -39,8 +39,9 @@
               :estados-catalogo="estadosCatalogo"
               :form="form"
               :is-readonly="isReadonly"
+              :permisos="permisos"
               :proveedores="proveedores"
-              @cedi-change="onCediChange"
+              @cedi-change="onCediChangeBorrador"
             />
           </v-tabs-window-item>
 
@@ -49,6 +50,7 @@
               :detalles="detalles"
               :headers="detalleHeaders"
               :is-readonly="isReadonly"
+              :puede-agregar="!isReadonly && permisos.puedeAgregarDetalle"
               :row-actions="detallerowActions"
               @add="abrirAgregarDetalle"
             />
@@ -60,7 +62,7 @@
 </template>
 
 <script setup>
-  import { computed, reactive, ref, watch } from 'vue'
+  import { computed, reactive, ref, watch, nextTick } from 'vue'
   import { infraestructuraService } from '@/api/services/infraestructuraService'
   import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
@@ -72,6 +74,10 @@
   // colors handled inside tabs
   import { useRecepcionCatalogos } from '../../composables/recepcion/useRecepcionCatalogos'
   import { useRecepcionDetalles } from '../../composables/recepcion/useRecepcionDetalles'
+  import {
+    useRecepcionPermisos,
+    ESTADOS_ACTA,
+  } from '../../composables/recepcion/useRecepcionPermisos'
   import DetalleFormDialog from './DetalleFormDialog.vue'
   import RecepcionDetalleTab from './tabs/RecepcionDetalleTab.vue'
   import RecepcionInfoTab from './tabs/RecepcionInfoTab.vue'
@@ -92,6 +98,14 @@
   const isReadonly = computed(() => props.mode === 'view')
   const isEditing = computed(() => props.mode === 'edit')
   const isCreating = computed(() => props.mode === 'create')
+
+  const estadoActaNombre = computed(() => {
+    if (isCreating.value) return ESTADOS_ACTA.BORRADOR
+    const estado = estadosCatalogo.value.find((e) => e.IdEstado === form.value.IdEstado)
+    return estado?.Nombre ?? ''
+  })
+
+  const { permisos } = useRecepcionPermisos(estadoActaNombre)
 
   const actaDisplayName = computed(() => {
     const nombre = props.acta?.Acta
@@ -146,7 +160,7 @@
     resetDetalles,
     hasDetallesChanges,
     getDetallesChanges,
-  } = useRecepcionDetalles({ isReadonly })
+  } = useRecepcionDetalles({ isReadonly, permisos })
 
   const formInitial = {
     IdActa: null,
@@ -276,7 +290,6 @@
     if (!ok) {
       $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
     }
-    setCatalogosLectura(props.acta)
     await precargarActa(props.acta)
   }
 
@@ -311,6 +324,18 @@
   async function submitForm() {
     const { valid } = await formRef.value.validate()
 
+    // Validar ubicación de detalles
+    const detallesSinUbicacion = detalles.value.some((d) => !d.IdUbicacion)
+    if (detallesSinUbicacion) {
+      ui.value.tab = 'detalle'
+      // Marcar visualmente el error en los que faltan
+      detalles.value.forEach((d) => {
+        if (!d.IdUbicacion) d._errorUbicacion = true
+      })
+      $toast.error('Hay productos en el detalle sin ubicación asignada')
+      return
+    }
+
     if (!valid) {
       const primerTabConError = Object.keys(tabErrors.value).find((k) => tabErrors.value[k])
       if (primerTabConError) ui.value.tab = primerTabConError
@@ -337,5 +362,46 @@
     emit('submit', { payload: changes, mode: props.mode })
   }
 
-  // estado/color handled in tabs
+  async function onCediChangeBorrador(newIdCedi) {
+    if (newIdCedi === form.value.IdCedi) return
+
+    const tieneProductos = detalles.value.length > 0
+    if (tieneProductos) {
+      const confirmado = await $confirm.warning({
+        title: 'Cedi modificado',
+        message:
+          'Al cambiar el Cedi, se perderá la selección de ubicación de todos los productos en el detalle. ¿Deseas realizar el cambio?',
+        labelConfirm: 'Sí, cambiar',
+        labelCancel: 'Cancelar',
+      })
+      if (!confirmado) {
+        // Revertir visualmente el select a su valor real
+        const preId = form.value.IdCedi
+        form.value.IdCedi = null
+        await nextTick()
+        form.value.IdCedi = preId
+        return
+      }
+    }
+
+    form.value.IdCedi = newIdCedi
+
+    // Limpiar ubicación de todos los detalles y marcar error
+    detalles.value.forEach((d) => {
+      d.IdZona = null
+      d.IdPasillo = null
+      d.IdEstante = null
+      d.IdUbicacion = null
+      d.CodZona = ''
+      d.CodPasillo = ''
+      d.CodEstante = ''
+      d.CodUbicacion = ''
+      if (d.IdProducto) {
+        d._errorUbicacion = true
+      }
+    })
+
+    // Y finalmente pre-cargar las bodegas para el nuevo cedi
+    await onCediChange(newIdCedi)
+  }
 </script>

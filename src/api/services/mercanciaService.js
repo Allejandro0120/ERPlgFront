@@ -13,10 +13,12 @@ export const mercanciaService = {
    * @returns
    */
   getProductos: (terminoBusqueda) => {
-    return withCache(`productos_${terminoBusqueda}`, () =>
-      api.get('v1/ware/products', { terminoBusqueda }),
-    )
-  },
+  return withCache(`productos_${terminoBusqueda}`, () =>
+    api.get('v1/ware/products/search', {
+      params: { terminoBusqueda },
+    }),
+  )
+},
 
   /**
    * Obtiene los saldos de inventario con paginación
