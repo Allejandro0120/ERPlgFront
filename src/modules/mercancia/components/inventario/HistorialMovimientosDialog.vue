@@ -22,7 +22,38 @@
                 <v-icon size="16" class="mr-1">mdi-barcode</v-icon>
                 {{ product.CodigoProducto }}
               </span>
-              <span v-if="product?.CodigoProducto" class="text-grey-lighten-1">|</span>
+
+              <template v-if="product?.CodLote || product?.Lote">
+                <span class="text-grey-lighten-1" v-if="product?.CodigoProducto">|</span>
+                <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
+                  <v-icon size="16" class="mr-1">mdi-tag-multiple</v-icon>
+                  Lote: {{ product.CodLote || product.Lote }}
+                </span>
+              </template>
+
+              <template v-if="product?.CodUbicacion || product?.NombreUbicacion">
+                <span
+                  class="text-grey-lighten-1"
+                  v-if="product?.CodigoProducto || product?.CodLote || product?.Lote"
+                  >|</span
+                >
+                <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
+                  <v-icon size="16" class="mr-1">mdi-map-marker</v-icon>
+                  {{ product.CodUbicacion || product.NombreUbicacion }}
+                </span>
+              </template>
+
+              <span
+                class="text-grey-lighten-1"
+                v-if="
+                  product?.CodigoProducto ||
+                  product?.CodLote ||
+                  product?.Lote ||
+                  product?.Ubicacion ||
+                  product?.NombreUbicacion
+                "
+                >|</span
+              >
               <span class="text-body-2 text-blue-darken-3 font-weight-bold d-flex align-center">
                 <v-icon size="16" class="mr-1">mdi-package-variant-closed</v-icon>
                 Stock: {{ product?.CantidadDisponible || 0 }}
@@ -90,23 +121,8 @@
             </v-chip>
           </template>
 
-          <template #item.Ubicacion="{ item }">
-            <div class="d-flex align-center">
-              <template v-if="item.UbicacionOrigen && item.UbicacionDestino">
-                <span class="text-grey-darken-1">{{ item.UbicacionOrigen }}</span>
-                <v-icon size="small" class="mx-1 text-grey" icon="mdi-arrow-right"></v-icon>
-                <span>{{ item.UbicacionDestino }}</span>
-              </template>
-              <template v-else-if="item.UbicacionOrigen">
-                <span>{{ item.UbicacionOrigen }}</span>
-              </template>
-              <template v-else-if="item.UbicacionDestino">
-                <span>{{ item.UbicacionDestino }}</span>
-              </template>
-              <template v-else>
-                <span class="text-grey">-</span>
-              </template>
-            </div>
+          <template #item.Observaciones="{ item }">
+            {{ item.Observaciones || '-' }}
           </template>
 
           <template #item.DocumentoReferencia="{ item }">
@@ -176,8 +192,7 @@
     { title: 'Fecha', key: 'FechaRegistro', sortable: true },
     { title: 'Descripción', key: 'DescripcionMovimiento', sortable: false },
     { title: 'Doc. Referencia', key: 'DocumentoReferencia', sortable: false },
-    { title: 'Lote', key: 'CodLote', sortable: false },
-    { title: 'Ubicación', key: 'Ubicacion', sortable: false },
+    { title: 'Observación', key: 'Observaciones', sortable: false },
     { title: 'Usuario', key: 'CodigoUsuario', sortable: false },
     { title: 'Cantidad', key: 'Cantidad', sortable: true, align: 'end' },
   ]
