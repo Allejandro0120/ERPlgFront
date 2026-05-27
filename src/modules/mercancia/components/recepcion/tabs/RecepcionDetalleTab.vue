@@ -35,6 +35,18 @@
       :row-actions="rowActions"
       :searchable="false"
     >
+      <template #item.CodUbicacion="{ item }">
+        <v-chip
+          v-if="!item.IdUbicacion && item._errorUbicacion"
+          color="error"
+          size="small"
+          variant="flat"
+        >
+          <v-icon icon="mdi-alert-circle" size="12" start />
+          Sin Ubicación
+        </v-chip>
+        <span v-else>{{ item.CodUbicacion || '—' }}</span>
+      </template>
       <template #item.Aceptado="{ item }">
         <v-chip
           :color="estadoProductoColor(estadoProductoLabel(item.Aceptado))"

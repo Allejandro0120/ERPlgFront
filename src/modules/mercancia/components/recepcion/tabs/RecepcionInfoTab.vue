@@ -66,7 +66,7 @@
 
     <v-col cols="12" sm="6">
       <v-select
-        v-model="form.IdCedi"
+        :model-value="form.IdCedi"
         item-title="NombreCedi"
         item-value="IdCedi"
         :items="cedis"
@@ -110,13 +110,32 @@
     </v-col>
     <v-col cols="12" sm="4">
       <template v-if="canEdit('FechaFacturaRecibida')">
-        <v-text-field
-          v-model="form.FechaFacturaRecibida"
-          label="Fecha Factura"
-          prepend-inner-icon="mdi-calendar"
-          type="date"
-          variant="outlined"
-        />
+        <v-menu
+          v-model="menuFechaFactura"
+          :close-on-content-click="false"
+          min-width="auto"
+          offset-y
+          transition="scale-transition"
+        >
+          <template #activator="{ props: menuFechaFacturaProps }">
+            <v-text-field
+              class="cursor-pointer"
+              v-model="fechaFacturaRecibidaDisplay"
+              v-bind="menuFechaFacturaProps"
+              label="Fecha Factura"
+              prepend-inner-icon="mdi-calendar"
+              readonly
+              variant="outlined"
+            />
+          </template>
+          <v-date-picker
+            v-model="form.FechaFacturaRecibida"
+            color="primary"
+            :first-day-of-week="1"
+            locale="es"
+            @input="menuFechaFactura = false"
+          />
+        </v-menu>
       </template>
       <template v-else>
         <v-text-field
@@ -141,7 +160,7 @@
 </template>
 
 <script setup>
-  import { computed, toRefs } from 'vue'
+  import { computed, ref, toRefs } from 'vue'
   import { formatDate, formatDateTime } from '@/shared/utils/dateFormatter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { rules } from '@/shared/utils/validationRules'
@@ -160,6 +179,7 @@
   const canEdit = (campo) => !props.isReadonly && (props.permisos[campo] ?? false)
   const { form, estadosCatalogo, isReadonly, proveedores, cedis, bodegas } = toRefs(props)
 
+  const menuFechaFactura = ref(false)
   const estadosConColor = computed(() =>
     (estadosCatalogo.value || []).map((estado) => ({
       ...estado,

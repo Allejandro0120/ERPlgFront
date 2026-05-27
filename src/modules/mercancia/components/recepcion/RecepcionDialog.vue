@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-  import { computed, reactive, ref, watch } from 'vue'
+  import { computed, reactive, ref, watch, nextTick } from 'vue'
   import { infraestructuraService } from '@/api/services/infraestructuraService'
   import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
@@ -290,7 +290,6 @@
     if (!ok) {
       $toast.warning('Algunos catálogos no se cargaron. Revisa los campos de selección.')
     }
-    setCatalogosLectura(props.acta)
     await precargarActa(props.acta)
   }
 
@@ -325,6 +324,18 @@
   async function submitForm() {
     const { valid } = await formRef.value.validate()
 
+    // Validar ubicación de detalles
+    const detallesSinUbicacion = detalles.value.some((d) => !d.IdUbicacion)
+    if (detallesSinUbicacion) {
+      ui.value.tab = 'detalle'
+      // Marcar visualmente el error en los que faltan
+      detalles.value.forEach((d) => {
+        if (!d.IdUbicacion) d._errorUbicacion = true
+      })
+      $toast.error('Hay productos en el detalle sin ubicación asignada')
+      return
+    }
+
     if (!valid) {
       const primerTabConError = Object.keys(tabErrors.value).find((k) => tabErrors.value[k])
       if (primerTabConError) ui.value.tab = primerTabConError
@@ -351,30 +362,46 @@
     emit('submit', { payload: changes, mode: props.mode })
   }
 
-
   async function onCediChangeBorrador(newIdCedi) {
-  const tienDetallesConUbicacion = detalles.value.some((d) => d.IdUbicacion)
-  if (tienDetallesConUbicacion) {
-    const confirmado = await $confirm.warning({
-      title: 'Cambio de Cedi',
-      message:
-        'Al cambiar el Cedi, la <strong>ubicación de los productos existentes se limpiará</strong> ya que pertenecen a otra bodega. Deberás reasignarles ubicación.',
-      labelConfirm: 'Continuar',
-      labelCancel: 'Cancelar',
+    if (newIdCedi === form.value.IdCedi) return
+
+    const tieneProductos = detalles.value.length > 0
+    if (tieneProductos) {
+      const confirmado = await $confirm.warning({
+        title: 'Cedi modificado',
+        message:
+          'Al cambiar el Cedi, se perderá la selección de ubicación de todos los productos en el detalle. ¿Deseas realizar el cambio?',
+        labelConfirm: 'Sí, cambiar',
+        labelCancel: 'Cancelar',
+      })
+      if (!confirmado) {
+        // Revertir visualmente el select a su valor real
+        const preId = form.value.IdCedi
+        form.value.IdCedi = null
+        await nextTick()
+        form.value.IdCedi = preId
+        return
+      }
+    }
+
+    form.value.IdCedi = newIdCedi
+
+    // Limpiar ubicación de todos los detalles y marcar error
+    detalles.value.forEach((d) => {
+      d.IdZona = null
+      d.IdPasillo = null
+      d.IdEstante = null
+      d.IdUbicacion = null
+      d.CodZona = ''
+      d.CodPasillo = ''
+      d.CodEstante = ''
+      d.CodUbicacion = ''
+      if (d.IdProducto) {
+        d._errorUbicacion = true
+      }
     })
-    if (!confirmado) return // revertir si cancela — ver nota abajo
+
+    // Y finalmente pre-cargar las bodegas para el nuevo cedi
+    await onCediChange(newIdCedi)
   }
-  // Limpiar ubicación de todos los detalles
-  detalles.value.forEach((d) => {
-    d.IdZona = null
-    d.IdPasillo = null
-    d.IdEstante = null
-    d.IdUbicacion = null
-    d.CodZona = ''
-    d.CodPasillo = ''
-    d.CodEstante = ''
-    d.CodUbicacion = ''
-  })
-  onCediChange(newIdCedi)
-}
 </script>

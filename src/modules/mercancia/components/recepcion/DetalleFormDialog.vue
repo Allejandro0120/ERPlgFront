@@ -494,10 +494,10 @@
     () => props.modelValue,
     async (isOpen) => {
       if (isOpen) {
+        resetForm()
         if (props.detalle) {
           await precargarDetalle(props.detalle)
         } else {
-          resetForm()
           // Cargar Zonas inicialmente si tenemos la bodega
           if (props.idBodega) {
             ui.value.IdBodega = props.idBodega

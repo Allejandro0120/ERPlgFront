@@ -23,6 +23,7 @@
         >
           <template #activator="{ props: menuStartProps }">
             <v-text-field
+              class="cursor-pointer"
               v-model="startText"
               v-bind="menuStartProps"
               density="compact"
@@ -54,6 +55,7 @@
         >
           <template #activator="{ props: menuEndProps }">
             <v-text-field
+              class="cursor-pointer"
               v-model="endText"
               v-bind="menuEndProps"
               density="compact"

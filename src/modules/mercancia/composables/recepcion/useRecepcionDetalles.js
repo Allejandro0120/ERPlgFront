@@ -136,6 +136,7 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
   const detalleHeaders = computed(() => [
     { title: 'Producto', key: 'CodigoProducto', sortable: false },
     { title: 'Lote', key: 'CodLote', sortable: false },
+    { title: 'Ubicación', key: 'CodUbicacion', sortable: false, align: 'center' },
     {
       title: 'Facturado',
       key: 'CantidadFacturada',
