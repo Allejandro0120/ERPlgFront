@@ -4,7 +4,7 @@ import { AUTH_CODES } from '@/api/handlers/authCodes'
 import { $toast } from '@/plugins/toast'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5002/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://sanamosapi.alejoperezbernal.com',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
