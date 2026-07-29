@@ -35,18 +35,6 @@
       :row-actions="rowActions"
       :searchable="false"
     >
-      <template #item.CodUbicacion="{ item }">
-        <v-chip
-          v-if="!item.IdUbicacion && item._errorUbicacion"
-          color="error"
-          size="small"
-          variant="flat"
-        >
-          <v-icon icon="mdi-alert-circle" size="12" start />
-          Sin Ubicación
-        </v-chip>
-        <span v-else>{{ item.CodUbicacion || '—' }}</span>
-      </template>
       <template #item.Aceptado="{ item }">
         <v-chip
           :color="estadoProductoColor(estadoProductoLabel(item.Aceptado))"
@@ -57,9 +45,9 @@
           {{ estadoProductoLabel(item.Aceptado) }}
         </v-chip>
       </template>
-      <template #item.Observaciones="{ item }">
+      <template #item.ObservacionesProducto="{ item }">
         <div class="text-body-2 text-truncate" style="max-width: 240px">
-          {{ item.Observaciones || '—' }}
+          {{ item.ObservacionesProducto || '—' }}
         </div>
       </template>
     </base-table-local>
@@ -70,18 +58,17 @@
   import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
-  const { detalles, headers, rowActions, isReadonly } = defineProps({
+  const { detalles, headers, rowActions } = defineProps({
     detalles: { type: Array, default: () => [] },
     headers: { type: Array, default: () => [] },
     rowActions: { type: Array, default: () => [] },
-    isReadonly: { type: Boolean, default: false },
     puedeAgregar: { type: Boolean, default: false },
   })
 
   const emit = defineEmits(['add'])
   const estadoProductoLabel = (aceptado) => (aceptado ? 'Aceptado' : 'Rechazado')
   function estadoProductoColor(nombre) {
-    return getEstadoColor(nombre, DOMINIOS_ESTADO.PRODCUTO_ACTA)
+    return getEstadoColor(nombre, DOMINIOS_ESTADO.PRODUCTO_ACTA)
   }
 </script>
 

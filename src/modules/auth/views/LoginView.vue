@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <img
-              alt="Sanamos Santander"
+              alt="LogicPharma logo"
               fetchpriority="high"
               height="100"
               :src="Logo"
@@ -33,8 +33,8 @@
               <v-text-field
                 id="campo-usuario"
                 v-model="form.Codigo"
+                autocomplete="username"
                 label="Usuario"
-                placeholder="Usuario"
                 prepend-inner-icon="mdi-account-outline"
                 required
                 :rules="[rules.required]"
@@ -49,7 +49,6 @@
                 :append-inner-icon="showPassword ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
                 autocomplete="current-password"
                 label="Contraseña"
-                placeholder="••••••••"
                 prepend-inner-icon="mdi-lock-outline"
                 required
                 :rules="[rules.requiredPassword]"
@@ -86,7 +85,7 @@
         <!-- Footer -->
         <div class="text-center mt-6">
           <span class="text-body-small text-brand-grey-1">
-            © {{ year }} Sanamos Santander. Todos los derechos reservados.
+            © {{ year }}  LogicPharma. Todos los derechos reservados.
           </span>
         </div>
       </v-col>
@@ -100,9 +99,9 @@
   import { authService } from '@/api/services/authService'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import { useAuthStore } from '@/stores/auth.store'
-  import { useUiStore } from '@/stores/ui.store'
-  import Logo from '/sanamos_logo_horizontal.webp'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useUiStore } from '@/stores/uiStore'
+  import Logo from '/LogicPharma_LogoT.png'
 
   // ─── Composables ─────────────────────────────────────────────────────────────
   const router = useRouter()
@@ -185,5 +184,14 @@
   /* Aumentar contraste - labels más oscuros para pasar WCAG AA */
   :deep() .v-label {
     color: #0f172a !important;
+  }
+
+  /* Corregir solapamiento de Vuetify cuando Chrome u otros navegadores hacen autofill */
+  :deep(.v-field:has(input:-webkit-autofill) .v-field-label:not(.v-field-label--floating)) {
+    opacity: 0 !important;
+  }
+  :deep(.v-field:has(input:-webkit-autofill) .v-field-label--floating) {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 </style>

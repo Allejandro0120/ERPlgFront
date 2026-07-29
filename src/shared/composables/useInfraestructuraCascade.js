@@ -32,10 +32,10 @@ export function useInfraestructuraCascade({
 }) {
   const k = keys
 
-  const bodegas   = ref([])
-  const zonas     = ref([])
-  const pasillos  = ref([])
-  const estantes  = ref([])
+  const bodegas = ref([])
+  const zonas = ref([])
+  const pasillos = ref([])
+  const estantes = ref([])
   const ubicaciones = ref([])
 
   const loading = ref({
@@ -82,8 +82,8 @@ export function useInfraestructuraCascade({
         form.value[k.idBodega] = bodegas.value[0].IdBodega
         await onBodegaChange(bodegas.value[0].IdBodega)
       }
-    } catch (e) {
-      handleError(e, 'bodegas')
+    } catch (error) {
+      handleError(error, 'bodegas')
     } finally {
       loading.value.bodegas = false
     }
@@ -99,8 +99,8 @@ export function useInfraestructuraCascade({
         form.value[k.idZona] = zonas.value[0].IdZona
         await onZonaChange(zonas.value[0].IdZona)
       }
-    } catch (e) {
-      handleError(e, 'zonas')
+    } catch (error) {
+      handleError(error, 'zonas')
     } finally {
       loading.value.zonas = false
     }
@@ -116,8 +116,8 @@ export function useInfraestructuraCascade({
         form.value[k.idPasillo] = pasillos.value[0].IdPasillo
         await onPasilloChange(pasillos.value[0].IdPasillo)
       }
-    } catch (e) {
-      handleError(e, 'pasillos')
+    } catch (error) {
+      handleError(error, 'pasillos')
     } finally {
       loading.value.pasillos = false
     }
@@ -133,8 +133,8 @@ export function useInfraestructuraCascade({
         form.value[k.idEstante] = estantes.value[0].IdEstante
         await onEstanteChange(estantes.value[0].IdEstante)
       }
-    } catch (e) {
-      handleError(e, 'estantes')
+    } catch (error) {
+      handleError(error, 'estantes')
     } finally {
       loading.value.estantes = false
     }
@@ -150,8 +150,8 @@ export function useInfraestructuraCascade({
       if (autoSelect && ubicaciones.value.length === 1) {
         form.value[k.idUbicacion] = ubicaciones.value[0].IdUbicacion
       }
-    } catch (e) {
-      handleError(e, 'ubicaciones')
+    } catch (error) {
+      handleError(error, 'ubicaciones')
     } finally {
       loading.value.ubicaciones = false
     }
@@ -205,22 +205,26 @@ export function useInfraestructuraCascade({
   function setInfraestructuraLectura(data) {
     // Asignar IDs al form y ui
     const ids = {
-      [k.idCedi]:      data.IdCedi      ?? null,
-      [k.idBodega]:    data.IdBodega    ?? null,
-      [k.idZona]:      data.IdZona      ?? null,
-      [k.idPasillo]:   data.IdPasillo   ?? null,
-      [k.idEstante]:   data.IdEstante   ?? null,
+      [k.idCedi]: data.IdCedi ?? null,
+      [k.idBodega]: data.IdBodega ?? null,
+      [k.idZona]: data.IdZona ?? null,
+      [k.idPasillo]: data.IdPasillo ?? null,
+      [k.idEstante]: data.IdEstante ?? null,
       [k.idUbicacion]: data.IdUbicacion ?? null,
     }
     Object.assign(form.value, ids)
     if (ui.value) Object.assign(ui.value, ids)
 
     // Poblar arrays para que los selects muestren el label en lugar del ID
-    if (data.IdBodega  && data.NombreBodega)  bodegas.value    = [{ IdBodega:    data.IdBodega,    NombreBodega:  data.NombreBodega  }]
-    if (data.IdZona    && data.CodZona)        zonas.value      = [{ IdZona:      data.IdZona,      CodZona:       data.CodZona       }]
-    if (data.IdPasillo && data.CodPasillo)     pasillos.value   = [{ IdPasillo:   data.IdPasillo,   CodPasillo:    data.CodPasillo    }]
-    if (data.IdEstante && data.CodEstante)     estantes.value   = [{ IdEstante:   data.IdEstante,   CodEstante:    data.CodEstante    }]
-    if (data.IdUbicacion && data.CodUbicacion) ubicaciones.value = [{ IdUbicacion: data.IdUbicacion, CodUbicacion: data.CodUbicacion  }]
+    if (data.IdBodega && data.NombreBodega)
+      bodegas.value = [{ IdBodega: data.IdBodega, NombreBodega: data.NombreBodega }]
+    if (data.IdZona && data.CodZona) zonas.value = [{ IdZona: data.IdZona, CodZona: data.CodZona }]
+    if (data.IdPasillo && data.CodPasillo)
+      pasillos.value = [{ IdPasillo: data.IdPasillo, CodPasillo: data.CodPasillo }]
+    if (data.IdEstante && data.CodEstante)
+      estantes.value = [{ IdEstante: data.IdEstante, CodEstante: data.CodEstante }]
+    if (data.IdUbicacion && data.CodUbicacion)
+      ubicaciones.value = [{ IdUbicacion: data.IdUbicacion, CodUbicacion: data.CodUbicacion }]
   }
 
   // ─── Modo edición: carga todos los niveles sin pisar el form ──────────────
@@ -231,8 +235,8 @@ export function useInfraestructuraCascade({
       loading.value.zonas = true
       try {
         zonas.value = extractData(await services.getZonasByBodega(idBodega))
-      } catch (e) {
-        handleError(e, 'zonas')
+      } catch (error) {
+        handleError(error, 'zonas')
       } finally {
         loading.value.zonas = false
       }
@@ -242,8 +246,8 @@ export function useInfraestructuraCascade({
       loading.value.pasillos = true
       try {
         pasillos.value = extractData(await services.getPasillosByZona(idZona))
-      } catch (e) {
-        handleError(e, 'pasillos')
+      } catch (error) {
+        handleError(error, 'pasillos')
       } finally {
         loading.value.pasillos = false
       }
@@ -253,8 +257,8 @@ export function useInfraestructuraCascade({
       loading.value.estantes = true
       try {
         estantes.value = extractData(await services.getEstantesByPasillo(idPasillo))
-      } catch (e) {
-        handleError(e, 'estantes')
+      } catch (error) {
+        handleError(error, 'estantes')
       } finally {
         loading.value.estantes = false
       }
@@ -265,17 +269,17 @@ export function useInfraestructuraCascade({
       try {
         const data = extractData(await services.getUbicacionByEstante(idEstante))
         ubicaciones.value = Array.isArray(data) ? data : [data]
-      } catch (e) {
-        handleError(e, 'ubicaciones')
+      } catch (error) {
+        handleError(error, 'ubicaciones')
       } finally {
         loading.value.ubicaciones = false
       }
     }
 
     // Asignar IDs al form solo cuando los arrays ya están listos
-    if (idZona)      form.value[k.idZona]      = idZona
-    if (idPasillo)   form.value[k.idPasillo]   = idPasillo
-    if (idEstante)   form.value[k.idEstante]   = idEstante
+    if (idZona) form.value[k.idZona] = idZona
+    if (idPasillo) form.value[k.idPasillo] = idPasillo
+    if (idEstante) form.value[k.idEstante] = idEstante
     if (idUbicacion) form.value[k.idUbicacion] = idUbicacion
   }
 
@@ -287,17 +291,27 @@ export function useInfraestructuraCascade({
     pasillos.value = []
     estantes.value = []
     ubicaciones.value = []
-    loading.value = { bodegas: false, zonas: false, pasillos: false, estantes: false, ubicaciones: false }
+    loading.value = {
+      bodegas: false,
+      zonas: false,
+      pasillos: false,
+      estantes: false,
+      ubicaciones: false,
+    }
 
     if (!clearSelections) return
 
     const nullIds = {
-      [k.idCedi]: null, [k.idBodega]: null, [k.idZona]: null,
-      [k.idPasillo]: null, [k.idEstante]: null, [k.idUbicacion]: null,
+      [k.idCedi]: null,
+      [k.idBodega]: null,
+      [k.idZona]: null,
+      [k.idPasillo]: null,
+      [k.idEstante]: null,
+      [k.idUbicacion]: null,
     }
     if (ui.value) Object.assign(ui.value, nullIds)
     // Solo limpia los campos que gestiona este composable en el form
-    form.value[k.idEstante]   = null
+    form.value[k.idEstante] = null
     form.value[k.idUbicacion] = null
   }
 
@@ -308,6 +322,11 @@ export function useInfraestructuraCascade({
     estantes,
     ubicaciones,
     loading,
+    loadBodegas,
+    loadZonas,
+    loadPasillos,
+    loadEstantes,
+    loadUbicaciones,
     onCediChange,
     onBodegaChange,
     onZonaChange,

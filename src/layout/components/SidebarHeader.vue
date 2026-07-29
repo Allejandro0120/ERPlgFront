@@ -10,13 +10,13 @@
           height 0.2s;
       "
     >
-      <v-img alt="Sanamos logo" cover height="36" :src="logo" width="36" />
+      <v-img alt="LogicPharma logo" cover height="36" :src="logo" width="36" />
     </v-avatar>
 
     <Transition name="header-text">
       <div v-if="!rail" class="ml-3 overflow-hidden" style="white-space: nowrap">
         <p class="mb-0 font-weight-bold text-white text-title-medium" style="line-height: 1.3">
-          Sanamos<br />Santander
+          LogicPharma<br />Santander
         </p>
         <p class="mb-0 mt-1 text-white font-weight-medium text-body-small">Sistema de Gestión</p>
       </div>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-  import logo from '@/assets/sanamos_logo.webp'
+  import logo from '@/assets/logicpharma_logo.png'
 
   defineProps({
     rail: { type: Boolean, default: false },

@@ -13,7 +13,7 @@
         :size="rail ? 'x-small' : 'small'"
         variant="tonal"
       >
-        {{ rail ? version : `Sanamos ERP V${version}` }}
+        {{ rail ? version : `LogicPharma ERP V${version}` }}
       </v-chip>
     </div>
   </div>

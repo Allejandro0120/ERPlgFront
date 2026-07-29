@@ -52,4 +52,35 @@ export const recepcionService = {
    * @param {*} id  - ID del detalle de la recepción
    */
   getRecepcionPDF: (id) => api.get(`v1/reception/reports/pdf/${id}`, { responseType: 'blob' }),
+
+  /**
+   * Crea una nueva recepción
+   * @param {*} recepcionData - Datos de la recepción a crear
+   */
+  createRecepcion: (recepcionData) => api.post('v1/reception/create', recepcionData),
+
+  /**
+   * Actualiza una recepción existente
+   * @param {*} recepcionData - Datos de la recepción a actualizar (debe incluir el ID)
+   */
+  updateRecepcion: (recepcionData) => api.put('v1/reception/update', recepcionData),
+
+  /**
+   * Busca una recepción por su número de acta (coincidencias)
+   * @param {string} numacta - Número de acta de la recepción a buscar
+   */
+  searchRecepcion: (numacta) => {
+    return withCache(`actas_${numacta}`, () =>
+      api.get('v1/reception/reports/search', {
+        params: { numacta },
+      }),
+    )
+  },
+
+  /**
+   * Obtiene información específica de una recepción por su ID de acta
+   * @param {*} idActa - ID del acta de la recepción
+   * @returns
+   */
+  getRecepcionInformacion: (idActa) => api.get(`v1/reception/reports/specific-info/${idActa}`),
 }

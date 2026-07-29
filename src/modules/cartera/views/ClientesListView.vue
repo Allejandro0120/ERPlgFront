@@ -3,16 +3,6 @@
   <div class="w-100">
     <page-header-actions>
       <v-row density="comfortable">
-        <!-- <v-col cols="12" sm="auto">
-          <v-btn
-            variant="tonal"
-            color="brand-grey-2"
-            prepend-icon="mdi-tray-arrow-down"
-            class="text-none w-100"
-          >
-            Exportar
-          </v-btn>
-        </v-col> -->
         <v-col v-if="hasPermission('Clientes.ADD')" cols="12" sm="auto">
           <v-btn class="text-none w-100" color="primary" prepend-icon="$plus" @click="abrirCrear()">
             Añadir Cliente
@@ -88,7 +78,7 @@
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
-  import { useAuthStore } from '@/stores/auth.store'
+  import { useAuthStore } from '@/stores/authStore'
 
   const authStore = useAuthStore()
   const hasPermission = (permiso) => authStore.hasPermission(permiso)
@@ -101,7 +91,7 @@
       sortable: true,
       searchable: true,
     },
-    { title: 'Tipo Documento', key: 'TipoDocumento', sortable: false },
+    { title: 'Tipo Identificación', key: 'TipoIdentificacion', sortable: false },
     { title: 'Nombre', key: 'Nombre', sortable: true, searchable: true },
     { title: 'Municipio', key: 'Municipio', sortable: true, searchable: true },
     { title: 'Estado', key: 'Estado', sortable: false, align: 'center' },

@@ -23,6 +23,7 @@
               name="NombreSucursal"
               prepend-inner-icon="mdi-store-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required]"
             />
           </v-col>
@@ -33,11 +34,19 @@
               v-model="form.Telefono"
               :clearable="!isReadonly"
               label="Teléfono"
+              maxlength="15"
               name="Telefono"
               prepend-inner-icon="mdi-phone-outline"
               :readonly="isReadonly"
-              :rules="[rules.required]"
+              required
+              :rules="[
+                rules.required,
+                rules.numeric,
+                rules.minLength(6, 'El teléfono'),
+                rules.maxLength(15, 'El teléfono'),
+              ]"
               @keydown="blockKey($event, allow.onlyDigits)"
+              @paste="blockPaste($event, allow.onlyDigits)"
             />
           </v-col>
 
@@ -50,6 +59,7 @@
               name="CorreoGeneral"
               prepend-inner-icon="mdi-email-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required, rules.email]"
               type="email"
             />
@@ -67,6 +77,7 @@
               name="idDepartamento"
               prepend-inner-icon="mdi-map-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required]"
               @update:model-value="onDepartamentoChange"
             />
@@ -86,6 +97,7 @@
               name="idMunicipio"
               prepend-inner-icon="mdi-city-variant-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required]"
               @update:model-value="onMunicipioChange"
             />
@@ -105,6 +117,7 @@
               name="IdCentroPoblado"
               prepend-inner-icon="mdi-home-group"
               :readonly="isReadonly"
+              required
               :rules="[rules.required]"
             />
           </v-col>
@@ -115,10 +128,12 @@
               v-model="form.Direccion"
               :clearable="!isReadonly"
               label="Dirección"
+              maxlength="255"
               name="Direccion"
               prepend-inner-icon="mdi-map-marker-outline"
               :readonly="isReadonly"
-              :rules="[rules.required]"
+              required
+              :rules="[rules.required, rules.minLength(4, 'La dirección')]"
             />
           </v-col>
           <!-- Estado (solo edición / vista) -->
@@ -163,9 +178,9 @@
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import { useLocationCascade } from '@/shared/composables/useLocationCascade'
+  import { useUbicacionCascade } from '@/shared/composables/useUbicacionCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
-  import { allow, blockKey } from '@/shared/utils/inputKeyFilter'
+  import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { rules } from '@/shared/utils/validationRules'
 
@@ -253,7 +268,7 @@
     preloadLocation,
     setLocationDataLectura,
     resetLocationState,
-  } = useLocationCascade({
+  } = useUbicacionCascade({
     ui,
     form,
     fetchMunicipios: globalService.getMunicipiosByDepartamento,
@@ -345,6 +360,15 @@
       ...(props.sucursal?.IdSucursal ? { IdSucursal: props.sucursal.IdSucursal } : {}),
       IdDepartamento: ui.value.idDepartamento,
       IdMunicipio: ui.value.idMunicipio,
+      NombreDepartamento:
+        props.departamentos?.find((d) => d.IdDepartamento === ui.value.idDepartamento)
+          ?.NombreDepartamento ?? null,
+      NombreMunicipio:
+        municipios.value.find((m) => m.IdMunicipio === ui.value.idMunicipio)?.NombreMunicipio ??
+        null,
+      NombreCentroPoblado:
+        centrosPoblados.value.find((c) => c.IdCentroPoblado === form.value.IdCentroPoblado)
+          ?.NombreCentroPoblado ?? null,
     }
 
     emit('submit', { payload, mode: props.mode })

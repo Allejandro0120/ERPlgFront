@@ -11,8 +11,8 @@
 import { tryRefresh } from '@/api/authSession'
 import { authService } from '@/api/services/authService'
 import { $loading } from '@/plugins/loading/loading'
-import { useAuthStore } from '@/stores/auth.store'
-import { useUiStore } from '@/stores/ui.store'
+import { useAuthStore } from '@/stores/authStore'
+import { useUiStore } from '@/stores/uiStore'
 
 /**
  * Carga el perfil del usuario desde el servidor y lo guarda en el store.

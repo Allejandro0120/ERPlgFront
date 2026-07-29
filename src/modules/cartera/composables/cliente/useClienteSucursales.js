@@ -1,10 +1,13 @@
 import { computed, ref } from 'vue'
+import { $toast } from '@/plugins/toast'
 import {
   getChangedCollectionPayload,
   hasCollectionChanges,
 } from '@/shared/composables/useChangePayload'
+import { pickFields } from '@/shared/utils/objectUtils'
 
-// ─── Campos que se envían al API en un PATCH ──────────────────────────────────
+/**
+ * Campos que se envían al API en un PATCH */
 const SUCURSAL_PATCH_FIELDS = [
   'NombreSucursal',
   'Telefono',
@@ -14,24 +17,34 @@ const SUCURSAL_PATCH_FIELDS = [
   'Habilitada',
 ]
 
-// ─── Campos de display (nombres legibles, solo para mostrar) ──────────────────
-// No se incluyen en snapshots ni en payloads al API.
+/**
+ * Campos que definen "misma sucursal". Ajusta según tu criterio de negocio.
+ * Aquí se compara nombre + teléfono + correo + dirección + centro poblado.
+ */
+const SUCURSAL_DUPLICATE_FIELDS = [
+  'NombreSucursal',
+  'Telefono',
+  'CorreoGeneral',
+  'Direccion',
+  'IdCentroPoblado',
+]
+
+/**
+ * Campos de display (nombres legibles, solo para mostrar) ──────────────────
+ * No se incluyen en snapshots ni en payloads al API.
+ */
 const SUCURSAL_DISPLAY_FIELDS = ['NombreDepartamento', 'NombreMunicipio', 'NombreCentroPoblado']
 
-// ─── Campos que se guardan en el snapshot para comparar cambios ───────────────
-// Incluye IDs de ubicación porque aunque no van al patch, sí indican un cambio.
+/**
+ * Campos que se guardan en el snapshot para comparar cambios ───────────────
+ * Incluye IDs de ubicación porque aunque no van al patch, sí indican un cambio.
+ */
 const SUCURSAL_SNAPSHOT_FIELDS = [
   'IdSucursal',
   ...SUCURSAL_PATCH_FIELDS,
   'IdDepartamento',
   'IdMunicipio',
 ]
-
-// Construye un objeto con solo los campos indicados, aplicando un valor por
-// defecto cuando el campo es undefined o null (para comparaciones consistentes).
-function pickFields(source, fields, defaults = {}) {
-  return Object.fromEntries(fields.map((key) => [key, source[key] ?? defaults[key] ?? null]))
-}
 
 const SUCURSAL_DEFAULTS = {
   NombreSucursal: '',
@@ -54,6 +67,19 @@ export function useClienteSucursales({ isReadonly }) {
     editIdx: null,
   })
 
+  function normalize(value) {
+    if (typeof value === 'string') return value.trim().toLowerCase()
+    return value ?? null
+  }
+
+  function isSucursalDuplicada(candidato, excluirLocalId = null) {
+    return sucursales.value.some((s) => {
+      if (s.LocalId === excluirLocalId) return false // no comparar consigo misma en edición
+      return SUCURSAL_DUPLICATE_FIELDS.every(
+        (field) => normalize(candidato[field]) === normalize(s[field]),
+      )
+    })
+  }
   // ─── Transformadores ─────────────────────────────────────────────────────────
 
   // API → estado local: agrega LocalId y campos de display
@@ -143,8 +169,21 @@ export function useClienteSucursales({ isReadonly }) {
       ...pickFields(payload, SUCURSAL_PATCH_FIELDS, SUCURSAL_DEFAULTS),
       IdDepartamento: payload.IdDepartamento ?? null,
       IdMunicipio: payload.IdMunicipio ?? null,
+      NombreDepartamento: payload.NombreDepartamento ?? null,
+      NombreMunicipio: payload.NombreMunicipio ?? null,
+      NombreCentroPoblado: payload.NombreCentroPoblado ?? null,
     }
+    const excluirLocalId =
+      mode === 'edit' && sucursalDialog.value.editIdx !== null
+        ? sucursales.value[sucursalDialog.value.editIdx].LocalId
+        : null
 
+    if (isSucursalDuplicada(localFields, excluirLocalId)) {
+      $toast.warning(
+        'Ya existe una sucursal con los mismos datos. Verifica el nombre, teléfono, correo, dirección y centro poblado.',
+      )
+      return // ← no cierra el diálogo, el usuario puede corregir
+    }
     if (mode === 'create') {
       sucursales.value.push({
         LocalId: ++localSucursalCounter,

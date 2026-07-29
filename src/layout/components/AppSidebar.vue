@@ -20,7 +20,7 @@
 <script setup>
   import { computed, onMounted, watch } from 'vue'
   import { useDisplay } from 'vuetify'
-  import { useUiStore } from '@/stores/ui.store'
+  import { useUiStore } from '@/stores/uiStore'
   import SidebarFooter from './SidebarFooter.vue'
   import SidebarHeader from './SidebarHeader.vue'
   import SidebarNav from './SidebarNav.vue'

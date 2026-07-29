@@ -52,3 +52,48 @@
 .estado-chip .v-icon {
   color: inherit !important;
 }
+
+/* ─── Campos de solo lectura ─────────────────────────────────────────────────── */
+/* Fondo tenue + borde suave + candado: se distingue de un campo editable sin
+   perder legibilidad (a diferencia de disabled). Se excluyen los campos que
+   usan readonly solo como disparador de un picker (llevan .cursor-pointer). */
+.v-input--readonly:not(.cursor-pointer) .v-field {
+  background-color: rgba(var(--v-theme-on-surface), 0.05);
+}
+
+.v-input--readonly:not(.cursor-pointer) .v-field .v-field__outline {
+  --v-field-border-opacity: 0.15;
+}
+
+.v-input--readonly:not(.cursor-pointer) .v-field input,
+.v-input--readonly:not(.cursor-pointer) .v-field .v-field__input {
+  cursor: default;
+}
+
+.v-input--readonly:not(.cursor-pointer) .v-field::after {
+  /*content: '\F0341'; mdi-lock-outline*/
+  font-family: 'Material Design Icons';
+  font-size: 0.95rem;
+  color: rgba(var(--v-theme-on-surface), 0.35);
+  align-self: center;
+  margin-inline-end: 12px;
+  pointer-events: none;
+}
+
+/* Los select readonly ya muestran flecha; se oculta para dejar solo el candado */
+.v-input--readonly:not(.cursor-pointer) .v-field .v-select__menu-icon {
+  display: none;
+}
+
+/* ─── Campos requeridos ──────────────────────────────────────────────────────── */
+/* Basta con poner el atributo `required` en el componente (v-text-field, v-select,
+   v-autocomplete...): Vuetify lo pasa al input interno y aquí se pinta el
+   asterisco. No se muestra en campos readonly (salvo pickers interactivos, que
+   son readonly solo por implementación y llevan .cursor-pointer). */
+.v-input:not(.v-input--readonly)
+  .v-field:has(input[required], textarea[required])
+  .v-field-label::after,
+.v-input.cursor-pointer .v-field:has(input[required], textarea[required]) .v-field-label::after {
+  content: ' *';
+  color: rgb(var(--v-theme-error));
+}

@@ -79,19 +79,20 @@
         <v-tabs-window v-model="ui.tab">
           <!-- ── Tab 1: Identificación ─────────────────────────── -->
           <v-tabs-window-item eager value="identificacion">
-            <identificacion-tab
+            <cliente-identificacion-tab
               :ciuu-con-na="ciuuConNa"
               :estados-catalogo="estadosCatalogo"
               :form="form"
+              :is-editing="isEditing"
               :is-readonly="isReadonly"
               :show-estado="isEditing || isReadonly"
-              :tipo-documentos="tipoDocumentos"
+              :tipo-identificaciones="tipoIdentificaciones"
             />
           </v-tabs-window-item>
 
           <!-- ── Tab 2: Ubicación ───────────────────────────────── -->
           <v-tabs-window-item eager value="ubicacion">
-            <ubicacion-tab
+            <cliente-ubicacion-tab
               :centros-poblados="centrosPoblados"
               :departamentos="departamentos"
               :form="form"
@@ -107,12 +108,16 @@
 
           <!-- ── Tab 3: Comercial ───────────────────────────────── -->
           <v-tabs-window-item eager value="comercial">
-            <comercial-tab :form="form" :is-readonly="isReadonly" :lista-precios="listaPrecios" />
+            <cliente-comercial-tab
+              :form="form"
+              :is-readonly="isReadonly"
+              :lista-precios="listaPrecios"
+            />
           </v-tabs-window-item>
 
           <!-- ── Tab 4: Correos ─────────────────────────────────── -->
           <v-tabs-window-item eager value="correos">
-            <correos-tab
+            <cliente-correos-tab
               :correos="correos"
               :headers="correosHeaders"
               :is-readonly="isReadonly"
@@ -124,7 +129,7 @@
 
           <!-- ── Tab 5: Sucursales ──────────────────────────────── -->
           <v-tabs-window-item eager value="sucursales">
-            <sucursales-tab
+            <cliente-sucursales-tab
               :headers="sucursalesHeaders"
               :is-readonly="isReadonly"
               :row-actions="sucursalRowActions"
@@ -146,19 +151,19 @@
   import { $toast } from '@/plugins/toast'
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import { useLocationCascade } from '@/shared/composables/useLocationCascade'
+  import { useUbicacionCascade } from '@/shared/composables/useUbicacionCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
-  import { formatCOP, parseCOP } from '@/shared/utils/formatCurrency'
+  import { formatCOP, parseCOP } from '@/shared/utils/currencyFormatter'
   import { useClienteCatalogos } from '../../composables/cliente/useClienteCatalogos'
   import { useClienteCorreos } from '../../composables/cliente/useClienteCorreos'
   import { useClienteSucursales } from '../../composables/cliente/useClienteSucursales'
   import CorreoFormDialog from './CorreoFormDialog.vue'
   import SucursalFormDialog from './SucursalFormDialog.vue'
-  import ComercialTab from './tabs/ComercialTab.vue'
-  import CorreosTab from './tabs/CorreosTab.vue'
-  import IdentificacionTab from './tabs/IdentificacionTab.vue'
-  import SucursalesTab from './tabs/SucursalesTab.vue'
-  import UbicacionTab from './tabs/UbicacionTab.vue'
+  import ClienteComercialTab from './tabs/ClienteComercialTab.vue'
+  import ClienteCorreosTab from './tabs/ClienteCorreosTab.vue'
+  import ClienteIdentificacionTab from './tabs/ClienteIdentificacionTab.vue'
+  import ClienteSucursalesTab from './tabs/ClienteSucursalesTab.vue'
+  import ClienteUbicacionTab from './tabs/ClienteUbicacionTab.vue'
 
   // ─── Props & Emits ────────────────────────────────────────────────────────────
   const props = defineProps({
@@ -215,7 +220,7 @@
   // ─── Estado global ────────────────────────────────────────────────────────────
   const formRef = ref(null)
   const {
-    tipoDocumentos,
+    tipoIdentificaciones,
     listaPrecios,
     departamentos,
     estadosCatalogo,
@@ -255,7 +260,7 @@
 
   // ─── Form principal ───────────────────────────────────────────────────────────
   const formInitial = {
-    IdTipoDocumento: null,
+    IdTipoIdentificacion: null,
     NumeroIdentificacion: '',
     Nombre: '',
     CorreoGeneral: '',
@@ -288,7 +293,7 @@
     preloadLocation,
     setLocationDataLectura,
     resetLocationState,
-  } = useLocationCascade({
+  } = useUbicacionCascade({
     ui,
     form,
     fetchMunicipios: globalService.getMunicipiosByDepartamento,
@@ -312,7 +317,7 @@
 
   // ─── Tab errors ───────────────────────────────────────────────────────────────
   const campoATab = {
-    IdTipoDocumento: 'identificacion',
+    IdTipoIdentificacion: 'identificacion',
     NumeroIdentificacion: 'identificacion',
     Nombre: 'identificacion',
     CorreoGeneral: 'identificacion',
@@ -351,13 +356,13 @@
     }
 
     form.value = {
-      IdTipoDocumento: cliente.IdTipoDocumento,
+      IdTipoIdentificacion: cliente.IdTipoIdentificacion,
       NumeroIdentificacion: cliente.NumeroIdentificacion,
       Nombre: cliente.Nombre,
       CorreoGeneral: cliente.CorreoGeneral,
       Telefono: cliente.Telefono,
       IdListaPrecio: cliente.IdListaPrecio,
-      Plazo: cliente.Plazo,
+      Plazo: cliente.Plazo == null ? '' : String(cliente.Plazo),
       CupoCredito: formatCOP(cliente.CupoCredito),
       Direccion: cliente.Direccion,
       IdCiiu: cliente.IdCiiu,
@@ -451,6 +456,7 @@
     const changes = getChangedFields(form.value, formSnapshot.value, {
       normalizers: {
         CupoCredito: parseCOP,
+        Plazo: (v) => (v !== null && v !== '' ? Number.parseInt(v, 10) : null),
       },
     })
 

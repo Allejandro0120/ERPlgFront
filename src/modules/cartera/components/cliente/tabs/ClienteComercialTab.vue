@@ -1,0 +1,73 @@
+<template>
+  <v-row class="mt-2">
+    <v-col cols="12" sm="8">
+      <v-select
+        id="IdListaPrecio"
+        v-model="form.IdListaPrecio"
+        :clearable="!isReadonly"
+        item-title="display"
+        item-value="IdListaPrecio"
+        :items="listaPrecios"
+        label="Lista de Precios"
+        name="IdListaPrecio"
+        prepend-inner-icon="mdi-tag-outline"
+        :readonly="isReadonly"
+        required
+        :rules="[rules.required]"
+      />
+    </v-col>
+    <v-col cols="12" sm="4">
+      <v-text-field
+        id="Plazo"
+        v-model="form.Plazo"
+        :clearable="!isReadonly"
+        label="Plazo (días)"
+        name="Plazo"
+        prepend-inner-icon="mdi-calendar-clock-outline"
+        :readonly="isReadonly"
+        required
+        :rules="[rules.required, rules.numeric, rules.maxValue(3650, 'El plazo')]"
+        @keydown="blockKey($event, allow.onlyDigits)"
+        @paste="blockPaste($event, allow.onlyDigits)"
+      />
+    </v-col>
+    <v-col cols="12">
+      <v-text-field
+        id="CupoCredito"
+        v-model="form.CupoCredito"
+        :clearable="!isReadonly"
+        label="Cupo Crédito"
+        name="CupoCredito"
+        prepend-inner-icon="mdi-currency-usd"
+        :readonly="isReadonly"
+        required
+        :rules="[rules.required, rules.maxCOP(100_000_000_000, 'El cupo de crédito')]"
+        @keydown="blockKey($event, allow.decimal)"
+        @paste="blockPaste($event, allow.onlyDigits)"
+      />
+    </v-col>
+  </v-row>
+</template>
+
+<script setup>
+  import { toRefs, watch } from 'vue'
+  import { formatCOP } from '@/shared/utils/currencyFormatter'
+  import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
+  import { rules } from '@/shared/utils/validationRules'
+
+  const props = defineProps({
+    form: { type: Object, required: true },
+    listaPrecios: { type: Array, default: () => [] },
+    isReadonly: { type: Boolean, default: false },
+  })
+
+  const { form, listaPrecios, isReadonly } = toRefs(props)
+
+  watch(
+    () => form.value.CupoCredito,
+    (val) => {
+      const formatted = formatCOP(val)
+      if (val !== formatted) form.value.CupoCredito = formatted
+    },
+  )
+</script>

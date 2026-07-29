@@ -3,38 +3,30 @@
  *
  * Solo define las rutas y registra el middleware.
  * Toda la lógica de auth vive en api/middleware/authMiddleware.js.
+ * Cada módulo declara sus rutas (con su prefijo) en modules/<modulo>/<modulo>Routes.js.
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
 import { authMiddleware } from '@/api/middleware/authMiddleware'
-import carteraRoutes from '@/modules/cartera/index.js'
-import facturacionRoutes from '@/modules/facturacion/index.js'
-import mercanciaRoutes from '@/modules/mercancia/index.js'
+import authRoutes from '@/modules/auth/authRoutes.js'
+import carteraRoutes from '@/modules/cartera/carteraRoutes.js'
+import comercialRoutes from '@/modules/comercial/comercialRoutes.js'
+import facturacionRoutes from '@/modules/facturacion/facturacionRoutes.js'
+import mercanciaRoutes from '@/modules/mercancia/mercanciaRoutes.js'
 
 const routes = [
   {
     path: '/',
-    redirect: { name: 'login' },
-    meta: { requiresAuth: false },
-  },
-  {
-    path: '/',
     component: () => import('@/layout/DefaultLayout.vue'),
     meta: { requiresAuth: true },
-    children: [...carteraRoutes, ...mercanciaRoutes, ...facturacionRoutes],
+    redirect: { name: 'clientes' },
+    children: [carteraRoutes, mercanciaRoutes, facturacionRoutes, comercialRoutes],
   },
   {
     path: '/auth',
     component: () => import('@/layout/BlankLayout.vue'),
     meta: { requiresAuth: false },
-    children: [
-      {
-        path: 'login',
-        name: 'login',
-        component: () => import('@/modules/auth/views/LoginView.vue'),
-        meta: { title: 'Iniciar sesión', requiresAuth: false },
-      },
-    ],
+    children: [...authRoutes],
   },
   {
     path: '/:pathMatch(.*)*',
@@ -49,6 +41,14 @@ const router = createRouter({
   routes,
 })
 
+const BASE_TITLE = 'LogicPharma ERP'
+
 router.beforeEach(authMiddleware)
+
+// Actualiza el título de la pestaña según la ruta activa (usa meta.title).
+router.afterEach((to) => {
+  const pageTitle = to.meta?.title
+  document.title = pageTitle ? `${pageTitle} · ${BASE_TITLE}` : BASE_TITLE
+})
 
 export default router

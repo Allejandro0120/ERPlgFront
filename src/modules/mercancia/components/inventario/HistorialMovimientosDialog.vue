@@ -1,50 +1,49 @@
 <template>
   <base-dialog
     v-model="internalValue"
-    max-width="1200"
-    title="Historial de Movimientos"
-    icon="$history"
     color="blue-darken-3"
+    icon="$history"
+    max-width="1200"
     :show-actions="false"
+    title="Historial de Movimientos"
   >
     <template #content>
-      <div class="pa-4 pt-0">
-        <div class="d-flex flex-wrap align-start justify-space-between ga-4 mb-4">
+      <div class="pa-1 pt-0">
+        <div class="d-flex flex-column flex-md-row align-start justify-space-between ga-4 mb-4">
           <div class="d-flex flex-column ga-1">
-            <span class="text-h6 font-weight-bold text-black mb-0">
+            <span class="text-subtitle-1 text-sm-h6 font-weight-bold text-black mb-0">
               {{ product?.NombreProducto || 'Producto' }}
             </span>
-            <div class="d-flex align-center ga-2 mt-1">
+            <div class="d-flex flex-wrap align-center ga-2 mt-1">
               <span
                 v-if="product?.CodigoProducto"
                 class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center"
               >
-                <v-icon size="16" class="mr-1">mdi-barcode</v-icon>
+                <v-icon class="mr-1" size="16">mdi-barcode</v-icon>
                 {{ product.CodigoProducto }}
               </span>
 
               <template v-if="product?.CodLote || product?.Lote">
-                <span class="text-grey-lighten-1" v-if="product?.CodigoProducto">|</span>
+                <span v-if="product?.CodigoProducto" class="text-grey-lighten-1">|</span>
                 <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
-                  <v-icon size="16" class="mr-1">mdi-tag-multiple</v-icon>
+                  <v-icon class="mr-1" size="16">mdi-tag-multiple</v-icon>
                   Lote: {{ product.CodLote || product.Lote }}
                 </span>
               </template>
 
               <template v-if="product?.CodUbicacion || product?.NombreUbicacion">
                 <span
-                  class="text-grey-lighten-1"
                   v-if="product?.CodigoProducto || product?.CodLote || product?.Lote"
+                  class="text-grey-lighten-1"
                   >|</span
                 >
                 <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
-                  <v-icon size="16" class="mr-1">mdi-map-marker</v-icon>
+                  <v-icon class="mr-1" size="16">mdi-map-marker</v-icon>
                   {{ product.CodUbicacion || product.NombreUbicacion }}
                 </span>
               </template>
 
               <span
-                class="text-grey-lighten-1"
                 v-if="
                   product?.CodigoProducto ||
                   product?.CodLote ||
@@ -52,17 +51,20 @@
                   product?.Ubicacion ||
                   product?.NombreUbicacion
                 "
+                class="text-grey-lighten-1"
                 >|</span
               >
               <span class="text-body-2 text-blue-darken-3 font-weight-bold d-flex align-center">
-                <v-icon size="16" class="mr-1">mdi-package-variant-closed</v-icon>
+                <v-icon class="mr-1" size="16">mdi-package-variant-closed</v-icon>
                 Stock: {{ product?.CantidadDisponible || 0 }}
               </span>
             </div>
           </div>
 
-          <div class="d-flex ga-6 text-right">
-            <div>
+          <div
+            class="d-flex flex-column flex-sm-row ga-3 ga-sm-6 w-100 w-md-auto text-left text-sm-right"
+          >
+            <div class="w-100 w-sm-auto">
               <div class="text-caption text-grey-darken-1 mb-1">Último Mov.</div>
               <div class="text-subtitle-1 font-weight-medium">
                 {{
@@ -72,8 +74,13 @@
                 }}
               </div>
             </div>
-            <div class="d-flex align-end">
-              <v-btn color="primary" prepend-icon="$swap" @click="showAjusteDialog = true">
+            <div class="d-flex align-end justify-start justify-sm-end">
+              <v-btn
+                class="w-100 w-sm-auto"
+                color="primary"
+                prepend-icon="$swap"
+                @click="showAjusteDialog = true"
+              >
                 Ajuste
               </v-btn>
             </div>
@@ -83,50 +90,101 @@
         <!-- Controles y Tabla -->
         <base-table
           ref="tableRef"
-          :headers="headers"
-          :items="movimientos"
-          :loading="loadingTable"
-          :total-items="totalItems"
-          :items-per-page="5"
-          empty-text="No se encontraron movimientos"
           class="rounded-lg"
           elevation="0"
+          empty-text="No se encontraron movimientos para el rango de fechas seleccionado."
+          :headers="headers"
+          :items="movimientos"
+          :items-per-page="5"
+          :loading="loadingTable"
           show-search-button
+          :total-items="totalItems"
           @load="fetchData"
         >
           <!-- Filtros de Fecha -->
           <template #filters>
-            <v-col cols="12" sm="5" md="4" lg="4">
+            <v-col cols="12" lg="4" md="5" sm="12">
               <date-range-filter
                 v-model="dateRange"
+                :disabled="loadingTable"
+                end-label="Hasta"
                 preset-value="30days"
                 :show-preset-select="false"
+                start-label="Desde"
                 @change="handleDateRangeChange"
+              />
+            </v-col>
+            <v-col cols="12" lg="4" md="5" sm="12">
+              <v-autocomplete
+                v-model="selectedTipoAjuste"
+                :clearable="true"
+                density="compact"
+                :disabled="loadingTable"
+                hide-details
+                item-title="Descripcion"
+                item-value="IdTipoMovimiento"
+                :items="tiposAjuste"
+                label="Tipo de ajuste"
+                :loading="loadingTiposAjuste"
+                variant="outlined"
+                @update:model-value="handleTipoAjusteChange"
               />
             </v-col>
           </template>
 
           <template #item.FechaRegistro="{ item }">
-            {{ formatDateTime(item.FechaRegistro) }}
+            <span class="text-body-2 text-sm-body-1">
+              {{ formatDateTime(item.FechaRegistro) }}
+            </span>
           </template>
 
           <template #item.DescripcionMovimiento="{ item }">
+            <v-tooltip
+              v-if="hasDocumentoReferencia(item)"
+              location="top"
+              :text="getDocumentoReferenciaText(item)"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <v-chip
+                  v-bind="tooltipProps"
+                  class="font-weight-medium text-wrap"
+                  :color="getDescColor(item.DescripcionMovimiento)"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ item.DescripcionMovimiento }}
+                </v-chip>
+              </template>
+            </v-tooltip>
+
             <v-chip
+              v-else
+              class="font-weight-medium text-wrap"
               :color="getDescColor(item.DescripcionMovimiento)"
               size="small"
               variant="tonal"
-              class="font-weight-medium"
             >
               {{ item.DescripcionMovimiento }}
             </v-chip>
           </template>
 
-          <template #item.Observaciones="{ item }">
-            {{ item.Observaciones || '-' }}
+          <template #item.UbicacionOrigen="{ item }">
+            <span class="text-body-2">{{ item.UbicacionOrigen || '-' }}</span>
           </template>
 
-          <template #item.DocumentoReferencia="{ item }">
-            {{ item.DocumentoReferencia || '-' }}
+          <template #item.UbicacionDestino="{ item }">
+            <span class="text-body-2">{{ item.UbicacionDestino || '-' }}</span>
+          </template>
+
+          <template #item.Observaciones="{ item }">
+            <span v-if="!item.Observaciones">-</span>
+            <v-tooltip v-else location="top" max-width="400" :text="item.Observaciones">
+              <template #activator="{ props: tooltipProps }">
+                <span v-bind="tooltipProps" class="d-inline-block text-body-2">
+                  {{ item.Observaciones }}
+                </span>
+              </template>
+            </v-tooltip>
           </template>
 
           <template #item.Cantidad="{ item }">
@@ -139,6 +197,7 @@
 
       <ajuste-inventario-dialog
         v-model="showAjusteDialog"
+        :cedi="cedi"
         :product="product"
         @saved="handleAjusteSaved"
       />
@@ -147,8 +206,9 @@
 </template>
 
 <script setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import { mercanciaService } from '@/api/services/mercanciaService'
+  import { useTiposAjusteInventario } from '@/modules/mercancia/composables/inventario/useTiposAjusteInventario'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import DateRangeFilter from '@/shared/ui/DateRangeFilter.vue'
@@ -161,9 +221,13 @@
       type: Object,
       default: null,
     },
+    cedi: {
+      type: Number,
+      default: null,
+    },
   })
 
-  const emit = defineEmits(['update:modelValue'])
+  const emit = defineEmits(['update:modelValue', 'saved'])
 
   const internalValue = computed({
     get: () => props.modelValue,
@@ -175,6 +239,16 @@
   const totalItems = ref(0)
   const loadingTable = ref(false)
   const showAjusteDialog = ref(false)
+  const { tiposAjuste, loadTiposAjusteInventario, loadingTiposAjuste } = useTiposAjusteInventario()
+  const selectedTipoAjuste = ref(null)
+
+  onMounted(async () => {
+    try {
+      await loadTiposAjusteInventario()
+    } catch (error) {
+      console.error('Error cargando tipos de ajuste:', error)
+    }
+  })
 
   const lastMovementDate = computed(() => {
     if (movimientos.value && movimientos.value.length > 0) {
@@ -183,21 +257,23 @@
     return null
   })
 
-  const handleAjusteSaved = () => {
+  function handleAjusteSaved() {
     tableRef.value?.reset()
+    emit('saved')
     emit('update:modelValue', false) // Emitimos el evento para cerrar el modal
   }
 
   const headers = [
     { title: 'Fecha', key: 'FechaRegistro', sortable: true },
-    { title: 'Descripción', key: 'DescripcionMovimiento', sortable: false },
-    { title: 'Doc. Referencia', key: 'DocumentoReferencia', sortable: false },
+    { title: 'Tipo', key: 'DescripcionMovimiento', sortable: false },
+    { title: 'Ubicación Origen', key: 'UbicacionOrigen', sortable: false },
+    { title: 'Ubicación Destino', key: 'UbicacionDestino', sortable: false },
     { title: 'Observación', key: 'Observaciones', sortable: false },
     { title: 'Usuario', key: 'CodigoUsuario', sortable: false },
     { title: 'Cantidad', key: 'Cantidad', sortable: true, align: 'end' },
   ]
 
-  const getDescColor = (desc) => {
+  function getDescColor(desc) {
     const text = (desc || '').toLowerCase()
     if (text.includes('negativo') || text.includes('salida')) return 'red'
     if (text.includes('positivo') || text.includes('entrada') || text.includes('devolución'))
@@ -206,24 +282,36 @@
     return 'grey'
   }
 
-  const getCantidadColor = (item) => {
+  function hasDocumentoReferencia(item) {
+    const text = (item?.DescripcionMovimiento || '').toLowerCase()
+    return (text.includes('entrada') || text.includes('salida')) && !!item?.DocumentoReferencia
+  }
+
+  function getDocumentoReferenciaText(item) {
+    return `Documento referencia: ${item.DocumentoReferencia || '-'}`
+  }
+
+  function getCantidadColor(item) {
     const isNegative = isNegativeAmount(item)
     return isNegative ? 'text-red font-weight-bold' : 'text-blue-darken-3 font-weight-bold'
   }
 
-  const isNegativeAmount = (item) => {
-    const text = (item.DescripcionMovimiento || '').toLowerCase()
-    return text.includes('negativo') || text.includes('salida') || item.Cantidad < 0
+  function isNegativeAmount(item) {
+    return Number(item.FactorConversion) < 0
   }
 
-  const formatCantidad = (item) => {
+  function formatCantidad(item) {
     const prefix = isNegativeAmount(item) ? '-' : '+'
     return `${prefix} ${Math.abs(item.Cantidad)}`
   }
 
   const dateRange = ref({})
 
-  const handleDateRangeChange = () => {
+  function handleDateRangeChange() {
+    tableRef.value?.reset()
+  }
+
+  function handleTipoAjusteChange() {
     tableRef.value?.reset()
   }
 
@@ -235,6 +323,7 @@
       const filters = {}
       if (dateRange.value?.start) filters.startDate = dateRange.value.start
       if (dateRange.value?.end) filters.endDate = dateRange.value.end
+      if (selectedTipoAjuste.value) filters.IdTipoMovimiento = selectedTipoAjuste.value
 
       const response = await mercanciaService.getKardex(
         props.product.IdProducto,

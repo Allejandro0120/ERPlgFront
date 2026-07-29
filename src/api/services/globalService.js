@@ -26,9 +26,10 @@ export const globalService = {
     ),
 
   /**
-   * Obtiene la lista de tipos de documentos (Caché en Memoria)
+   * Obtiene la lista de tipos de identificación (Caché en Memoria)
    */
-  getTiposDocumentos: () => withCache('tiposDocumentos', () => api.get('v1/global/document-types')),
+  getTiposIdentificaciones: () =>
+    withCache('tiposIdentificaciones', () => api.get('v1/global/identification-types')),
 
   /**
    * Obtiene la lista de actividades CIIU (Caché en Memoria)

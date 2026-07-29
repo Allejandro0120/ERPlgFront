@@ -59,8 +59,8 @@
   import { authService } from '@/api/services/authService'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import { useAuthStore } from '@/stores/auth.store'
-  import { useUiStore } from '@/stores/ui.store'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useUiStore } from '@/stores/uiStore'
 
   const uiStore = useUiStore()
   const authStore = useAuthStore()
@@ -74,13 +74,11 @@
     const moduleAlias = route.path.split('/')[1] || ''
     if (!moduleAlias) return 'Panel'
 
-  const group = authStore.orderedMenu.find(
-    (item) => getGroupAlias(item) === moduleAlias,
-  );
+    const group = authStore.orderedMenu.find((item) => getGroupAlias(item) === moduleAlias)
 
-  if (group?.Nombre) return group.Nombre;
-  return moduleAlias.charAt(0).toUpperCase() + moduleAlias.slice(1);
-});
+    if (group?.Nombre) return group.Nombre
+    return moduleAlias.charAt(0).toUpperCase() + moduleAlias.slice(1)
+  })
 
   const currentUser = computed(() => {
     const user = authStore.user

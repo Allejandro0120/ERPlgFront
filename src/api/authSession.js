@@ -1,7 +1,7 @@
 import { authService } from '@/api/services/authService'
 import { $loading } from '@/plugins/loading/loading'
 import router from '@/router' // <-- Importamos desde el router
-import { useAuthStore } from '@/stores/auth.store'
+import { useAuthStore } from '@/stores/authStore'
 
 let abortController = new AbortController()
 let refreshPromise = null
@@ -62,7 +62,7 @@ export async function closeSession(options = {}) {
       abortController = new AbortController()
       useAuthStore().clearAuth()
       $loading.hide()
-      console.log('Redirigiendo al login...')
+      // console.log('Redirigiendo al login...')
       // REDIRECCIÓN AL LOGIN!
       await router.replace({ name: 'login' }).catch((error) => {
         console.error('Router error:', error)

@@ -24,14 +24,15 @@
             aria-label="Buscar"
             clearable
             density="compact"
+            :disabled="loading"
             hide-details
             name="searchQuery"
             :placeholder="searchPlaceholder"
             prepend-inner-icon="$search"
             variant="outlined"
             @click:clear="onClear"
-            @update:model-value="onSearchInput"
             @keyup.enter="onSearch"
+            @update:model-value="onSearchInput"
           />
         </v-col>
 
@@ -85,7 +86,7 @@
             class="text-none flex-1-1 flex-sm-0-0"
             color="primary"
             :disabled="loading"
-            :loading="loading"
+            :loading="loading && actionSource === 'search'"
             prepend-icon="$search"
             variant="flat"
             @click="onSearch"
@@ -97,7 +98,7 @@
             class="text-none flex-1-1 flex-sm-0-0"
             color="primary"
             :disabled="loading"
-            :loading="loading"
+            :loading="loading && actionSource === 'refresh'"
             prepend-icon="mdi-refresh"
             variant="tonal"
             @click="onRefresh"
@@ -348,7 +349,7 @@
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue'
   import { useDisplay } from 'vuetify'
-  import { useAuthStore } from '@/stores/auth.store'
+  import { useAuthStore } from '@/stores/authStore'
 
   defineOptions({ inheritAttrs: false })
 
@@ -376,6 +377,8 @@
 
   const authStore = useAuthStore()
   const { mdAndUp } = useDisplay()
+
+  const actionSource = ref(null)
 
   function isVisible(obj) {
     if (obj.visible === undefined) return true
@@ -437,6 +440,13 @@
       if (newQuery !== oldQuery && tableOptions.value.page !== 1) {
         tableOptions.value = { ...tableOptions.value, page: 1 }
       }
+    },
+  )
+
+  watch(
+    () => props.loading,
+    (val) => {
+      if (!val) actionSource.value = null // resetea cuando termina la carga
     },
   )
 
@@ -520,6 +530,7 @@
   }
 
   function onSearch() {
+    actionSource.value = 'search'
     appliedSearch.value = searchQuery.value.trim() // ← confirma el término
     tableOptions.value = { ...tableOptions.value, page: 1 }
     emitLoad()
@@ -534,6 +545,7 @@
   }
 
   function onClear() {
+    if (searchTimeout) clearTimeout(searchTimeout)
     searchQuery.value = ''
     appliedSearch.value = ''
     tableOptions.value = { ...tableOptions.value, page: 1 }
@@ -541,6 +553,7 @@
   }
 
   function onRefresh() {
+    actionSource.value = 'refresh'
     emitLoad()
   }
 
@@ -565,5 +578,12 @@
 <style scoped>
   :deep(.v-data-table-headers--mobile) {
     display: none !important;
+  }
+  :deep(tbody tr:nth-child(odd)) {
+    background-color: rgba(var(--v-theme-primary), 0.04);
+  }
+
+  :deep(tbody tr:nth-child(even)) {
+    background-color: white;
   }
 </style>

@@ -2,16 +2,13 @@ import { computed, ref } from 'vue'
 import { $confirm } from '@/plugins/confirm/confirm.js'
 import { $toast } from '@/plugins/toast'
 import { hasCollectionChanges } from '@/shared/composables/useChangePayload'
+import { pickFields } from '@/shared/utils/objectUtils'
 
 const CORREO_PATCH_FIELDS = ['IdTipoCorreo', 'Email']
 
 const CORREO_DEFAULTS = {
   IdTipoCorreo: null,
   Email: '',
-}
-
-function pickFields(source, fields, defaults = {}) {
-  return Object.fromEntries(fields.map((key) => [key, source[key] ?? defaults[key] ?? null]))
 }
 
 function normalizeEmail(value) {

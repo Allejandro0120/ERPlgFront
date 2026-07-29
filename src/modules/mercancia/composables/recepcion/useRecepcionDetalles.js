@@ -1,15 +1,15 @@
 import { computed, ref } from 'vue'
+import { $confirm } from '@/plugins/confirm/confirm.js'
 import {
   getChangedCollectionPayload,
   hasCollectionChanges,
 } from '@/shared/composables/useChangePayload'
-import { $confirm } from '@/plugins/confirm/confirm.js'
+import { pickFields } from '@/shared/utils/objectUtils'
 
 // CAMPOS PARA LA API
 const PRODUCTO_PATCH_FIELDS = [
   'IdProducto',
-  'Idlote',
-  'IdUbicacion',
+  'IdLote',
   'CantidadFacturada',
   'CantidadRecibida',
   'CantidadMuestra',
@@ -18,36 +18,17 @@ const PRODUCTO_PATCH_FIELDS = [
 ]
 
 // CAMPOS DE DISPLAY (solo para mostrar, no van en payloads ni snapshots)
-const PRODUCTO_DISPLAY_FIELDS = [
-  'CodigoProducto',
-  'NombreProducto',
-  'CodLote',
-  'CodZona',
-  'CodUbicacion',
-  'CodPasillo',
-  'CodEstante',
-]
+const PRODUCTO_DISPLAY_FIELDS = ['CodigoProducto', 'NombreProducto', 'CodLote']
 // CAMPOS PARA SNAPSHOT (incluye IDs de ubicación para detectar cambios aunque no vayan al patch)
-const PRODUCTO_SNAPSHOT_FIELDS = [
-  'IdDetalle',
-  ...PRODUCTO_PATCH_FIELDS,
-  'IdZona',
-  'IdPasillo',
-  'IdEstante',
-]
-
-function pickFields(source, fields, defaults = {}) {
-  return Object.fromEntries(fields.map((key) => [key, source[key] ?? defaults[key] ?? null]))
-}
+const PRODUCTO_SNAPSHOT_FIELDS = ['IdDetalle', ...PRODUCTO_PATCH_FIELDS]
 
 const PRODUCTO_DEFAULTS = {
   IdProducto: null,
-  Idlote: null,
-  IdUbicacion: null,
+  IdLote: null,
   CantidadFacturada: 0,
   CantidadRecibida: 0,
   CantidadMuestra: 0,
-  Aceptado: false,
+  Aceptado: true,
   ObservacionesProducto: '',
 }
 
@@ -88,6 +69,7 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
   // Solo para mostrar en el diálogo, incluye campos de display pero no IDs ni LocalId
   function toDialogDetalle(detalle) {
     return {
+      LocalId: detalle.LocalId,
       ...pickFields(detalle, PRODUCTO_SNAPSHOT_FIELDS, PRODUCTO_DEFAULTS),
       ...pickFields(detalle, PRODUCTO_DISPLAY_FIELDS),
     }
@@ -136,7 +118,6 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
   const detalleHeaders = computed(() => [
     { title: 'Producto', key: 'CodigoProducto', sortable: false },
     { title: 'Lote', key: 'CodLote', sortable: false },
-    { title: 'Ubicación', key: 'CodUbicacion', sortable: false, align: 'center' },
     {
       title: 'Facturado',
       key: 'CantidadFacturada',
@@ -159,7 +140,7 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
     { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
   ])
 
-  const detallerowActions = computed(() => [
+  const detalleRowActions = computed(() => [
     {
       label: 'Editar',
       icon: '$pencil',
@@ -183,28 +164,26 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
 
   // ─── Mutaciones de lista  ───────────────────────────────────────────────────
   function onDetalleSubmit({ payload, mode }) {
+    // En modo edit, payload solo contiene los campos que realmente cambiaron.
+    // En modo create, payload contiene los campos necesarios para crear.
     const localFields = {
-      ...pickFields(payload, PRODUCTO_PATCH_FIELDS, PRODUCTO_DEFAULTS),
-      IdZona: payload.IdZona ?? null,
-      IdPasillo: payload.IdPasillo ?? null,
-      IdEstante: payload.IdEstante ?? null,
+      ...payload,
+      // Asegurar campos de display siempre presentes
       CodigoProducto: payload.CodigoProducto ?? '',
       NombreProducto: payload.NombreProducto ?? '',
       CodLote: payload.CodLote ?? '',
-      CodZona: payload.CodZona ?? '',
-      CodPasillo: payload.CodPasillo ?? '',
-      CodEstante: payload.CodEstante ?? '',
-      CodUbicacion: payload.CodUbicacion ?? '',
     }
 
     if (mode === 'create') {
       detalles.value.push({
         LocalId: ++localDetalleCounter,
         IdDetalle: null,
-        ...localFields,
+        ...pickFields(localFields, PRODUCTO_PATCH_FIELDS, PRODUCTO_DEFAULTS),
+        ...pickFields(localFields, PRODUCTO_DISPLAY_FIELDS),
       })
     } else if (mode === 'edit' && detalleDialog.value.editIdx !== null) {
       const idx = detalleDialog.value.editIdx
+      // En edit, solo mergear los campos que vinieron en el payload (los que realmente cambiaron)
       detalles.value[idx] = { ...detalles.value[idx], ...localFields }
     }
 
@@ -236,16 +215,25 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
   function hasDetallesChanges() {
     return hasCollectionChanges(detalles.value, detallesSnapshot.value, detalleSerializable)
   }
-
   function getDetallesChanges() {
-    return getChangedCollectionPayload({
+    const currentIds = new Set(detalles.value.filter((d) => d.IdDetalle).map((d) => d.IdDetalle))
+
+    // Elementos eliminados (presentes en snapshot pero no en current)
+    const deleted = (detallesSnapshot.value || [])
+      .filter((item) => item.IdDetalle && !currentIds.has(item.IdDetalle))
+      .map((item) => ({ IdDetalle: item.IdDetalle, Eliminar: true }))
+
+    // Elementos creados/modificados (lógica existente)
+    const changes = getChangedCollectionPayload({
       currentList: detalles.value,
       snapshotList: detallesSnapshot.value,
       idKey: 'IdDetalle',
       patchFields: PRODUCTO_PATCH_FIELDS,
-      toCreatePlayload: (item) => localDetalleToApi(item, false),
+      toCreatePayload: (item) => localDetalleToApi(item, false),
       toFallbackPayload: (item) => localDetalleToApi(item, true),
     })
+
+    return [...changes, ...deleted]
   }
 
   return {
@@ -253,7 +241,7 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
     detallesSnapshot,
     detalleDialog,
     detalleHeaders,
-    detallerowActions,
+    detalleRowActions,
     abrirAgregarDetalle,
     onDetalleSubmit,
     hydrateDetalles,
@@ -261,5 +249,6 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
     resetDetalles,
     hasDetallesChanges,
     getDetallesChanges,
+    localDetalleToApi,
   }
 }

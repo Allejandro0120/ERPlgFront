@@ -5,6 +5,7 @@
         <v-select
           v-model="preset"
           density="compact"
+          :disabled="disabled"
           hide-details
           :items="presets"
           label="Rango"
@@ -13,6 +14,7 @@
         />
       </v-col>
 
+      <!-- Fecha inicio -->
       <v-col cols="6" :sm="showPresetSelect ? 3 : 6">
         <v-menu
           v-model="menuStart"
@@ -23,28 +25,36 @@
         >
           <template #activator="{ props: menuStartProps }">
             <v-text-field
-              class="cursor-pointer"
               v-model="startText"
+              :class="disabled ? '' : 'cursor-pointer'"
               v-bind="menuStartProps"
               density="compact"
+              :disabled="disabled"
               hide-details
-              label="Desde"
+              :label="startLabel"
               prepend-inner-icon="mdi-calendar"
               readonly
               variant="outlined"
             />
           </template>
-          <v-date-picker
-            v-model="localStart"
-            color="primary"
-            :first-day-of-week="1"
-            locale="es"
-            :max="localEnd"
-            @input="onStartPick"
-          />
+          <v-card>
+            <v-date-picker
+              v-model="tempStart"
+              color="primary"
+              :first-day-of-week="1"
+              locale="es"
+              :max="localEnd"
+              :title="`Seleccionar fecha ${startLabel.toLowerCase()}`"
+            />
+            <v-card-actions class="justify-end pa-2 gap-2">
+              <v-btn variant="text" @click="cancelStart"> Cancelar </v-btn>
+              <v-btn color="primary" variant="flat" @click="confirmStart"> Aceptar </v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
       </v-col>
 
+      <!-- Fecha fin -->
       <v-col cols="6" :sm="showPresetSelect ? 3 : 6">
         <v-menu
           v-model="menuEnd"
@@ -55,25 +65,33 @@
         >
           <template #activator="{ props: menuEndProps }">
             <v-text-field
-              class="cursor-pointer"
               v-model="endText"
+              :class="disabled ? '' : 'cursor-pointer'"
               v-bind="menuEndProps"
               density="compact"
+              :disabled="disabled"
               hide-details
-              label="Hasta"
+              :label="endLabel"
               prepend-inner-icon="mdi-calendar"
               readonly
               variant="outlined"
             />
           </template>
-          <v-date-picker
-            v-model="localEnd"
-            color="primary"
-            :first-day-of-week="1"
-            locale="es"
-            :min="localStart"
-            @input="onEndPick"
-          />
+          <v-card>
+            <v-date-picker
+              v-model="tempEnd"
+              color="primary"
+              :first-day-of-week="1"
+              locale="es"
+              :max="today"
+              :min="localStart"
+              :title="`Seleccionar fecha ${endLabel.toLowerCase()}`"
+            />
+            <v-card-actions class="justify-end pa-2 gap-2">
+              <v-btn variant="text" @click="cancelEnd"> Cancelar </v-btn>
+              <v-btn color="primary" variant="flat" @click="confirmEnd"> Aceptar </v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
       </v-col>
     </v-row>
@@ -95,9 +113,14 @@
         { label: 'Todos', value: 'all' },
       ],
     },
-    // If false, the preset selector is hidden and `presetValue` will be applied on mount
+    // Si es false, el selector de preset se oculta y se aplica `presetValue` al montar
     showPresetSelect: { type: Boolean, default: true },
     presetValue: { type: String, default: '7days' },
+    // Deshabilitar ambos campos
+    disabled: { type: Boolean, default: false },
+    // Etiquetas personalizables para cada campo
+    startLabel: { type: String, default: 'Desde' },
+    endLabel: { type: String, default: 'Hasta' },
   })
 
   const emit = defineEmits(['update:modelValue', 'change'])
@@ -112,9 +135,24 @@
   const localStart = ref(props.modelValue.start || new Date())
   const localEnd = ref(props.modelValue.end || new Date())
 
+  // Valores temporales que se muestran en el picker antes de confirmar
+  const tempStart = ref(null)
+  const tempEnd = ref(null)
+
   const menuStart = ref(false)
   const menuEnd = ref(false)
 
+  // Cuando el menú de inicio se abre, carga el valor actual como temporal
+  watch(menuStart, (val) => {
+    if (val) tempStart.value = localStart.value
+  })
+
+  // Cuando el menú de fin se abre, carga el valor actual como temporal
+  watch(menuEnd, (val) => {
+    if (val) tempEnd.value = localEnd.value
+  })
+
+  const today = computed(() => new Date())
   const startText = computed(() => {
     const v = localStart.value
     if (!v) return ''
@@ -125,6 +163,7 @@
       return ''
     }
   })
+
   const endText = computed(() => {
     const v = localEnd.value
     if (!v) return ''
@@ -140,6 +179,28 @@
     emit('update:modelValue', { start: localStart.value, end: localEnd.value })
   })
 
+  // --- Acciones del picker de inicio ---
+  function cancelStart() {
+    menuStart.value = false
+    tempStart.value = localStart.value // descarta cambios
+  }
+
+  function confirmStart() {
+    if (tempStart.value) localStart.value = tempStart.value
+    menuStart.value = false
+  }
+
+  // --- Acciones del picker de fin ---
+  function cancelEnd() {
+    menuEnd.value = false
+    tempEnd.value = localEnd.value // descarta cambios
+  }
+
+  function confirmEnd() {
+    if (tempEnd.value) localEnd.value = tempEnd.value
+    menuEnd.value = false
+  }
+
   function applyPreset(value) {
     const today = new Date()
     let start = new Date()
@@ -148,27 +209,23 @@
       case 'today': {
         start = new Date()
         end = new Date()
-
         break
       }
       case '7days': {
         start = new Date()
         start.setDate(today.getDate() - 6)
         end = new Date()
-
         break
       }
       case '30days': {
         start = new Date()
         start.setDate(today.getDate() - 29)
         end = new Date()
-
         break
       }
       case 'all': {
         start = null
         end = null
-
         break
       }
       // No default
@@ -185,20 +242,8 @@
     applyPreset(value)
   }
 
-  function onStartPick(value) {
-    localStart.value = value
-    menuStart.value = false
-  }
-
-  function onEndPick(value) {
-    localEnd.value = value
-    menuEnd.value = false
-  }
-
-  // Initialize with default preset: 7 days
-  // Apply preset depending on whether the selector is visible or a presetValue is provided
+  // Inicializar con preset por defecto
   if (props.showPresetSelect) {
-    // set label to match default value
     const defaultLabel =
       props.presetsList.find((p) => p.value === props.presetValue)?.label || '7 días'
     preset.value = defaultLabel

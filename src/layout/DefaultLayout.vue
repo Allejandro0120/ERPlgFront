@@ -33,7 +33,7 @@
   import AppSidebar from '@/layout/components/AppSidebar.vue'
   import AppBar from '@/shared/ui/AppBar.vue'
   import ChangePasswordDialog from '@/shared/ui/ChangePasswordDialog.vue'
-  import { useAuthStore } from '@/stores/auth.store'
+  import { useAuthStore } from '@/stores/authStore'
 
   const authStore = useAuthStore()
   const route = useRoute()

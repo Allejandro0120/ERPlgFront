@@ -26,6 +26,7 @@
               name="IdTipoCorreo"
               prepend-inner-icon="mdi-tag-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required]"
             />
           </v-col>
@@ -39,6 +40,7 @@
               name="Email"
               prepend-inner-icon="mdi-email-outline"
               :readonly="isReadonly"
+              required
               :rules="[rules.required, rules.email]"
               type="email"
               @update:model-value="(val) => (form.Email = val?.toLowerCase())"

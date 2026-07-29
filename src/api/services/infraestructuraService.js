@@ -30,7 +30,9 @@ export const infraestructuraService = {
    * @param {*} IdZone  Id de la zona
    */
   getPasillosByZona: (IdZone) =>
-    withCache(`zona_${IdZone}_pasillos`, () => api.get(`v1/infraestructure/zones/${IdZone}/aisles`)),
+    withCache(`zona_${IdZone}_pasillos`, () =>
+      api.get(`v1/infraestructure/zones/${IdZone}/aisles`),
+    ),
 
   /**
    *  Obtiene la lista de estantes asociadas a un pasillo

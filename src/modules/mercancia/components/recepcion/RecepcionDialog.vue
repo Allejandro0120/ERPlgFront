@@ -2,32 +2,37 @@
   <base-dialog
     color="primary"
     :disable-confirm="disableConfirm"
+    :disable-secondary="disableSecondary"
     :icon="dialogIcon"
     :label-confirm="labelConfirm"
+    :label-secondary="labelSecondary"
     max-width="1200"
     :model-value="modelValue"
     :show-actions="!isReadonly"
     :title="dialogTitle"
     @accept="submitForm"
+    @secondary="() => submitForm('borrador')"
     @update:model-value="onRequestClose"
   >
     <template #content>
-      <detalle-form-dialog
+      <recepcion-detalle-form-dialog
         v-model="detalleDialog.open"
         :detalle="detalleDialog.detalle"
+        :existing-detalles="detalles"
         :mode="detalleDialog.mode"
         @submit="onDetalleSubmit"
-        :id-bodega="form.IdBodega"
       />
       <v-form ref="formRef">
         <v-tabs v-model="ui.tab" class="mb-4" color="primary">
           <v-tab value="info">
-            <v-icon icon="mdi-file-document-outline" start />
+            <v-icon icon="mdi-file" start />
             Información
+            <v-badge v-if="tabErrors.info" class="ml-2" color="error" dot inline />
           </v-tab>
           <v-tab value="detalle">
             <v-icon icon="mdi-format-list-bulleted" start />
             Detalle
+            <v-badge v-if="tabErrors.detalle" class="ml-2" color="error" dot inline />
           </v-tab>
         </v-tabs>
 
@@ -41,7 +46,8 @@
               :is-readonly="isReadonly"
               :permisos="permisos"
               :proveedores="proveedores"
-              @cedi-change="onCediChangeBorrador"
+              @cedi-change="onCediChange"
+              @reload-proveedores="cargarProveedores"
             />
           </v-tabs-window-item>
 
@@ -51,7 +57,7 @@
               :headers="detalleHeaders"
               :is-readonly="isReadonly"
               :puede-agregar="!isReadonly && permisos.puedeAgregarDetalle"
-              :row-actions="detallerowActions"
+              :row-actions="detalleRowActions"
               @add="abrirAgregarDetalle"
             />
           </v-tabs-window-item>
@@ -62,7 +68,7 @@
 </template>
 
 <script setup>
-  import { computed, reactive, ref, watch, nextTick } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { infraestructuraService } from '@/api/services/infraestructuraService'
   import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
@@ -71,14 +77,15 @@
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import { pickFields } from '@/shared/utils/objectUtils'
   // colors handled inside tabs
   import { useRecepcionCatalogos } from '../../composables/recepcion/useRecepcionCatalogos'
   import { useRecepcionDetalles } from '../../composables/recepcion/useRecepcionDetalles'
   import {
-    useRecepcionPermisos,
     ESTADOS_ACTA,
+    useRecepcionPermisos,
   } from '../../composables/recepcion/useRecepcionPermisos'
-  import DetalleFormDialog from './DetalleFormDialog.vue'
+  import RecepcionDetalleFormDialog from './RecepcionDetalleFormDialog.vue'
   import RecepcionDetalleTab from './tabs/RecepcionDetalleTab.vue'
   import RecepcionInfoTab from './tabs/RecepcionInfoTab.vue'
 
@@ -98,6 +105,8 @@
   const isReadonly = computed(() => props.mode === 'view')
   const isEditing = computed(() => props.mode === 'edit')
   const isCreating = computed(() => props.mode === 'create')
+
+  const detalleTabError = ref(false)
 
   const estadoActaNombre = computed(() => {
     if (isCreating.value) return ESTADOS_ACTA.BORRADOR
@@ -135,24 +144,25 @@
       })[props.mode],
   )
   const labelConfirm = computed(
-    () => ({ create: 'Crear Acta', edit: 'Guardar Cambios', view: '' })[props.mode],
+    () => ({ create: 'Guardar y enviar', edit: 'Guardar y enviar', view: '' })[props.mode],
   )
+  const labelSecondary = computed(() => (isReadonly.value ? '' : 'Guardar como borrador'))
 
   const formRef = ref(null)
   const {
     estadosCatalogo,
     proveedores,
     cedis,
-    bodegas: _bodegas,
     setCatalogosLectura,
     cargarCatalogos,
+    cargarProveedores,
   } = useRecepcionCatalogos()
 
   const {
     detalles,
     detalleDialog,
     detalleHeaders,
-    detallerowActions,
+    detalleRowActions,
     abrirAgregarDetalle,
     onDetalleSubmit,
     hydrateDetalles,
@@ -172,6 +182,7 @@
     PrefijoFacturaRecibida: '',
     NumeroFacturaRecibida: '',
     FechaFacturaRecibida: '',
+    ValorMercanciaRecibida: 0,
     FechaActa: '',
     EstadoActa: 'Borrador',
     IdEstado: null,
@@ -179,7 +190,16 @@
     IdBodega: null,
     Detalles: [],
   }
-
+  const ACTA_API_FIELDS = [
+    'IdProveedor',
+    'Observaciones',
+    'PrefijoFacturaRecibida',
+    'NumeroFacturaRecibida',
+    'FechaFacturaRecibida',
+    'ValorMercanciaRecibida',
+    'IdBodega',
+    'IdEstado',
+  ]
   const uiInitial = {
     tab: 'info',
   }
@@ -218,7 +238,28 @@
     confirmClose: (options) => $confirm.warning(options),
   })
 
-  const disableConfirm = computed(() => isEditing.value && !hasChanges.value)
+  const idEstadoBorrador = computed(() => {
+    return estadosCatalogo.value.find((e) => e.Nombre === 'Borrador')?.IdEstado
+  })
+
+  const disableConfirm = computed(() => {
+    if (isEditing.value && !hasChanges.value) {
+      // Si el estado actual es Borrador, permitir guardar
+      if (form.value.IdEstado === idEstadoBorrador.value) {
+        return false
+      }
+      return true
+    }
+    return false
+  })
+
+  const disableSecondary = computed(() => {
+    // Deshabilitar si no hay cambios (en cualquier estado)
+    if (isEditing.value && !hasChanges.value) {
+      return true
+    }
+    return false
+  })
 
   const campoATab = {
     IdProveedor: 'info',
@@ -232,7 +273,7 @@
   }
 
   const tabErrors = computed(() => {
-    const result = { info: false }
+    const result = { info: false, detalle: detalleTabError.value }
     if (!formRef.value) return result
     for (const { id } of formRef.value.errors ?? []) {
       const tab = campoATab[id]
@@ -252,18 +293,18 @@
       })
     }
 
-    form.value.IdActa = acta.IdActa
-    form.value.Acta = acta.Acta
-    form.value.NroActa = acta.Acta
-    form.value.PrefijoFacturaRecibida = acta.PrefijoFacturaRecibida
-    form.value.NumeroFacturaRecibida = acta.NumeroFacturaRecibida
-    form.value.FechaFacturaRecibida = acta.FechaFacturaRecibida
-    form.value.FechaActa = acta.FechaActa
-    form.value.Observaciones = acta.Observaciones
-    form.value.IdEstado = acta.IdEstado
-    form.value.IdProveedor = acta.IdProveedor
-    form.value.IdCedi = acta.IdCedi
-    form.value.IdBodega = acta.IdBodega
+    Object.assign(
+      form.value,
+      pickFields(acta, [
+        ...ACTA_API_FIELDS,
+        'IdActa',
+        'Acta',
+        'NroActa',
+        'FechaActa',
+        'IdEstado',
+        'IdCedi',
+      ]),
+    )
 
     // Detalles: composable maneja locales y snapshot
     hydrateDetalles(acta.detalles || [])
@@ -321,25 +362,37 @@
       }
     },
   )
-  async function submitForm() {
-    const { valid } = await formRef.value.validate()
 
-    // Validar ubicación de detalles
-    const detallesSinUbicacion = detalles.value.some((d) => !d.IdUbicacion)
-    if (detallesSinUbicacion) {
-      ui.value.tab = 'detalle'
-      // Marcar visualmente el error en los que faltan
-      detalles.value.forEach((d) => {
-        if (!d.IdUbicacion) d._errorUbicacion = true
-      })
-      $toast.error('Hay productos en el detalle sin ubicación asignada')
-      return
-    }
+  function resolverIdEstado(nombreEstado) {
+    return (
+      estadosCatalogo.value.find((e) => e.Nombre.toLowerCase() === nombreEstado.toLowerCase())
+        ?.IdEstado ?? null
+    )
+  }
+
+  async function submitForm(intent = 'enviar') {
+    const { valid } = await formRef.value.validate()
 
     if (!valid) {
       const primerTabConError = Object.keys(tabErrors.value).find((k) => tabErrors.value[k])
       if (primerTabConError) ui.value.tab = primerTabConError
       $toast.error('Por favor corrige los errores en los campos marcados')
+      return
+    }
+
+    if (detalles.value.length === 0) {
+      detalleTabError.value = true
+      ui.value.tab = 'detalle'
+      $toast.error('Debes agregar al menos un producto al acta')
+      return
+    }
+
+    detalleTabError.value = false
+
+    const nombreEstado = intent === 'borrador' ? 'Borrador' : 'Pendiente'
+    const idEstado = resolverIdEstado(nombreEstado)
+    if (!idEstado) {
+      $toast.error(`No se encontró el estado "${nombreEstado}". Contacta al administrador.`)
       return
     }
 
@@ -353,55 +406,18 @@
     })
     if (!confirmado) return
 
-    const changes = getChangedFields(form.value, formSnapshot.value)
+    const changedFields = getChangedFields(form.value, formSnapshot.value)
+    const baseForm = isCreating.value
+      ? pickFields(form.value, ACTA_API_FIELDS)
+      : Object.fromEntries(
+          Object.entries(changedFields).filter(([key]) => ACTA_API_FIELDS.includes(key)),
+        )
+
+    baseForm.IdEstado = idEstado
+
     const detalleCambios = getDetallesChanges()
-    if (detalleCambios.length > 0) {
-      changes.detalles = detalleCambios
-    }
+    const payload = detalleCambios.length > 0 ? { ...baseForm, detalles: detalleCambios } : baseForm
 
-    emit('submit', { payload: changes, mode: props.mode })
-  }
-
-  async function onCediChangeBorrador(newIdCedi) {
-    if (newIdCedi === form.value.IdCedi) return
-
-    const tieneProductos = detalles.value.length > 0
-    if (tieneProductos) {
-      const confirmado = await $confirm.warning({
-        title: 'Cedi modificado',
-        message:
-          'Al cambiar el Cedi, se perderá la selección de ubicación de todos los productos en el detalle. ¿Deseas realizar el cambio?',
-        labelConfirm: 'Sí, cambiar',
-        labelCancel: 'Cancelar',
-      })
-      if (!confirmado) {
-        // Revertir visualmente el select a su valor real
-        const preId = form.value.IdCedi
-        form.value.IdCedi = null
-        await nextTick()
-        form.value.IdCedi = preId
-        return
-      }
-    }
-
-    form.value.IdCedi = newIdCedi
-
-    // Limpiar ubicación de todos los detalles y marcar error
-    detalles.value.forEach((d) => {
-      d.IdZona = null
-      d.IdPasillo = null
-      d.IdEstante = null
-      d.IdUbicacion = null
-      d.CodZona = ''
-      d.CodPasillo = ''
-      d.CodEstante = ''
-      d.CodUbicacion = ''
-      if (d.IdProducto) {
-        d._errorUbicacion = true
-      }
-    })
-
-    // Y finalmente pre-cargar las bodegas para el nuevo cedi
-    await onCediChange(newIdCedi)
+    emit('submit', { payload, mode: props.mode, intent })
   }
 </script>

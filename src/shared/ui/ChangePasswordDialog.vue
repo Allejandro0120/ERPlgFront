@@ -34,6 +34,7 @@
             label="Contraseña actual"
             placeholder="••••••••"
             prepend-inner-icon="mdi-lock-outline"
+            required
             :rules="passwordFieldRules.current"
             :type="showCurrentPassword ? 'text' : 'password'"
             @click:append-inner="showCurrentPassword = !showCurrentPassword"
@@ -46,7 +47,8 @@
             class="mb-4"
             label="Nueva contraseña"
             placeholder="••••••••"
-            prepend-inner-icon="mdi-lock-reset"
+            prepend-inner-icon="mdi-lock-plus-outline"
+            required
             :rules="passwordFieldRules.next"
             :type="showNewPassword ? 'text' : 'password'"
             @click:append-inner="showNewPassword = !showNewPassword"
@@ -59,6 +61,7 @@
             label="Confirmar nueva contraseña"
             placeholder="••••••••"
             prepend-inner-icon="mdi-check-circle-outline"
+            required
             :rules="passwordFieldRules.confirm"
             :type="showConfirmPassword ? 'text' : 'password'"
             @click:append-inner="showConfirmPassword = !showConfirmPassword"
@@ -78,8 +81,8 @@
   import { $toast } from '@/plugins/toast'
   import BaseDialog from '@/shared/ui/BaseDialog.vue'
   import { rules } from '@/shared/utils/validationRules'
-  import { useAuthStore } from '@/stores/auth.store'
-  import { useUiStore } from '@/stores/ui.store'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useUiStore } from '@/stores/uiStore'
   import { formatDate } from '../utils/dateFormatter'
 
   const authStore = useAuthStore()

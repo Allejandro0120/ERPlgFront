@@ -10,7 +10,12 @@
     <template v-for="group in menu" :key="getGroupAlias(group)">
       <v-list-group :value="getGroupAlias(group)">
         <template #activator="{ props: groupActivatorProps }">
-          <v-tooltip :aria-label="group.Nombre" location="end" :text="group.Nombre">
+          <v-tooltip
+            :aria-label="group.Nombre"
+            :disabled="mobile"
+            location="end"
+            :text="group.Nombre"
+          >
             <template #activator="{ props: tooltipProps }">
               <v-list-item
                 v-bind="{ ...groupActivatorProps, ...tooltipProps }"
@@ -30,7 +35,7 @@
             v-for="seccion in group.secciones"
             :key="seccion.Ruta"
             :aria-label="seccion.Nombre"
-            :disabled="rail"
+            :disabled="rail || mobile"
             location="end"
             :text="seccion.Nombre"
           >
@@ -54,8 +59,9 @@
 <script setup>
   import { computed, onMounted, watch } from 'vue'
   import { useRoute } from 'vue-router'
-  import { useAuthStore } from '@/stores/auth.store'
-  import { useUiStore } from '@/stores/ui.store'
+  import { useDisplay } from 'vuetify'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useUiStore } from '@/stores/uiStore'
 
   const { rail } = defineProps({
     rail: { type: Boolean, default: false },
@@ -64,6 +70,7 @@
   const uiStore = useUiStore()
   const authStore = useAuthStore()
   const route = useRoute()
+  const { mobile } = useDisplay()
   const menu = computed(() => authStore.orderedMenu)
 
   // Array de grupos que deben estar abiertos (expandidos)

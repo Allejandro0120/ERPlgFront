@@ -60,8 +60,8 @@ export function useRecepcionCatalogos() {
     const res = await infraestructuraService.getCedis()
     const raw = res.data?.success ? res.data.data || [] : []
     cedis.value = raw.map((item) => ({
-      IdCedi: item.IdCedi ,
-      NombreCedi: item.NombreCedi ,
+      IdCedi: item.IdCedi,
+      NombreCedi: item.NombreCedi,
     }))
   }
 
@@ -112,6 +112,7 @@ export function useRecepcionCatalogos() {
     cedis,
     bodegas,
     cargarCatalogos,
+    cargarProveedores,
     setCatalogosLectura,
   }
 }

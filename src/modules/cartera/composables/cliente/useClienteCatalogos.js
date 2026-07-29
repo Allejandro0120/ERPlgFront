@@ -1,10 +1,10 @@
 import { computed, ref } from 'vue'
 import { clienteService } from '@/api/services/clienteService'
+import { comercialService } from '@/api/services/comercialService'
 import { globalService } from '@/api/services/globalService'
-import { mercanciaService } from '@/api/services/mercanciaService'
 
 export function useClienteCatalogos() {
-  const tipoDocumentos = ref([])
+  const tipoIdentificaciones = ref([])
   const listaPrecios = ref([])
   const actividadesCiiu = ref([])
   const departamentos = ref([])
@@ -17,11 +17,11 @@ export function useClienteCatalogos() {
   ])
 
   const setCatalogosLectura = (cliente) => {
-    if (cliente.IdTipoDocumento) {
-      tipoDocumentos.value = [
+    if (cliente.IdTipoIdentificacion) {
+      tipoIdentificaciones.value = [
         {
-          IdTipoDocumento: cliente.IdTipoDocumento,
-          display: cliente.NombreTipoDocumento,
+          IdTipoIdentificacion: cliente.IdTipoIdentificacion,
+          display: cliente.NombreTipoIdentificacion,
         },
       ]
     }
@@ -71,9 +71,9 @@ export function useClienteCatalogos() {
     tiposCorreos.value = Array.from(uniqueTiposCorreos.values())
   }
 
-  const cargarTiposDocumentos = async () => {
-    const response = await globalService.getTiposDocumentos()
-    tipoDocumentos.value = response.data?.success
+  const cargarTiposIdentificaciones = async () => {
+    const response = await globalService.getTiposIdentificaciones()
+    tipoIdentificaciones.value = response.data?.success
       ? (response.data.data || []).map((item) => ({
           ...item,
           display: `${item.Codigo} - ${item.Nombre}`,
@@ -81,7 +81,7 @@ export function useClienteCatalogos() {
       : []
   }
   const cargarListaPrecios = async () => {
-    const response = await mercanciaService.getListasPrecios()
+    const response = await comercialService.getListasPreciosBasica()
     listaPrecios.value = response.data?.success
       ? (response.data.data || []).map((item) => ({
           ...item,
@@ -118,10 +118,10 @@ export function useClienteCatalogos() {
   const cargarCatalogos = async () => {
     const jobs = [
       {
-        key: 'tiposDocumentos',
-        run: cargarTiposDocumentos,
+        key: 'tiposIdentificaciones',
+        run: cargarTiposIdentificaciones,
         fallback: () => {
-          tipoDocumentos.value = []
+          tipoIdentificaciones.value = []
         },
       },
       {
@@ -178,7 +178,7 @@ export function useClienteCatalogos() {
   }
 
   return {
-    tipoDocumentos,
+    tipoIdentificaciones,
     listaPrecios,
     departamentos,
     estadosCatalogo,
