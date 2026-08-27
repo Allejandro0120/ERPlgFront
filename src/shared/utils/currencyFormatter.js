@@ -46,3 +46,7 @@ export function parseCOP(value) {
   const number = Number.parseFloat(clean)
   return Number.isNaN(number) ? null : number
 }
+
+export function formatCurrencyCOP(value) {
+  return `$ ${formatCOP(value)}`
+}

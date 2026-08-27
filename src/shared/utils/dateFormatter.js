@@ -27,7 +27,7 @@ export function formatDate(isoDate) {
  * @param {string} isoDate — ej: "2026-06-08T21:14:41.303Z"
  * @returns {string} — ej: "9:14 pm"
  */
-export function formatTime12h(isoDate) {
+function formatTime12h(isoDate) {
   if (!isoDate) {
     return ''
   }

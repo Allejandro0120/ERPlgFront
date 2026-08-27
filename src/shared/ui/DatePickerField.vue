@@ -19,6 +19,7 @@
         :name="id"
         :prepend-inner-icon="prependInnerIcon"
         :readonly="true"
+        :required="required"
         :rules="rules"
         variant="outlined"
         @click:clear="onClear"
@@ -68,6 +69,7 @@
     rules: { type: Array, default: () => [] },
     min: { type: [Date, String, null], default: null },
     max: { type: [Date, String, null], default: null },
+    required: { type: Boolean, default: false },
   })
 
   const emit = defineEmits(['update:modelValue', 'change', 'cancel'])

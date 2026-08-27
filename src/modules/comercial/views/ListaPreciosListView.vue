@@ -45,7 +45,7 @@
       <!-- Estado -->
       <template #item.Habilitado="{ item }">
         <v-chip
-          :color="item.Habilitado ? 'success' : 'error'"
+          :color="getEstadoColor(item.Habilitado, DOMINIOS_ESTADO.SUCURSAL)"
           :prepend-icon="item.Habilitado ? 'mdi-check-circle' : 'mdi-close-circle'"
           size="small"
           variant="tonal"
@@ -77,6 +77,7 @@
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
   import { formatDate } from '@/shared/utils/dateFormatter'
+  import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
   const tableRef = ref()
   const estadoSeleccionado = ref(null)

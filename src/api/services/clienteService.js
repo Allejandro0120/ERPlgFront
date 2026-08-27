@@ -43,6 +43,17 @@ export const clienteService = {
   getClienteById: (IdCliente) => api.get(`v1/clients/unique/${IdCliente}`),
 
   /**
+   * Obtiene el listado básico de clientes (para selects/autocompletes)
+   */
+  getClientesResumen: () => api.get('v1/clients/summary'),
+
+  /**
+   * Obtiene las sucursales habilitadas de un cliente
+   * @param {number} IdCliente - ID del cliente
+   */
+  getSucursalesByCliente: (IdCliente) => api.get(`v1/clients/branches/${IdCliente}`),
+
+  /**
    * Crea un nuevo cliente
    * @param {object} clienteData - Datos del cliente
    */

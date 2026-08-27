@@ -118,10 +118,6 @@
 
       if (activeGroup) {
         uiStore.setActiveModule(getGroupAlias(activeGroup))
-      } else if (menu.value.length > 0 && !newPath.startsWith('/auth')) {
-        // Si no se encuentra grupo activo pero hay menú y no estamos en auth
-        // No cambiar el módulo activo - el router se encargará de redirigir
-        // Esto evita seleccionar un módulo incorrecto cuando se pierde acceso
       }
     },
     { immediate: true },

@@ -1,4 +1,4 @@
-export const CONTROL_KEYS = new Set([
+const CONTROL_KEYS = new Set([
   'Backspace',
   'Delete',
   'Tab',

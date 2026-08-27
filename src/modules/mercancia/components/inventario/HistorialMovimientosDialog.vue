@@ -9,72 +9,26 @@
   >
     <template #content>
       <div class="pa-1 pt-0">
-        <div class="d-flex flex-column flex-md-row align-start justify-space-between ga-4 mb-4">
-          <div class="d-flex flex-column ga-1">
-            <span class="text-subtitle-1 text-sm-h6 font-weight-bold text-black mb-0">
-              {{ product?.NombreProducto || 'Producto' }}
-            </span>
-            <div class="d-flex flex-wrap align-center ga-2 mt-1">
-              <span
-                v-if="product?.CodigoProducto"
-                class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center"
-              >
-                <v-icon class="mr-1" size="16">mdi-barcode</v-icon>
-                {{ product.CodigoProducto }}
-              </span>
-
-              <template v-if="product?.CodLote || product?.Lote">
-                <span v-if="product?.CodigoProducto" class="text-grey-lighten-1">|</span>
-                <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
-                  <v-icon class="mr-1" size="16">mdi-tag-multiple</v-icon>
-                  Lote: {{ product.CodLote || product.Lote }}
-                </span>
-              </template>
-
-              <template v-if="product?.CodUbicacion || product?.NombreUbicacion">
-                <span
-                  v-if="product?.CodigoProducto || product?.CodLote || product?.Lote"
-                  class="text-grey-lighten-1"
-                  >|</span
-                >
-                <span class="text-body-2 text-grey-darken-1 font-weight-medium d-flex align-center">
-                  <v-icon class="mr-1" size="16">mdi-map-marker</v-icon>
-                  {{ product.CodUbicacion || product.NombreUbicacion }}
-                </span>
-              </template>
-
-              <span
-                v-if="
-                  product?.CodigoProducto ||
-                  product?.CodLote ||
-                  product?.Lote ||
-                  product?.Ubicacion ||
-                  product?.NombreUbicacion
-                "
-                class="text-grey-lighten-1"
-                >|</span
-              >
-              <span class="text-body-2 text-blue-darken-3 font-weight-bold d-flex align-center">
-                <v-icon class="mr-1" size="16">mdi-package-variant-closed</v-icon>
-                Stock: {{ product?.CantidadDisponible || 0 }}
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="d-flex flex-column flex-sm-row ga-3 ga-sm-6 w-100 w-md-auto text-left text-sm-right"
-          >
-            <div class="w-100 w-sm-auto">
-              <div class="text-caption text-grey-darken-1 mb-1">Último Mov.</div>
-              <div class="text-subtitle-1 font-weight-medium">
-                {{
-                  product?.UltimaActualizacion
-                    ? formatDateTime(product.UltimaActualizacion)
-                    : lastMovementDate || 'Sin movimientos recientes'
-                }}
+        <v-card class="rounded-lg border mb-4" elevation="0">
+          <v-card-text class="pa-4">
+            <div class="d-flex flex-column flex-sm-row align-start justify-space-between ga-3">
+              <div class="d-flex align-center ga-3">
+                <v-avatar color="primary" rounded="lg" size="40" variant="tonal">
+                  <v-icon color="primary" icon="mdi-package-variant-closed" size="20" />
+                </v-avatar>
+                <div>
+                  <div
+                    class="text-subtitle-1 text-sm-h6 font-weight-bold text-black"
+                    style="line-height: 1.3"
+                  >
+                    {{ product?.NombreProducto || 'Producto' }}
+                  </div>
+                  <div v-if="product?.CodigoProducto" class="text-body-2 text-grey-darken-1">
+                    Cód. {{ product.CodigoProducto }}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="d-flex align-end justify-start justify-sm-end">
+
               <v-btn
                 class="w-100 w-sm-auto"
                 color="primary"
@@ -84,8 +38,52 @@
                 Ajuste
               </v-btn>
             </div>
-          </div>
-        </div>
+
+            <v-divider class="my-3" />
+
+            <div class="d-flex flex-wrap justify-space-between align-start" style="gap: 16px">
+              <div class="d-flex flex-wrap" style="gap: 56px">
+                <div v-if="product?.CodLote || product?.Lote">
+                  <div class="text-body-2 text-grey-darken-1 mb-1">Lote</div>
+                  <div class="text-subtitle-1 font-weight-medium">
+                    {{ product.CodLote || product.Lote }}
+                  </div>
+                </div>
+
+                <div v-if="product?.CodUbicacion || product?.NombreUbicacion">
+                  <div class="text-body-2 text-grey-darken-1 mb-1">Ubicación</div>
+                  <div class="text-subtitle-1 font-weight-medium">
+                    {{ product.CodUbicacion || product.NombreUbicacion }}
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-body-2 text-grey-darken-1 mb-1">Último Mov.</div>
+                  <div class="text-subtitle-1 font-weight-medium">
+                    {{
+                      product?.UltimaActualizacion
+                        ? formatDateTime(product.UltimaActualizacion)
+                        : lastMovementDate || 'Sin movimientos recientes'
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-body-2 text-grey-darken-1 mb-1">Stock</div>
+                <v-chip
+                  class="font-weight-bold justify-center"
+                  color="primary"
+                  size="default"
+                  style="min-width: 96px"
+                  variant="tonal"
+                >
+                  {{ product?.CantidadDisponible || 0 }}
+                </v-chip>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
 
         <!-- Controles y Tabla -->
         <base-table
@@ -147,7 +145,7 @@
               <template #activator="{ props: tooltipProps }">
                 <v-chip
                   v-bind="tooltipProps"
-                  class="font-weight-medium text-wrap"
+                  class="font-weight-medium text-no-wrap"
                   :color="getDescColor(item.DescripcionMovimiento)"
                   size="small"
                   variant="tonal"
@@ -159,7 +157,7 @@
 
             <v-chip
               v-else
-              class="font-weight-medium text-wrap"
+              class="font-weight-medium text-no-wrap"
               :color="getDescColor(item.DescripcionMovimiento)"
               size="small"
               variant="tonal"

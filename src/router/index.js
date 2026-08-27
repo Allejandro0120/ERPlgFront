@@ -11,7 +11,8 @@ import { authMiddleware } from '@/api/middleware/authMiddleware'
 import authRoutes from '@/modules/auth/authRoutes.js'
 import carteraRoutes from '@/modules/cartera/carteraRoutes.js'
 import comercialRoutes from '@/modules/comercial/comercialRoutes.js'
-import facturacionRoutes from '@/modules/facturacion/facturacionRoutes.js'
+import ventasRoutes from '@/modules/facturacion/ventasRoutes.js'
+import logisticaRoutes from '@/modules/logistica/logisticaRoutes.js'
 import mercanciaRoutes from '@/modules/mercancia/mercanciaRoutes.js'
 
 const routes = [
@@ -20,7 +21,7 @@ const routes = [
     component: () => import('@/layout/DefaultLayout.vue'),
     meta: { requiresAuth: true },
     redirect: { name: 'clientes' },
-    children: [carteraRoutes, mercanciaRoutes, facturacionRoutes, comercialRoutes],
+    children: [carteraRoutes, mercanciaRoutes, ventasRoutes, logisticaRoutes, comercialRoutes],
   },
   {
     path: '/auth',

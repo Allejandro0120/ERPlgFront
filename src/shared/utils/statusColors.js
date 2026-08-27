@@ -7,6 +7,7 @@ export const DOMINIOS_ESTADO = {
   USUARIO: 'USUARIO',
   ACTA: 'ACTA',
   PRODUCTO_ACTA: 'PRODUCTO_ACTA',
+  COTIZACION: 'COTIZACION',
 }
 
 // ─── Mapeo de colores por dominio ─────────────────────────────────────────────
@@ -29,6 +30,19 @@ const ESTADO_COLORS = {
   [DOMINIOS_ESTADO.PRODUCTO_ACTA]: {
     aceptado: 'success',
     rechazado: 'error',
+  },
+  [DOMINIOS_ESTADO.COTIZACION]: {
+    abierta: 'info',
+    anulada: 'red-darken-3',
+    procesada: 'success',
+  },
+  [DOMINIOS_ESTADO.PEDIDO]: {
+    creado: 'info',
+    aprobado: 'success',
+    anulado: 'red-darken-3',
+    facturado: 'purple-darken-3',
+    facturado_parcial: 'orange-darken-2',
+    cerrado_con_faltante: 'brown-darken-2',
   },
 }
 
@@ -56,4 +70,13 @@ export function getEstadoColor(valor, dominio = DOMINIOS_ESTADO.CLIENTE) {
 
   const key = (valor ?? '').toString().trim().toLowerCase()
   return colorMap[key] ?? 'grey'
+}
+
+/**
+ * Formatea un código de estado para mostrar en el front (ej: "facturado_parcial" → "facturado parcial").
+ * @param {string} valor - Código de estado tal como viene del back
+ * @returns {string} Texto para mostrar, con espacios en vez de guion bajo
+ */
+export function formatEstadoTexto(valor) {
+  return (valor ?? '').toString().replaceAll('_', ' ')
 }

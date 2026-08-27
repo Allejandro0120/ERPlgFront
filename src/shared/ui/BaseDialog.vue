@@ -80,7 +80,7 @@
             <v-col v-if="labelSecondary" class="pa-1" cols="12" sm="auto">
               <v-btn
                 block
-                :color="color"
+                :color="colorSecondary || color"
                 :disabled="disableSecondary"
                 variant="tonal"
                 @click="$emit('secondary')"
@@ -109,6 +109,7 @@
     title: { type: String, default: '' },
     message: { type: String, default: '' },
     color: { type: String, default: 'primary' },
+    colorSecondary: { type: String, default: '' },
     icon: { type: String, default: '' },
     persistent: { type: Boolean, default: false },
     maxWidth: { type: String, default: '600' },

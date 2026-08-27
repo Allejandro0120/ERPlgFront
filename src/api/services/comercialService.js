@@ -45,6 +45,15 @@ export const comercialService = {
   getListaPreciosById: (id) => api.get(`v1/comercial/price-lists/unique/${id}`),
 
   /**
+   * Obtiene los productos con stock disponible de una lista de precios en un cedi
+   * @param {number} idListaPrecio - ID de la lista de precios
+   * @param {number} idCedi - ID del centro de distribución
+   * @returns {Promise} Promesa con los productos disponibles
+   */
+  getStockDisponible: (idListaPrecio, idCedi) =>
+    api.get(`v1/comercial/price-lists/${idListaPrecio}/available-stock/${idCedi}`),
+
+  /**
    * Crea una nueva lista de precios
    * @param {object} listaPreciosData - Datos de la lista de precios
    * @returns {Promise} Promesa con la respuesta del servidor
@@ -58,4 +67,14 @@ export const comercialService = {
    * */
   updateListaPrecios: (id, updateData) =>
     api.put(`v1/comercial/price-lists/update/${id}`, updateData),
+
+  /**
+   * Obtiene los tipos de venta disponibles (Caché en Memoria)
+   */
+  getTiposVenta: () => withCache('tiposVenta', () => api.get('v1/comercial/sale-types')),
+
+  /**
+   * Obtiene los métodos de pago disponibles (Caché en Memoria)
+   */
+  getMetodosPago: () => withCache('metodosPago', () => api.get('v1/comercial/payment-methods')),
 }

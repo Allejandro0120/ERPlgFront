@@ -49,7 +49,7 @@ export function useListaPreciosDetalles() {
   }
 
   const headers = computed(() => [
-    { title: 'Producto', key: 'CodigoNombreProducto', sortable: false },
+    { title: 'Producto', key: 'CodigoNombreProducto', sortable: false, searchable: true },
     { title: 'Precio Base', key: 'PrecioBase', align: 'center', sortable: false, width: '220px' },
     {
       title: 'Descuento Máx.',

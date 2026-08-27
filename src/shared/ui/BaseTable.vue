@@ -132,215 +132,27 @@
 
       <!-- Columna de acciones -->
       <template v-if="visibleRowActions.length > 0" #[`item.${actionsKey}`]="{ item }">
-        <!-- Desktop: botones con tooltip -->
-        <div class="d-none d-md-flex align-center justify-center ga-2">
-          <template v-for="accion in getVisibleActions(item)" :key="accion.label">
-            <v-tooltip
-              :aria-label="accion.label"
-              :disabled="accion.showLabel"
-              location="top"
-              :text="accion.label"
-            >
-              <template #activator="{ props: tooltipProps }">
-                <!-- Solo icono -->
-                <v-btn
-                  v-if="!accion.showLabel && accion.icon"
-                  v-bind="tooltipProps"
-                  :aria-label="accion.label"
-                  :color="accion.color ?? 'primary'"
-                  :icon="accion.icon"
-                  rounded="xl"
-                  size="x-small"
-                  :variant="accion.variant ?? 'tonal'"
-                  @click="accion.action(item)"
-                />
-                <!-- Icono + texto o solo texto -->
-                <v-btn
-                  v-else
-                  v-bind="tooltipProps"
-                  :aria-label="accion.label"
-                  class="text-none"
-                  :color="accion.color ?? 'primary'"
-                  :prepend-icon="accion.icon ?? undefined"
-                  rounded="xl"
-                  size="small"
-                  :variant="accion.variant ?? 'tonal'"
-                  @click="accion.action(item)"
-                >
-                  {{ accion.label }}
-                </v-btn>
-              </template>
-            </v-tooltip>
-          </template>
-        </div>
-        <!-- Móvil: menú 3 puntos -->
-        <div class="d-flex d-md-none justify-end">
-          <v-menu location="bottom end">
-            <template #activator="{ props: menuProps }">
-              <v-btn
-                v-bind="menuProps"
-                aria-label="Opciones"
-                color="primary"
-                icon="mdi-dots-vertical"
-                size="small"
-                variant="text"
-              />
-            </template>
-            <v-list density="compact" elevation="8" min-width="160">
-              <v-list-item
-                v-for="accion in getVisibleActions(item)"
-                :key="accion.label"
-                :base-color="accion.color ?? 'primary'"
-                :prepend-icon="accion.icon"
-                :title="accion.label"
-                @click="accion.action(item)"
-              />
-            </v-list>
-          </v-menu>
-        </div>
+        <TableRowActions :actions="getVisibleActions(item)" :item="item" />
       </template>
 
       <!-- Footer -->
       <template #bottom>
-        <v-divider />
-        <v-container class="px-4 py-3" fluid>
-          <v-row align="center" class="ga-2 ga-md-0" density="compact">
-            <v-col class="d-flex align-center ga-2" cols="12" md="4">
-              <span class="text-caption text-grey-darken-1 text-no-wrap">Filas por página:</span>
-              <v-select
-                id="items-per-page"
-                v-model="tableOptions.itemsPerPage"
-                aria-label="Filas por página"
-                class="flex-grow-0"
-                density="compact"
-                :disabled="loading"
-                hide-details
-                :items="rowsPerPageOptions"
-                name="itemsPerPage"
-                style="min-width: 75px; max-width: 90px"
-                variant="outlined"
-                @update:model-value="onItemsPerPageChange"
-              />
-            </v-col>
-
-            <v-col class="d-flex d-md-none justify-center" cols="12">
-              <span class="text-caption text-grey-darken-1">{{ paginationInfo }}</span>
-            </v-col>
-
-            <v-col
-              v-if="totalPages > 1"
-              class="d-none d-md-flex align-center justify-center ga-1"
-              md="4"
-            >
-              <v-btn
-                aria-label="Primera página"
-                color="grey-darken-2"
-                :disabled="tableOptions.page === 1 || loading"
-                icon="mdi-page-first"
-                size="small"
-                variant="text"
-                @click="goToPage(1)"
-              />
-              <v-btn
-                aria-label="Página anterior"
-                color="grey-darken-2"
-                :disabled="tableOptions.page === 1 || loading"
-                icon="mdi-chevron-left"
-                size="small"
-                variant="text"
-                @click="goToPage(tableOptions.page - 1)"
-              />
-              <template v-for="p in visiblePages" :key="p">
-                <span v-if="p === '...'" class="text-caption text-grey px-1">…</span>
-                <v-btn
-                  v-else
-                  :aria-label="`Ir a la página ${p}`"
-                  class="px-2"
-                  :color="p === tableOptions.page ? 'primary' : 'grey-darken-2'"
-                  :disabled="loading"
-                  size="small"
-                  style="min-width: 32px"
-                  :variant="p === tableOptions.page ? 'flat' : 'text'"
-                  @click="goToPage(p)"
-                  >{{ p }}</v-btn
-                >
-              </template>
-              <v-btn
-                aria-label="Página siguiente"
-                color="grey-darken-2"
-                :disabled="tableOptions.page === totalPages || loading"
-                icon="mdi-chevron-right"
-                size="small"
-                variant="text"
-                @click="goToPage(tableOptions.page + 1)"
-              />
-              <v-btn
-                aria-label="Última página"
-                color="grey-darken-2"
-                :disabled="tableOptions.page === totalPages || loading"
-                icon="mdi-page-last"
-                size="small"
-                variant="text"
-                @click="goToPage(totalPages)"
-              />
-            </v-col>
-            <v-col v-else class="d-none d-md-block" md="4" />
-
-            <v-col cols="12" md="4">
-              <div class="d-none d-md-flex justify-end">
-                <span class="text-caption text-grey-darken-1">{{ paginationInfo }}</span>
-              </div>
-              <div v-if="totalPages > 1" class="d-flex d-md-none align-center justify-center ga-1">
-                <v-btn
-                  color="grey-darken-2"
-                  :disabled="tableOptions.page === 1 || loading"
-                  icon="mdi-page-first"
-                  size="small"
-                  variant="text"
-                  @click="goToPage(1)"
-                />
-                <v-btn
-                  color="grey-darken-2"
-                  :disabled="tableOptions.page === 1 || loading"
-                  icon="mdi-chevron-left"
-                  size="small"
-                  variant="text"
-                  @click="goToPage(tableOptions.page - 1)"
-                />
-                <template v-for="p in visiblePages" :key="p">
-                  <span v-if="p === '...'" class="text-caption text-grey px-1">…</span>
-                  <v-btn
-                    v-else
-                    class="px-2"
-                    :color="p === tableOptions.page ? 'primary' : 'grey-darken-2'"
-                    :disabled="loading"
-                    size="small"
-                    style="min-width: 32px"
-                    :variant="p === tableOptions.page ? 'flat' : 'text'"
-                    @click="goToPage(p)"
-                    >{{ p }}</v-btn
-                  >
-                </template>
-                <v-btn
-                  color="grey-darken-2"
-                  :disabled="tableOptions.page === totalPages || loading"
-                  icon="mdi-chevron-right"
-                  size="small"
-                  variant="text"
-                  @click="goToPage(tableOptions.page + 1)"
-                />
-                <v-btn
-                  color="grey-darken-2"
-                  :disabled="tableOptions.page === totalPages || loading"
-                  icon="mdi-page-last"
-                  size="small"
-                  variant="text"
-                  @click="goToPage(totalPages)"
-                />
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
+        <TablePaginationFooter
+          :items-per-page="tableOptions.itemsPerPage"
+          :loading="loading"
+          :page="tableOptions.page"
+          :pagination-info="paginationInfo"
+          :rows-per-page-options="rowsPerPageOptions"
+          :total-pages="totalPages"
+          :visible-pages="visiblePages"
+          @go-to-page="goToPage"
+          @update:items-per-page="
+            (val) => {
+              tableOptions.itemsPerPage = val
+              onItemsPerPageChange()
+            }
+          "
+        />
       </template>
     </v-data-table-server>
   </v-card>
@@ -348,7 +160,10 @@
 
 <script setup>
   import { computed, onMounted, ref, watch } from 'vue'
-  import { useDisplay } from 'vuetify'
+  import { useDebounce } from '@/shared/composables/useDebounce'
+  import { useTablePagination } from '@/shared/composables/useTablePagination'
+  import TablePaginationFooter from '@/shared/ui/TablePaginationFooter.vue'
+  import TableRowActions from '@/shared/ui/TableRowActions.vue'
   import { useAuthStore } from '@/stores/authStore'
 
   defineOptions({ inheritAttrs: false })
@@ -376,15 +191,8 @@
   const emit = defineEmits(['load'])
 
   const authStore = useAuthStore()
-  const { mdAndUp } = useDisplay()
 
   const actionSource = ref(null)
-
-  function isVisible(obj) {
-    if (obj.visible === undefined) return true
-    if (typeof obj.visible === 'function') return obj.visible()
-    return obj.visible === true
-  }
 
   const visibleRowActions = computed(() =>
     props.rowActions.filter(
@@ -402,36 +210,34 @@
       return visible && (!a.permission || authStore.hasPermission(a.permission))
     })
   }
-  const computedHeaders = computed(() => {
-    const visibleHeaders = props.headers.filter((h) => isVisible(h))
-    const hasActionsCol = visibleHeaders.some((h) => h.key === props.actionsKey)
-    if (visibleRowActions.value.length === 0 || hasActionsCol) return visibleHeaders
-    return [
-      ...visibleHeaders,
-      {
-        title: 'Acciones',
-        key: props.actionsKey,
-        sortable: false,
-        align: 'center',
-        width: props.actionsWidth,
-      },
-    ]
-  })
-
-  const sortableHeaders = computed(() =>
-    props.headers.filter((h) => isVisible(h) && h.sortable !== false),
-  )
 
   // ── Estado central ────────────────────────────────────────────────────────────
-  const tableOptions = ref({
-    page: 1,
+  const {
+    tableOptions,
+    mobileSortKey,
+    mobileSortOrder,
+    computedHeaders,
+    sortableHeaders,
+    totalPages,
+    paginationInfo,
+    visiblePages,
+    goToPage,
+    onItemsPerPageChange,
+    onMobileSortChange,
+    applyOptionsUpdate,
+    resetPagination,
+  } = useTablePagination({
+    headers: computed(() => props.headers),
+    totalItems: computed(() => props.totalItems),
+    visibleRowActions,
     itemsPerPage: props.itemsPerPage,
-    sortBy: [],
+    actionsKey: props.actionsKey,
+    actionsWidth: props.actionsWidth,
+    onChange: () => emitLoad(),
   })
+
   const searchQuery = ref('')
   const appliedSearch = ref('') // término que se mandó a la API
-  const mobileSortKey = ref(null)
-  const mobileSortOrder = ref('asc')
 
   // Resetear a página 1 cuando cambia la búsqueda en tiempo real
   watch(
@@ -450,54 +256,6 @@
     },
   )
 
-  // ── Paginación ────────────────────────────────────────────────────────────────
-  const totalPages = computed(() => {
-    return Math.ceil(props.totalItems / tableOptions.value.itemsPerPage) || 1
-  })
-
-  const paginationInfo = computed(() => {
-    const totalCount = props.totalItems
-    if (totalCount === 0) return 'Sin registros'
-    const start = (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage + 1
-    const end = Math.min(tableOptions.value.page * tableOptions.value.itemsPerPage, totalCount)
-    return `${start}–${end} de ${totalCount}`
-  })
-
-  const visiblePages = computed(() => {
-    const total = totalPages.value
-    const current = tableOptions.value.page
-    if (!mdAndUp.value) return [current]
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-    const delta = 1
-    const range = []
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-      range.push(i)
-    }
-    if (range[0] > 2) range.unshift('...')
-    if (range.at(-1) < total - 1) range.push('...')
-    return [1, ...range, total]
-  })
-
-  // ── Navegación ────────────────────────────────────────────────────────────────
-  function goToPage(page) {
-    if (page < 1 || page > totalPages.value || page === tableOptions.value.page) return
-    tableOptions.value = { ...tableOptions.value, page }
-    emitLoad()
-  }
-
-  function onItemsPerPageChange() {
-    tableOptions.value = { ...tableOptions.value, page: 1 }
-    emitLoad()
-  }
-
-  function onMobileSortChange() {
-    const sortBy = mobileSortKey.value
-      ? [{ key: mobileSortKey.value, order: mobileSortOrder.value }]
-      : []
-    tableOptions.value = { ...tableOptions.value, page: 1, sortBy }
-    emitLoad()
-  }
-
   function emitLoad() {
     emit('load', {
       page: tableOptions.value.page,
@@ -510,7 +268,7 @@
 
   let initialized = false
 
-  function onOptionsUpdate({ page, itemsPerPage, sortBy }) {
+  function onOptionsUpdate(options) {
     if (!initialized) {
       initialized = true
       return
@@ -518,15 +276,7 @@
 
     if (props.loading) return // ← bloquea si está cargando
 
-    const newSortBy = mdAndUp.value ? (sortBy ?? []) : tableOptions.value.sortBy
-    const changed =
-      page !== tableOptions.value.page ||
-      itemsPerPage !== tableOptions.value.itemsPerPage ||
-      JSON.stringify(newSortBy) !== JSON.stringify(tableOptions.value.sortBy)
-
-    tableOptions.value = { page, itemsPerPage, sortBy: newSortBy }
-
-    if (changed) emitLoad()
+    if (applyOptionsUpdate(options)) emitLoad()
   }
 
   function onSearch() {
@@ -536,16 +286,13 @@
     emitLoad()
   }
 
-  let searchTimeout = null
+  const { debounced: debouncedSearch, cancel: cancelDebouncedSearch } = useDebounce(onSearch, 800)
   function onSearchInput() {
-    if (searchTimeout) clearTimeout(searchTimeout)
-    searchTimeout = setTimeout(() => {
-      onSearch()
-    }, 800)
+    debouncedSearch()
   }
 
   function onClear() {
-    if (searchTimeout) clearTimeout(searchTimeout)
+    cancelDebouncedSearch()
     searchQuery.value = ''
     appliedSearch.value = ''
     tableOptions.value = { ...tableOptions.value, page: 1 }
@@ -558,13 +305,7 @@
   }
 
   function reset() {
-    tableOptions.value = {
-      page: 1,
-      itemsPerPage: props.itemsPerPage,
-      sortBy: [],
-    }
-    mobileSortKey.value = null
-    mobileSortOrder.value = 'asc'
+    resetPagination()
     emitLoad()
   }
 

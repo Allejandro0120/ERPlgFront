@@ -1,11 +1,5 @@
 import { ref } from 'vue'
-
-function extractData(response) {
-  if (response?.data?.success) {
-    return response.data.data || []
-  }
-  return []
-}
+import { unwrapApiData } from '@/shared/utils/unwrapApiData'
 
 /**
  * Maneja la cascada de infraestructura: Cedi -> Bodega -> Zona -> Pasillo -> Estante -> Ubicacion.
@@ -77,7 +71,7 @@ export function useInfraestructuraCascade({
     if (!idCedi) return
     loading.value.bodegas = true
     try {
-      bodegas.value = extractData(await services.getBodegasByCedi(idCedi))
+      bodegas.value = unwrapApiData(await services.getBodegasByCedi(idCedi))
       if (autoSelect && bodegas.value.length === 1) {
         form.value[k.idBodega] = bodegas.value[0].IdBodega
         await onBodegaChange(bodegas.value[0].IdBodega)
@@ -94,7 +88,7 @@ export function useInfraestructuraCascade({
     if (!idBodega) return
     loading.value.zonas = true
     try {
-      zonas.value = extractData(await services.getZonasByBodega(idBodega))
+      zonas.value = unwrapApiData(await services.getZonasByBodega(idBodega))
       if (autoSelect && zonas.value.length === 1) {
         form.value[k.idZona] = zonas.value[0].IdZona
         await onZonaChange(zonas.value[0].IdZona)
@@ -111,7 +105,7 @@ export function useInfraestructuraCascade({
     if (!idZona) return
     loading.value.pasillos = true
     try {
-      pasillos.value = extractData(await services.getPasillosByZona(idZona))
+      pasillos.value = unwrapApiData(await services.getPasillosByZona(idZona))
       if (autoSelect && pasillos.value.length === 1) {
         form.value[k.idPasillo] = pasillos.value[0].IdPasillo
         await onPasilloChange(pasillos.value[0].IdPasillo)
@@ -128,7 +122,7 @@ export function useInfraestructuraCascade({
     if (!idPasillo) return
     loading.value.estantes = true
     try {
-      estantes.value = extractData(await services.getEstantesByPasillo(idPasillo))
+      estantes.value = unwrapApiData(await services.getEstantesByPasillo(idPasillo))
       if (autoSelect && estantes.value.length === 1) {
         form.value[k.idEstante] = estantes.value[0].IdEstante
         await onEstanteChange(estantes.value[0].IdEstante)
@@ -145,7 +139,7 @@ export function useInfraestructuraCascade({
     if (!idEstante) return
     loading.value.ubicaciones = true
     try {
-      const data = extractData(await services.getUbicacionByEstante(idEstante))
+      const data = unwrapApiData(await services.getUbicacionByEstante(idEstante))
       ubicaciones.value = Array.isArray(data) ? data : [data]
       if (autoSelect && ubicaciones.value.length === 1) {
         form.value[k.idUbicacion] = ubicaciones.value[0].IdUbicacion
@@ -234,7 +228,7 @@ export function useInfraestructuraCascade({
     if (idBodega) {
       loading.value.zonas = true
       try {
-        zonas.value = extractData(await services.getZonasByBodega(idBodega))
+        zonas.value = unwrapApiData(await services.getZonasByBodega(idBodega))
       } catch (error) {
         handleError(error, 'zonas')
       } finally {
@@ -245,7 +239,7 @@ export function useInfraestructuraCascade({
     if (idZona) {
       loading.value.pasillos = true
       try {
-        pasillos.value = extractData(await services.getPasillosByZona(idZona))
+        pasillos.value = unwrapApiData(await services.getPasillosByZona(idZona))
       } catch (error) {
         handleError(error, 'pasillos')
       } finally {
@@ -256,7 +250,7 @@ export function useInfraestructuraCascade({
     if (idPasillo) {
       loading.value.estantes = true
       try {
-        estantes.value = extractData(await services.getEstantesByPasillo(idPasillo))
+        estantes.value = unwrapApiData(await services.getEstantesByPasillo(idPasillo))
       } catch (error) {
         handleError(error, 'estantes')
       } finally {
@@ -267,7 +261,7 @@ export function useInfraestructuraCascade({
     if (idEstante) {
       loading.value.ubicaciones = true
       try {
-        const data = extractData(await services.getUbicacionByEstante(idEstante))
+        const data = unwrapApiData(await services.getUbicacionByEstante(idEstante))
         ubicaciones.value = Array.isArray(data) ? data : [data]
       } catch (error) {
         handleError(error, 'ubicaciones')

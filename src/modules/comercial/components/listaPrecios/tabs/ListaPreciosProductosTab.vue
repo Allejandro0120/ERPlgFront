@@ -48,54 +48,56 @@
       </p>
     </div>
 
-    <base-table-local
-      v-else
-      class="rounded-lg border mt-4"
-      :headers="headers"
-      :items="detalles"
-      :loading="false"
-      :row-actions="rowActions"
-      :searchable="false"
-    >
-      <template #item.PrecioBase="{ item }">
-        <v-text-field
-          v-if="!isReadonly"
-          v-model="item.PrecioBase"
-          density="compact"
-          hide-details
-          prepend-inner-icon="mdi-currency-usd"
-          required
-          :rules="[rules.required, rules.maxCOP(1_000_000_000, 'El precio base')]"
-          variant="outlined"
-          @keydown="blockKey($event, allow.decimal)"
-          @paste="blockPaste($event, allow.decimal)"
-          @update:model-value="(val) => onPrecioBaseInput(item, val)"
-        />
-        <span v-else>{{ formatCurrencyDisplay(item.PrecioBase) }}</span>
-      </template>
+    <template v-else>
+      <base-table-local
+        class="rounded-lg border"
+        :headers="headers"
+        :items="detalles"
+        :loading="false"
+        :row-actions="rowActions"
+        search-placeholder="Buscar producto en la lista..."
+        searchable
+      >
+        <template #item.PrecioBase="{ item }">
+          <v-text-field
+            v-if="!isReadonly"
+            v-model="item.PrecioBase"
+            density="compact"
+            hide-details
+            prepend-inner-icon="mdi-currency-usd"
+            required
+            :rules="[rules.required, rules.maxCOP(1_000_000_000, 'El precio base')]"
+            variant="outlined"
+            @keydown="blockKey($event, allow.decimal)"
+            @paste="blockPaste($event, allow.decimal)"
+            @update:model-value="(val) => onPrecioBaseInput(item, val)"
+          />
+          <span v-else>{{ formatCurrencyCOP(item.PrecioBase) }}</span>
+        </template>
 
-      <template #item.PorcentajeDescuentoMaximo="{ item }">
-        <v-text-field
-          v-if="!isReadonly"
-          v-model="item.PorcentajeDescuentoMaximo"
-          density="compact"
-          hide-details
-          prepend-inner-icon="mdi-percent"
-          required
-          :rules="[rules.required, rules.numeric, rules.maxValue(100, 'El descuento máximo')]"
-          variant="outlined"
-          @input="
-            item.PorcentajeDescuentoMaximo = sanitizeInput(
-              item.PorcentajeDescuentoMaximo,
-              allow.onlyDigitsAndDot,
-            )
-          "
-          @keydown="blockKey($event, allow.onlyDigitsAndDot)"
-          @paste="blockPaste($event, allow.onlyDigitsAndDot)"
-        />
-        <span v-else>{{ item.PorcentajeDescuentoMaximo }}%</span>
-      </template>
-    </base-table-local>
+        <template #item.PorcentajeDescuentoMaximo="{ item }">
+          <v-text-field
+            v-if="!isReadonly"
+            v-model="item.PorcentajeDescuentoMaximo"
+            density="compact"
+            hide-details
+            prepend-inner-icon="mdi-percent"
+            required
+            :rules="[rules.required, rules.numeric, rules.maxValue(100, 'El descuento máximo')]"
+            variant="outlined"
+            @input="
+              item.PorcentajeDescuentoMaximo = sanitizeInput(
+                item.PorcentajeDescuentoMaximo,
+                allow.onlyDigitsAndDot,
+              )
+            "
+            @keydown="blockKey($event, allow.onlyDigitsAndDot)"
+            @paste="blockPaste($event, allow.onlyDigitsAndDot)"
+          />
+          <span v-else>{{ item.PorcentajeDescuentoMaximo }}%</span>
+        </template>
+      </base-table-local>
+    </template>
   </div>
 </template>
 
@@ -103,9 +105,11 @@
   import { computed, ref, watch } from 'vue'
   import { mercanciaService } from '@/api/services/mercanciaService'
   import { $toast } from '@/plugins/toast'
+  import { useDebounce } from '@/shared/composables/useDebounce'
   import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
-  import { formatCOP } from '@/shared/utils/currencyFormatter'
+  import { formatCOP, formatCurrencyCOP } from '@/shared/utils/currencyFormatter'
   import { allow, blockKey, blockPaste, sanitizeInput } from '@/shared/utils/inputKeyFilter'
+  import { unwrapApiData } from '@/shared/utils/unwrapApiData'
   import { rules } from '@/shared/utils/validationRules'
 
   const props = defineProps({
@@ -118,10 +122,6 @@
 
   function onPrecioBaseInput(item, val) {
     item.PrecioBase = formatCOP(val)
-  }
-
-  function formatCurrencyDisplay(value) {
-    return `$${value}`
   }
 
   const rowActions = computed(() => [
@@ -139,7 +139,6 @@
   const loadingProductos = ref(false)
   const productosItems = ref([])
   const productoSeleccionado = ref(null)
-  const debounceTimer = ref(null)
 
   function buildProductoItem(producto) {
     const codigo = producto.CodigoProducto ?? producto.CodProducto ?? ''
@@ -166,7 +165,7 @@
     loadingProductos.value = true
     try {
       const response = await mercanciaService.getProductosSearch(termino)
-      const resultados = response?.data?.success ? response.data.data || [] : []
+      const resultados = unwrapApiData(response)
       const idsExistentes = new Set(props.detalles.map((d) => d.IdProducto))
       productosItems.value = resultados
         .filter((producto) => !idsExistentes.has(producto.IdProducto))
@@ -184,17 +183,19 @@
     if (termino?.length >= 4) buscarProductos(termino)
   }
 
-  watch(productoSearch, (value) => {
-    clearTimeout(debounceTimer.value)
+  const { debounced: debouncedBuscarProductos, cancel: cancelBuscarProductos } = useDebounce(
+    (termino) => buscarProductos(termino),
+    500,
+  )
 
+  watch(productoSearch, (value) => {
     if (!value || value.trim().length < 4) {
+      cancelBuscarProductos()
       productosItems.value = []
       return
     }
 
-    debounceTimer.value = setTimeout(() => {
-      buscarProductos(value.trim())
-    }, 500)
+    debouncedBuscarProductos(value.trim())
   })
 
   function onAgregarProducto() {

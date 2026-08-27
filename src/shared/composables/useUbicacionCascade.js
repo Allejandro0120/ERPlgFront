@@ -1,11 +1,5 @@
 import { ref } from 'vue'
-
-function extractData(response) {
-  if (response?.data?.success) {
-    return response.data.data || []
-  }
-  return []
-}
+import { unwrapApiData } from '@/shared/utils/unwrapApiData'
 
 /**
  * Maneja la cascada Departamento -> Municipio -> Centro Poblado.
@@ -43,7 +37,7 @@ export function useUbicacionCascade({
     loadingMunicipios.value = true
     try {
       const response = await fetchMunicipios(idDepartamento)
-      municipios.value = extractData(response)
+      municipios.value = unwrapApiData(response)
     } catch (error) {
       handleError(error, 'municipios')
     } finally {
@@ -63,7 +57,7 @@ export function useUbicacionCascade({
     loadingCentrosPoblados.value = true
     try {
       const response = await fetchCentrosPoblados(idMunicipio)
-      const data = extractData(response)
+      const data = unwrapApiData(response)
       centrosPoblados.value = data
 
       if (allowAutoSelect && data.length === 1) {

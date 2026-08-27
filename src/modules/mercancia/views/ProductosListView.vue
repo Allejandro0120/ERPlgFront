@@ -82,7 +82,7 @@
       <!-- Estado -->
       <template #item.Activo="{ item }">
         <v-chip
-          :color="item.Activo ? 'success' : 'error'"
+          :color="getEstadoColor(item.Activo)"
           :prepend-icon="item.Activo ? 'mdi-check-circle' : 'mdi-close-circle'"
           size="small"
           variant="tonal"
@@ -93,14 +93,14 @@
 
       <!-- Habilitado Compras -->
       <template #item.HabilitadoCompras="{ item }">
-        <v-icon :color="item.HabilitadoCompras ? 'success' : 'error'" size="20">
+        <v-icon :color="getEstadoColor(item.HabilitadoCompras)" size="20">
           {{ item.HabilitadoCompras ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
       </template>
 
       <!-- Habilitado Ventas -->
       <template #item.HabilitadoVentas="{ item }">
-        <v-icon :color="item.HabilitadoVentas ? 'success' : 'error'" size="20">
+        <v-icon :color="getEstadoColor(item.HabilitadoVentas)" size="20">
           {{ item.HabilitadoVentas ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
       </template>
@@ -156,6 +156,7 @@
   import { $toast } from '@/plugins/toast'
   import BaseTable from '@/shared/ui/BaseTable.vue'
   import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
+  import { getEstadoColor } from '@/shared/utils/statusColors'
 
   const { mobile } = useDisplay()
 

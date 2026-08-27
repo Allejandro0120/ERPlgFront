@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <img
-              alt="LogicPharma logo"
+              alt="LogicPharma Santander"
               fetchpriority="high"
               height="100"
               :src="Logo"
@@ -85,7 +85,7 @@
         <!-- Footer -->
         <div class="text-center mt-6">
           <span class="text-body-small text-brand-grey-1">
-            © {{ year }}  LogicPharma. Todos los derechos reservados.
+            © {{ year }} LogicPharma Santander. Todos los derechos reservados.
           </span>
         </div>
       </v-col>
@@ -99,6 +99,7 @@
   import { authService } from '@/api/services/authService'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
+  import { rules as sharedRules } from '@/shared/utils/validationRules'
   import { useAuthStore } from '@/stores/authStore'
   import { useUiStore } from '@/stores/uiStore'
   import Logo from '/LogicPharma_LogoT.png'
@@ -120,10 +121,7 @@
 
   // ─── Reglas de validación ────────────────────────────────────────────────────
   const rules = {
-    /** Valida que el campo no esté vacío ni contenga solo espacios (Usuario) */
-    required: (v) => (v && v.trim().length > 0) || 'Este campo es obligatorio',
-
-    /** Valida que la contraseña no esté vacía; permite espacios en blanco */
+    required: sharedRules.required,
     requiredPassword: (v) =>
       (v !== null && v !== undefined && v.length > 0) || 'Este campo es obligatorio',
   }
