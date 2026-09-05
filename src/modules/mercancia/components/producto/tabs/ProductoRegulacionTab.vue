@@ -151,7 +151,7 @@
 
 <script setup>
   import { computed, toRefs, watch } from 'vue'
-  import DatePickerField from '@/shared/ui/DatePickerField.vue'
+  import DatePickerField from '@/shared/ui/fields/DatePickerField.vue'
   import { formatCOP } from '@/shared/utils/currencyFormatter'
   import { allow, blockKey, blockPaste, sanitizeInput } from '@/shared/utils/inputKeyFilter'
   import { rules } from '@/shared/utils/validationRules'

@@ -63,7 +63,7 @@
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { rules } from '@/shared/utils/validationRules'
 

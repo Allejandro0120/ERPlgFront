@@ -160,7 +160,7 @@
 
 <script setup>
   import { computed, ref, toRefs } from 'vue'
-  import DatePickerField from '@/shared/ui/DatePickerField.vue'
+  import DatePickerField from '@/shared/ui/fields/DatePickerField.vue'
   import { formatCOP } from '@/shared/utils/currencyFormatter'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'

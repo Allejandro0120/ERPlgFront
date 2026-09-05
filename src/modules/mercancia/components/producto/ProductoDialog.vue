@@ -96,7 +96,7 @@
   import { $toast } from '@/plugins/toast'
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { formatCOP, parseCOP } from '@/shared/utils/currencyFormatter'
   import LoteFormDialog from './creacion/LoteFormDialog.vue'
   import ProductoComercialTab from './tabs/ProductoComercialTab.vue'

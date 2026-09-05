@@ -76,7 +76,7 @@
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { pickFields } from '@/shared/utils/objectUtils'
   // colors handled inside tabs
   import { useRecepcionCatalogos } from '../../composables/recepcion/useRecepcionCatalogos'

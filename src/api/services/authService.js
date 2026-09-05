@@ -1,5 +1,5 @@
 /**
- * api/services/auth.service.js
+ * api/services/authService.js
  */
 
 import api from '@/api/axios'

@@ -179,7 +179,7 @@
   import { $toast } from '@/plugins/toast'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useUbicacionCascade } from '@/shared/composables/useUbicacionCascade'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { rules } from '@/shared/utils/validationRules'

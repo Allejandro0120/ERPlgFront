@@ -207,9 +207,9 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { mercanciaService } from '@/api/services/mercanciaService'
   import { useTiposAjusteInventario } from '@/modules/mercancia/composables/inventario/useTiposAjusteInventario'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
-  import BaseTable from '@/shared/ui/BaseTable.vue'
-  import DateRangeFilter from '@/shared/ui/DateRangeFilter.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
+  import DateRangeFilter from '@/shared/ui/fields/DateRangeFilter.vue'
+  import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
   import AjusteInventarioDialog from './AjusteInventarioDialog.vue'
 

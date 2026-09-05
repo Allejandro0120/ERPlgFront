@@ -166,7 +166,7 @@
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useDebounce } from '@/shared/composables/useDebounce'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { formatCOP } from '@/shared/utils/currencyFormatter'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'

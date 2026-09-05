@@ -2,24 +2,6 @@
   <div>
     <!-- ── Tabla de RECEPCIÓN (solo en modo crear) ────────────────────────── -->
     <template v-if="!isReadonly">
-      <div class="d-flex align-center justify-space-between mb-2">
-        <div class="text-subtitle-1 font-weight-bold d-flex align-center gap-2">
-          <v-icon color="info" icon="mdi-clipboard-text-outline mx-1" size="20" />
-          Productos de Recepción
-          <v-chip
-            v-if="recepcionDetalles.length > 0"
-            class="ml-2"
-            color="info"
-            density="comfortable"
-            label
-            size="small"
-            variant="tonal"
-          >
-            {{ recepcionDetalles.length }} pendiente{{ recepcionDetalles.length !== 1 ? 's' : '' }}
-          </v-chip>
-        </div>
-      </div>
-
       <div
         v-if="recepcionDetalles.length === 0"
         class="d-flex flex-column align-center justify-center py-8 rounded-lg mb-4"
@@ -44,6 +26,23 @@
         :row-actions="recepcionRowActions"
         :searchable="false"
       >
+        <template #title>
+          <v-icon color="info" icon="mdi-clipboard-text-outline mx-1" size="20" />
+          Productos de Recepción
+        </template>
+        <template #chip>
+          <v-chip
+            class="ml-2"
+            color="info"
+            density="comfortable"
+            label
+            size="small"
+            variant="tonal"
+          >
+            {{ recepcionDetalles.length }} pendiente{{ recepcionDetalles.length !== 1 ? 's' : '' }}
+          </v-chip>
+        </template>
+
         <template #item.CantidadPendiente="{ item }">
           <v-chip color="warning" density="comfortable" label size="small" variant="tonal">
             {{ item.CantidadPendiente }}
@@ -60,24 +59,6 @@
     </template>
 
     <!-- ── Tabla de CARGUE (siempre visible) ─────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between mb-2">
-      <div class="text-subtitle-1 font-weight-bold d-flex align-center gap-2">
-        <v-icon color="primary" icon="mdi-package-variant-closed-check mx-1" size="20" />
-        Productos Asignados al Cargue
-        <v-chip
-          v-if="cargueDetalles.length > 0"
-          class="ml-2"
-          color="primary"
-          density="comfortable"
-          label
-          size="small"
-          variant="tonal"
-        >
-          {{ cargueDetalles.length }}
-        </v-chip>
-      </div>
-    </div>
-
     <div
       v-if="cargueDetalles.length === 0"
       class="d-flex flex-column align-center justify-center py-10 rounded-lg"
@@ -99,6 +80,14 @@
       :row-actions="cargueRowActions"
       :searchable="false"
     >
+      <template #title>
+        <v-icon color="primary" icon="mdi-package-variant-closed-check mx-1" size="20" />
+        Productos Asignados al Cargue
+      </template>
+      <template #chip>
+        <v-chip color="primary" size="small" variant="tonal">{{ cargueDetalles.length }}</v-chip>
+      </template>
+
       <template #item.CantidadAsignada="{ item }">
         <v-chip color="success" density="comfortable" label size="small" variant="tonal">
           {{ item.CantidadAsignada }}
@@ -114,7 +103,7 @@
 </template>
 
 <script setup>
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import BaseTableLocal from '@/shared/ui/table/BaseTableLocal.vue'
 
   defineProps({
     recepcionDetalles: { type: Array, default: () => [] },

@@ -1,4 +1,4 @@
-<!-- src/layouts/DefaultLayout.vue -->
+<!-- src/layout/DefaultLayout.vue -->
 <template>
   <AppSidebar />
   <v-main>
@@ -31,8 +31,8 @@
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
   import AppSidebar from '@/layout/components/AppSidebar.vue'
-  import AppBar from '@/shared/ui/AppBar.vue'
-  import ChangePasswordDialog from '@/shared/ui/ChangePasswordDialog.vue'
+  import ChangePasswordDialog from '@/shared/ui/dialogs/ChangePasswordDialog.vue'
+  import AppBar from '@/shared/ui/layout/AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
 
   const authStore = useAuthStore()

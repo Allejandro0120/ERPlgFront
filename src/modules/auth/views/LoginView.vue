@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <img
-              alt="LogicPharma Santander"
+              alt="Logicpharma"
               fetchpriority="high"
               height="100"
               :src="Logo"
@@ -85,7 +85,7 @@
         <!-- Footer -->
         <div class="text-center mt-6">
           <span class="text-body-small text-brand-grey-1">
-            © {{ year }} LogicPharma Santander. Todos los derechos reservados.
+            © {{ year }} Logicpharma. Todos los derechos reservados.
           </span>
         </div>
       </v-col>

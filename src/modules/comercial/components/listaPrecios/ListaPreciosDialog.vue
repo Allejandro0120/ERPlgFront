@@ -37,11 +37,13 @@
 
           <v-tabs-window-item eager value="productos">
             <lista-precios-productos-tab
+              :codigo="isCreating ? '' : form.Codigo"
               :detalles="detalles"
               :headers="headers"
               :is-readonly="isReadonly"
               @agregar-producto="onAgregarProducto"
               @eliminar-producto="onEliminarProducto"
+              @productos-importados="onProductosImportados"
             />
           </v-tabs-window-item>
         </v-tabs-window>
@@ -52,12 +54,13 @@
 
 <script setup>
   import { computed, ref, watch } from 'vue'
+  import { comercialService } from '@/api/services/comercialService'
   import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { parseCOP } from '@/shared/utils/currencyFormatter'
   import { pickFields } from '@/shared/utils/objectUtils'
   import { useListaPreciosDetalles } from '../../composables/listaPrecios/useListaPreciosDetalles'
@@ -142,6 +145,22 @@
   }
   function onEliminarProducto(localId) {
     eliminarProducto(localId)
+  }
+
+  async function onProductosImportados() {
+    if (!props.lista?.IdListaPrecio) return
+
+    $loading.show()
+    try {
+      const res = await comercialService.getListaPreciosById(props.lista.IdListaPrecio)
+      if (res.data?.success) {
+        hydrateDetalles(res.data.data?.detalles || [])
+      }
+    } catch (error) {
+      if (!error._toastShown) $toast.error('Error al refrescar los productos importados')
+    } finally {
+      $loading.hide()
+    }
   }
 
   const hasChanges = computed(() => {

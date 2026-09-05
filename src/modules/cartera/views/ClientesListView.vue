@@ -75,8 +75,8 @@
   import ClienteDialog from '@/modules/cartera/components/cliente/ClienteDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import BaseTable from '@/shared/ui/BaseTable.vue'
-  import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
+  import PageHeaderActions from '@/shared/ui/layout/PageHeaderActions.vue'
+  import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
   import { useAuthStore } from '@/stores/authStore'
 

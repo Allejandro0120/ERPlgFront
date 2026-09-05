@@ -1,4 +1,4 @@
-<!-- src/layouts/components/SidebarHeader.vue -->
+<!-- src/layout/components/SidebarHeader.vue -->
 <template>
   <div class="d-flex align-center px-3 mb-5 mt-2" style="height: 72px; overflow: hidden">
     <v-avatar
@@ -10,13 +10,13 @@
           height 0.2s;
       "
     >
-      <v-img alt="LogicPharma logo" cover height="36" :src="logo" width="36" />
+      <v-img alt="Logicpharma logo" cover height="36" :src="logo" width="36" />
     </v-avatar>
 
     <Transition name="header-text">
       <div v-if="!rail" class="ml-3 overflow-hidden" style="white-space: nowrap">
         <p class="mb-0 font-weight-bold text-white text-title-medium" style="line-height: 1.3">
-          LogicPharma<br />Santander
+          Logicpharma
         </p>
         <p class="mb-0 mt-1 text-white font-weight-medium text-body-small">Sistema de Gestión</p>
       </div>

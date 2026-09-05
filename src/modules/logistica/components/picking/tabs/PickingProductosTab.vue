@@ -69,7 +69,7 @@
 
 <script setup>
   import { nextTick, ref } from 'vue'
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import BaseTableLocal from '@/shared/ui/table/BaseTableLocal.vue'
 
   defineProps({
     pendientes: { type: Array, default: () => [] },

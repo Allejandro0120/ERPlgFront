@@ -42,3 +42,17 @@ export function downloadPdfResponse(res, fileName) {
   const finalName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`
   return downloadBlobResponse(res, finalName, 'application/pdf')
 }
+
+/**
+ * Descarga la respuesta binaria (blob) de una petición axios como Excel (.xlsx).
+ * @param {*} res - Respuesta de axios con { data } en formato blob
+ * @param {string} fileName - Nombre del archivo (sin extensión o con .xlsx)
+ */
+export function downloadExcelResponse(res, fileName) {
+  const finalName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`
+  return downloadBlobResponse(
+    res,
+    finalName,
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+}

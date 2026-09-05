@@ -1,11 +1,11 @@
-# LogicPharma ERP — Frontend
+# Logicpharma ERP — Frontend
 
-Frontend del ERP de LogicPharma, construido con Vue 3, Vite y Vuetify.
+Frontend del ERP de Logicpharma, construido con Vue 3, Vite y Vuetify.
 
 ## Requisitos
 
 - Node.js 18+
-- El backend de LogicPharma corriendo (repo `ERPSanBack`)
+- El backend de Logicpharma corriendo (repo `ERPSanBack`)
 
 ## Configuración
 
@@ -76,7 +76,7 @@ chore: actualizar dependencias de vuetify
 src/
   api/          # cliente axios, servicios por dominio, middleware de auth
   layout/       # layouts de la app (Default, Blank) y componentes de sidebar
-  modules/      # un módulo por dominio de negocio (auth, cartera, comercial, facturacion, mercancia)
+  modules/      # un módulo por dominio de negocio (auth, cartera, comercial, ventas, mercancia)
   plugins/      # registro de plugins de Vue (Vuetify, toast, loading, confirm)
   router/       # definición de rutas y guard de autenticación
   shared/       # composables, componentes UI y utilidades reutilizables entre módulos

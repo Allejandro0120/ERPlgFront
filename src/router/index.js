@@ -11,9 +11,9 @@ import { authMiddleware } from '@/api/middleware/authMiddleware'
 import authRoutes from '@/modules/auth/authRoutes.js'
 import carteraRoutes from '@/modules/cartera/carteraRoutes.js'
 import comercialRoutes from '@/modules/comercial/comercialRoutes.js'
-import ventasRoutes from '@/modules/facturacion/ventasRoutes.js'
 import logisticaRoutes from '@/modules/logistica/logisticaRoutes.js'
 import mercanciaRoutes from '@/modules/mercancia/mercanciaRoutes.js'
+import ventasRoutes from '@/modules/ventas/ventasRoutes.js'
 
 const routes = [
   {
@@ -32,7 +32,7 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/shared/ui/NotFoundView.vue'),
+    component: () => import('@/shared/ui/layout/NotFoundView.vue'),
     meta: { title: 'Página no encontrada', requiresAuth: false },
   },
 ]
@@ -42,7 +42,7 @@ const router = createRouter({
   routes,
 })
 
-const BASE_TITLE = 'LogicPharma ERP'
+const BASE_TITLE = 'Logicpharma ERP'
 
 router.beforeEach(authMiddleware)
 

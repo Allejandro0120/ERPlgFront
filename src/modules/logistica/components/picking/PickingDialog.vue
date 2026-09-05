@@ -57,13 +57,13 @@
 
 <script setup>
   import { computed, nextTick, ref, watch } from 'vue'
-  import { facturacionService } from '@/api/services/facturacionService'
   import { pedidoService } from '@/api/services/pedidoService'
+  import { pickingService } from '@/api/services/pickingService'
   import { usePicking } from '@/modules/logistica/composables/picking/usePicking'
   import { $confirm } from '@/plugins/confirm/confirm'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { unwrapApiData } from '@/shared/utils/unwrapApiData'
   import ConfirmarPickDialog from './ConfirmarPickDialog.vue'
   import PickingInfoTab from './tabs/PickingInfoTab.vue'
@@ -144,7 +144,7 @@
    */
   async function loteCoincideConPedido({ idProducto, idUbicacion, codigoLote }) {
     try {
-      const response = await facturacionService.validatePickingMatch({
+      const response = await pickingService.validatePickingMatch({
         IdPedidoOrigen: pedidoInfo.value.IdTransaccion,
         IdProducto: idProducto,
         IdUbicacion: idUbicacion,
@@ -222,7 +222,7 @@
     creandoFacturacion.value = true
     $loading.show()
     try {
-      const res = await facturacionService.createFacturacion({
+      const res = await pickingService.createFacturacion({
         IdPedidoOrigen: pedidoInfo.value.IdTransaccion,
         detalles: tomados.value.map((item) => ({
           IdDetalle: item.IdDetalle,

@@ -57,20 +57,6 @@
 
         <v-col cols="12" sm="6">
           <v-text-field
-            v-model="cantidad"
-            :hint="`Cantidad pendiente: ${pendienteSeleccionado?.Cantidad ?? 0}`"
-            label="Cantidad encontrada"
-            persistent-hint
-            prepend-inner-icon="mdi-counter"
-            required
-            :rules="cantidadRules"
-            variant="outlined"
-            @keydown="blockKey($event, allow.decimal)"
-            @paste="blockPaste($event, allow.decimal)"
-          />
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-text-field
             ref="loteRef"
             v-model="lote"
             autofocus
@@ -84,6 +70,20 @@
             @keyup.enter="onAccept"
           />
         </v-col>
+        <v-col cols="12" sm="6">
+          <v-text-field
+            v-model="cantidad"
+            :hint="`Cantidad pendiente: ${pendienteSeleccionado?.Cantidad ?? 0}`"
+            label="Cantidad encontrada"
+            persistent-hint
+            prepend-inner-icon="mdi-counter"
+            required
+            :rules="cantidadRules"
+            variant="outlined"
+            @keydown="blockKey($event, allow.onlyDigits)"
+            @paste="blockPaste($event, allow.onlyDigits)"
+          />
+        </v-col>
       </v-row>
     </template>
   </base-dialog>
@@ -91,7 +91,7 @@
 
 <script setup>
   import { computed, nextTick, ref, watch } from 'vue'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { rules } from '@/shared/utils/validationRules'
 

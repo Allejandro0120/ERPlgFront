@@ -57,7 +57,7 @@
   import { $confirm } from '@/plugins/confirm/confirm.js'
   import { $toast } from '@/plugins/toast'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { rules } from '@/shared/utils/validationRules'
 
   const props = defineProps({

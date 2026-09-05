@@ -17,7 +17,7 @@
 
 <script setup>
   import { $confirm } from '@/plugins/confirm/confirm.js'
-  import BaseConfirmDialog from '@/shared/ui/BaseConfirmDialog.vue'
+  import BaseConfirmDialog from '@/shared/ui/dialogs/BaseConfirmDialog.vue'
 
   const state = $confirm.state
   function onModelUpdate(value) {

@@ -192,7 +192,7 @@
   import { useTiposAjusteInventario } from '@/modules/mercancia/composables/inventario/useTiposAjusteInventario'
   import { $toast } from '@/plugins/toast'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { allow, blockKey, blockPaste } from '@/shared/utils/inputKeyFilter'
   import { rules } from '@/shared/utils/validationRules'
   const props = defineProps({

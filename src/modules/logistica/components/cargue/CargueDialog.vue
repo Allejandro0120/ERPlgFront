@@ -82,7 +82,7 @@
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { useCargueDetalles } from '../../composables/cargue/useCargueDetalles.js'
   import CargueDetalleFormDialog from './CargueDetalleFormDialog.vue'
   import CargueDetalleTab from './tabs/CargueDetalleTab.vue'

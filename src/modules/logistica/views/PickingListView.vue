@@ -43,6 +43,18 @@
           :total-items="totalItemsPendientes"
           @load="fetchPedidosPendientes"
         >
+          <template #filters>
+            <v-col cols="12" md="4">
+              <date-range-filter
+                v-model="dateRangePendientes"
+                :disabled="loadingPendientes"
+                end-label="Hasta"
+                :show-preset-select="false"
+                start-label="Desde"
+              />
+            </v-col>
+          </template>
+
           <template #item.FechaDocumento="{ item }">
             {{ item.FechaDocumento ? formatDate(item.FechaDocumento) : '-' }}
           </template>
@@ -77,6 +89,18 @@
           :total-items="totalItems"
           @load="fetchData"
         >
+          <template #filters>
+            <v-col cols="12" md="4">
+              <date-range-filter
+                v-model="dateRangeFacturados"
+                :disabled="loadingTable"
+                end-label="Hasta"
+                :show-preset-select="false"
+                start-label="Desde"
+              />
+            </v-col>
+          </template>
+
           <!-- Fecha -->
           <template #item.FechaDocumento="{ item }">
             {{ item.FechaDocumento ? formatDate(item.FechaDocumento) : '-' }}
@@ -97,15 +121,15 @@
 
 <script setup>
   import { ref } from 'vue'
-  import { facturacionService } from '@/api/services/facturacionService'
   import { pedidoService } from '@/api/services/pedidoService'
   import { pickingService } from '@/api/services/pickingService'
   import PickingDialog from '@/modules/logistica/components/picking/PickingDialog.vue'
   import PickingFacturacionDialog from '@/modules/logistica/components/picking/PickingFacturacionDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import BaseTable from '@/shared/ui/BaseTable.vue'
-  import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
+  import DateRangeFilter from '@/shared/ui/fields/DateRangeFilter.vue'
+  import PageHeaderActions from '@/shared/ui/layout/PageHeaderActions.vue'
+  import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { formatCurrencyCOP } from '@/shared/utils/currencyFormatter'
   import { formatDate } from '@/shared/utils/dateFormatter'
   import { downloadPdfResponse } from '@/shared/utils/fileDownload'
@@ -118,6 +142,7 @@
   const pedidosPendientes = ref([])
   const totalItemsPendientes = ref(0)
   const loadingPendientes = ref(false)
+  const dateRangePendientes = ref({ start: null, end: null })
 
   const pickingDialogOpen = ref(false)
   const pickingPedido = ref(null)
@@ -154,12 +179,23 @@
   async function fetchPedidosPendientes({ page, itemsPerPage, sortByField, sortOrder, search }) {
     loadingPendientes.value = true
     try {
+      const filters = {}
+      if (
+        dateRangePendientes.value &&
+        (dateRangePendientes.value.start || dateRangePendientes.value.end)
+      ) {
+        if (dateRangePendientes.value.start)
+          filters.startDate = new Date(dateRangePendientes.value.start).toISOString().slice(0, 10)
+        if (dateRangePendientes.value.end)
+          filters.endDate = new Date(dateRangePendientes.value.end).toISOString().slice(0, 10)
+      }
       const response = await pickingService.getPedidosPendientes(
         page,
         itemsPerPage,
         search,
         sortByField,
         sortOrder,
+        filters,
       )
       if (response.data?.success) {
         const { items = [], totalItems: total = 0 } = response.data.data || {}
@@ -204,6 +240,7 @@
   const pickings = ref([])
   const totalItems = ref(0)
   const loadingTable = ref(false)
+  const dateRangeFacturados = ref({ start: null, end: null })
   const facturacionDialog = ref({ open: false, facturacion: null })
 
   const rowActionsFacturados = [
@@ -226,12 +263,23 @@
   async function fetchData({ page, itemsPerPage, sortByField, sortOrder, search }) {
     loadingTable.value = true
     try {
-      const response = await facturacionService.getFacturaciones(
+      const filters = {}
+      if (
+        dateRangeFacturados.value &&
+        (dateRangeFacturados.value.start || dateRangeFacturados.value.end)
+      ) {
+        if (dateRangeFacturados.value.start)
+          filters.startDate = new Date(dateRangeFacturados.value.start).toISOString().slice(0, 10)
+        if (dateRangeFacturados.value.end)
+          filters.endDate = new Date(dateRangeFacturados.value.end).toISOString().slice(0, 10)
+      }
+      const response = await pickingService.getFacturaciones(
         page,
         itemsPerPage,
         search,
         sortByField,
         sortOrder,
+        filters,
       )
       if (response.data?.success) {
         const { items = [], totalItems: total = 0 } = response.data.data || {}
@@ -250,7 +298,7 @@
   async function verDetalle(item) {
     $loading.show()
     try {
-      const res = await facturacionService.getFacturacionById(item.Id)
+      const res = await pickingService.getFacturacionById(item.Id)
       if (res.data?.success) {
         facturacionDialog.value = { open: true, facturacion: res.data.data }
       }

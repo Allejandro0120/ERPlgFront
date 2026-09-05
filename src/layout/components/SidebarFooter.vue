@@ -1,4 +1,4 @@
-<!-- src/layouts/components/SidebarFooter.vue -->
+<!-- src/layout/components/SidebarFooter.vue -->
 <template>
   <div class="d-flex flex-column">
     <v-divider />
@@ -13,7 +13,7 @@
         :size="rail ? 'x-small' : 'small'"
         variant="tonal"
       >
-        {{ rail ? version : `LogicPharma ERP V${version}` }}
+        {{ rail ? version : `Logicpharma ERP V${version}` }}
       </v-chip>
     </div>
   </div>

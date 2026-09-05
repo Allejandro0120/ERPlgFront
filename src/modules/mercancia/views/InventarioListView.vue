@@ -139,9 +139,9 @@
   import { mercanciaService } from '@/api/services/mercanciaService'
   // 1. Importar el composable de infraestructura
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
-  import BaseFilterDialog from '@/shared/ui/BaseFilterDialog.vue'
-  import BaseTable from '@/shared/ui/BaseTable.vue'
-  import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
+  import BaseFilterDialog from '@/shared/ui/dialogs/BaseFilterDialog.vue'
+  import PageHeaderActions from '@/shared/ui/layout/PageHeaderActions.vue'
+  import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
 
   import HistorialMovimientosDialog from '../components/inventario/HistorialMovimientosDialog.vue'

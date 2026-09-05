@@ -152,7 +152,7 @@
   import { getChangedFields, hasObjectChanges } from '@/shared/composables/useChangePayload'
   import { useConfirmRequestClose } from '@/shared/composables/useConfirmRequestClose'
   import { useUbicacionCascade } from '@/shared/composables/useUbicacionCascade'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { formatCOP, parseCOP } from '@/shared/utils/currencyFormatter'
   import { useClienteCatalogos } from '../../composables/cliente/useClienteCatalogos'
   import { useClienteCorreos } from '../../composables/cliente/useClienteCorreos'

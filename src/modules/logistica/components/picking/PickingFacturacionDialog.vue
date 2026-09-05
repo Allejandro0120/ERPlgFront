@@ -42,7 +42,7 @@
 
 <script setup>
   import { computed, ref, watch } from 'vue'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import PickingFacturacionInfoTab from './tabs/PickingFacturacionInfoTab.vue'
   import PickingFacturacionProductosTab from './tabs/PickingFacturacionProductosTab.vue'
 

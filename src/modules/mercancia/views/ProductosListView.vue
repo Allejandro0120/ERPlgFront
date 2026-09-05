@@ -154,8 +154,8 @@
   import ProductoDialog from '@/modules/mercancia/components/producto/ProductoDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
-  import BaseTable from '@/shared/ui/BaseTable.vue'
-  import PageHeaderActions from '@/shared/ui/PageHeaderActions.vue'
+  import PageHeaderActions from '@/shared/ui/layout/PageHeaderActions.vue'
+  import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { getEstadoColor } from '@/shared/utils/statusColors'
 
   const { mobile } = useDisplay()

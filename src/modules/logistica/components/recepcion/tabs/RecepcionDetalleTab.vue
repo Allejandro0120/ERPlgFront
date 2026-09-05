@@ -1,17 +1,5 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-3">
-      <div class="text-subtitle-1 font-weight-bold">Productos</div>
-      <v-btn
-        v-if="puedeAgregar"
-        color="primary"
-        prepend-icon="mdi-plus"
-        variant="tonal"
-        @click="emit('add')"
-      >
-        Agregar Producto
-      </v-btn>
-    </div>
     <div
       v-if="detalles.length === 0"
       class="d-flex flex-column align-center justify-center py-12 rounded-lg"
@@ -21,9 +9,14 @@
         'mdi-package-variant-closed'
       }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">Sin productos registrados</p>
-      <p v-if="puedeAgregar" class="text-caption text-grey">
-        Haz clic en "Agregar producto" para añadir el primero
-      </p>
+      <template v-if="puedeAgregar">
+        <p class="text-caption text-grey mb-3">
+          Haz clic en "Agregar producto" para añadir el primero
+        </p>
+        <v-btn color="primary" prepend-icon="mdi-plus" variant="tonal" @click="emit('add')">
+          Agregar Producto
+        </v-btn>
+      </template>
     </div>
 
     <base-table-local
@@ -34,7 +27,13 @@
       :loading="false"
       :row-actions="rowActions"
       :searchable="false"
+      title="Productos"
+      :title-button="titleButton"
     >
+      <template #chip>
+        <v-chip color="primary" size="small" variant="tonal">{{ detalles.length }}</v-chip>
+      </template>
+
       <template #item.Aceptado="{ item }">
         <v-chip
           :color="estadoProductoColor(estadoProductoLabel(item.Aceptado))"
@@ -56,10 +55,11 @@
 </template>
 
 <script setup>
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import { computed } from 'vue'
+  import BaseTableLocal from '@/shared/ui/table/BaseTableLocal.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
-  const { detalles, headers, rowActions } = defineProps({
+  const { detalles, headers, rowActions, puedeAgregar } = defineProps({
     detalles: { type: Array, default: () => [] },
     headers: { type: Array, default: () => [] },
     rowActions: { type: Array, default: () => [] },
@@ -67,6 +67,12 @@
   })
 
   const emit = defineEmits(['add'])
+
+  const titleButton = computed(() =>
+    puedeAgregar
+      ? { label: 'Agregar Producto', icon: 'mdi-plus', variant: 'tonal', action: () => emit('add') }
+      : null,
+  )
   const estadoProductoLabel = (aceptado) => (aceptado ? 'Aceptado' : 'Rechazado')
   function estadoProductoColor(nombre) {
     return getEstadoColor(nombre, DOMINIOS_ESTADO.PRODUCTO_ACTA)

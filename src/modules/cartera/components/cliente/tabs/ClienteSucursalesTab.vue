@@ -1,28 +1,5 @@
 <template>
   <div class="mt-2">
-    <!-- <div class="d-flex justify-end mb-3">
-      <v-btn
-        v-if="!isReadonly"
-        color="primary"
-        prepend-icon="$plus"
-        variant="tonal"
-        @click="emit('add')"
-      >
-        Agregar sucursal
-      </v-btn>
-    </div> -->
-    <div class="d-flex align-center justify-space-between mb-3">
-      <div class="text-subtitle-1 font-weight-bold">Sucursales</div>
-      <v-btn
-        v-if="!isReadonly"
-        color="primary"
-        prepend-icon="$plus"
-        variant="tonal"
-        @click="emit('add')"
-      >
-        Agregar sucursal
-      </v-btn>
-    </div>
     <div
       v-if="sucursales.length === 0"
       class="d-flex flex-column align-center justify-center py-12 rounded-lg"
@@ -30,9 +7,14 @@
     >
       <v-icon class="mb-3" color="grey-lighten-1" size="44">{{ 'mdi-store-off-outline' }}</v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-1">Sin sucursales registradas</p>
-      <p v-if="!isReadonly" class="text-caption text-grey">
-        Haz clic en "Agregar sucursal" para añadir la primera
-      </p>
+      <template v-if="!isReadonly">
+        <p class="text-caption text-grey mb-3">
+          Haz clic en "Agregar sucursal" para añadir la primera
+        </p>
+        <v-btn color="primary" prepend-icon="$plus" variant="tonal" @click="emit('add')">
+          Agregar sucursal
+        </v-btn>
+      </template>
     </div>
 
     <base-table-local
@@ -43,7 +25,13 @@
       :items="sucursales.map((s, idx) => ({ ...s, indice: idx + 1 }))"
       :items-per-page="5"
       :row-actions="rowActions"
+      title="Sucursales"
+      :title-button="titleButton"
     >
+      <template #chip>
+        <v-chip color="primary" size="small" variant="tonal">{{ sucursales.length }}</v-chip>
+      </template>
+
       <template #[`item.Direccion`]="{ item }">
         <div class="py-1">
           <div class="text-body-2 text-truncate" style="max-width: 250px">
@@ -70,7 +58,8 @@
 </template>
 
 <script setup>
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import { computed } from 'vue'
+  import BaseTableLocal from '@/shared/ui/table/BaseTableLocal.vue'
   import { DOMINIOS_ESTADO, getEstadoColor } from '@/shared/utils/statusColors'
 
   const emit = defineEmits(['add'])
@@ -81,4 +70,10 @@
     rowActions: { type: Array, default: () => [] },
     isReadonly: { type: Boolean, default: false },
   })
+
+  const titleButton = computed(() =>
+    isReadonly
+      ? null
+      : { label: 'Agregar sucursal', icon: '$plus', variant: 'tonal', action: () => emit('add') },
+  )
 </script>

@@ -58,6 +58,19 @@
         search-placeholder="Buscar producto en la lista..."
         searchable
       >
+        <template v-if="!isReadonly && codigo" #filters>
+          <v-col class="d-flex justify-end" cols="12" md="6">
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-file-excel"
+              variant="outlined"
+              @click="importDialogOpen = true"
+            >
+              Actualización masiva
+            </v-btn>
+          </v-col>
+        </template>
+
         <template #item.PrecioBase="{ item }">
           <v-text-field
             v-if="!isReadonly"
@@ -98,27 +111,52 @@
         </template>
       </base-table-local>
     </template>
+
+    <importar-productos-dialog v-model="importDialogOpen" @submit="onImportarProductos" />
   </div>
 </template>
 
 <script setup>
   import { computed, ref, watch } from 'vue'
+  import { comercialService } from '@/api/services/comercialService'
   import { mercanciaService } from '@/api/services/mercanciaService'
+  import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import { useDebounce } from '@/shared/composables/useDebounce'
-  import BaseTableLocal from '@/shared/ui/BaseTableLocal.vue'
+  import BaseTableLocal from '@/shared/ui/table/BaseTableLocal.vue'
   import { formatCOP, formatCurrencyCOP } from '@/shared/utils/currencyFormatter'
   import { allow, blockKey, blockPaste, sanitizeInput } from '@/shared/utils/inputKeyFilter'
   import { unwrapApiData } from '@/shared/utils/unwrapApiData'
   import { rules } from '@/shared/utils/validationRules'
+  import ImportarProductosDialog from '../ImportarProductosDialog.vue'
 
   const props = defineProps({
     detalles: { type: Array, default: () => [] },
     headers: { type: Array, default: () => [] },
     isReadonly: { type: Boolean, default: false },
+    codigo: { type: String, default: '' },
   })
 
-  const emit = defineEmits(['agregar-producto', 'eliminar-producto'])
+  const emit = defineEmits(['agregar-producto', 'eliminar-producto', 'productos-importados'])
+
+  const importDialogOpen = ref(false)
+
+  async function onImportarProductos(file) {
+    const formData = new FormData()
+    formData.append('archivo', file)
+
+    $loading.show()
+    try {
+      await comercialService.importarProductosListaPrecio(props.codigo, formData)
+      $toast.success('Productos importados exitosamente')
+      importDialogOpen.value = false
+      emit('productos-importados')
+    } catch (error) {
+      if (!error._toastShown) $toast.error('Error inesperado al importar los productos')
+    } finally {
+      $loading.hide()
+    }
+  }
 
   function onPrecioBaseInput(item, val) {
     item.PrecioBase = formatCOP(val)

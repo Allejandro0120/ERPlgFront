@@ -204,7 +204,7 @@
   import { infraestructuraService } from '@/api/services/infraestructuraService'
   import { $toast } from '@/plugins/toast'
   import { useInfraestructuraCascade } from '@/shared/composables/useInfraestructuraCascade'
-  import BaseDialog from '@/shared/ui/BaseDialog.vue'
+  import BaseDialog from '@/shared/ui/dialogs/BaseDialog.vue'
   import { rules } from '@/shared/utils/validationRules'
 
   const props = defineProps({
