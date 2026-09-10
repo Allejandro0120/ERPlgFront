@@ -43,6 +43,7 @@
           <picking-productos-tab
             ref="productosTabRef"
             :creando-facturacion="creandoFacturacion"
+            :es-para-remision="pedidoInfo.EsParaRemision"
             :pendientes="pendientes"
             :tomados="tomados"
             @codigo-ingresado="onCodigoIngresado"
@@ -211,11 +212,16 @@
   async function onCrearFacturacion() {
     if (tomados.value.length === 0) return
 
+    const esRemision = pedidoInfo.value.EsParaRemision
+
     const confirmado = await $confirm.confirm({
-      title: '¿Crear facturación?',
-      message: `Se creará una facturación para el pedido <strong>${pedidoInfo.value.Pedido}</strong> sobre ${tomados.value.length} línea(s).`,
-      labelConfirm: 'Sí, facturar',
+      title: esRemision ? '¿Remisionar pedido?' : '¿Crear facturación?',
+      message: esRemision
+        ? `Se creará una remisión para el pedido <strong>${pedidoInfo.value.Pedido}</strong> sobre ${tomados.value.length} línea(s).`
+        : `Se creará una facturación para el pedido <strong>${pedidoInfo.value.Pedido}</strong> sobre ${tomados.value.length} línea(s).`,
+      labelConfirm: esRemision ? 'Sí, remisionar' : 'Sí, facturar',
       labelCancel: 'Cancelar',
+      ...(esRemision && { color: 'teal-darken-2' }),
     })
     if (!confirmado) return
 
@@ -230,12 +236,17 @@
         })),
       })
       const data = unwrapApiData(res, {})
-      const numero = data.OrderSettlement ? `${data.OrderSettlement} ` : ''
-      $toast.success(
-        data.EstadoPedidoOrigen === 'Facturado'
-          ? `Facturación ${numero}creada: el pedido quedó totalmente facturado`
-          : `Facturación parcial ${numero}creada exitosamente`,
-      )
+
+      if (esRemision) {
+        $toast.success('Pedido remisionado exitosamente')
+      } else {
+        const numero = data.OrderSettlement ? `${data.OrderSettlement} ` : ''
+        $toast.success(
+          data.EstadoPedidoOrigen === 'Facturado'
+            ? `Facturación ${numero}creada: el pedido quedó totalmente facturado`
+            : `Facturación parcial ${numero}creada exitosamente`,
+        )
+      }
       if (Array.isArray(data.LineasRecortadas) && data.LineasRecortadas.length > 0) {
         for (const linea of data.LineasRecortadas) {
           $toast.warning(describirRecorte(linea))
@@ -244,9 +255,13 @@
       emit('created')
       emit('update:modelValue', false)
     } catch (error) {
-      console.error('Error al crear la facturación:', error)
+      console.error('Error al procesar el despacho:', error)
       if (!error._toastShown) {
-        $toast.error('Error inesperado al crear la facturación')
+        $toast.error(
+          esRemision
+            ? 'Error inesperado al remisionar el pedido'
+            : 'Error inesperado al crear la facturación',
+        )
       }
     } finally {
       creandoFacturacion.value = false

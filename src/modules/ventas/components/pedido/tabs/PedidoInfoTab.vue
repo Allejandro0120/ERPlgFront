@@ -299,6 +299,49 @@
       </v-col>
     </template>
 
+    <!-- Historial de remisiones: solo disponible al ver un pedido ya creado -->
+    <template v-if="origen.Remisiones && origen.Remisiones.length > 0">
+      <v-col cols="12">
+        <v-divider class="mb-3" />
+        <div class="d-flex align-center ga-2 mb-3">
+          <v-icon color="teal-darken-2" icon="mdi-truck-fast-outline" size="20" />
+          <span class="text-subtitle-1 font-weight-bold">Remisiones</span>
+          <v-chip color="teal-darken-2" density="comfortable" label size="small" variant="tonal">
+            {{ origen.Remisiones.length }}
+          </v-chip>
+        </div>
+      </v-col>
+      <v-col v-for="remision in origen.Remisiones" :key="remision.Id" cols="12" md="4" sm="6">
+        <v-card class="pa-3 h-100 rounded-lg border" elevation="0">
+          <div class="d-flex align-center ga-2 mb-2">
+            <v-avatar color="teal-darken-2" size="36" variant="tonal">
+              <v-icon icon="mdi-truck-fast-outline" size="20" />
+            </v-avatar>
+            <div class="flex-grow-1" style="min-width: 0">
+              <div class="text-body-2 font-weight-bold text-truncate">
+                {{ remision.Remision }}
+              </div>
+              <div class="text-caption text-grey-darken-1">
+                {{ formatDate(remision.FechaDocumento) }}
+              </div>
+            </div>
+          </div>
+          <v-divider class="mb-2" />
+          <div class="d-flex justify-space-between align-center">
+            <span class="text-caption text-grey-darken-1">Facturación</span>
+            <v-chip
+              class="font-weight-medium"
+              :color="remision.Facturada ? 'success' : 'warning'"
+              size="small"
+              variant="tonal"
+            >
+              {{ remision.Facturada ? remision.Factura : 'Pendiente' }}
+            </v-chip>
+          </div>
+        </v-card>
+      </v-col>
+    </template>
+
     <!-- Anulación: solo aplica cuando el pedido ya quedó en estado Anulado -->
     <template v-if="origen.Estado === 'Anulado'">
       <v-col cols="12">

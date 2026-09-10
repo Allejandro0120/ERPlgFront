@@ -79,7 +79,11 @@
             hide-details
             prepend-inner-icon="mdi-currency-usd"
             required
-            :rules="[rules.required, rules.maxCOP(1_000_000_000, 'El precio base')]"
+            :rules="[
+              rules.required,
+              rules.minCOP(1, 'El precio base'),
+              rules.maxCOP(1_000_000_000, 'El precio base'),
+            ]"
             variant="outlined"
             @keydown="blockKey($event, allow.decimal)"
             @paste="blockPaste($event, allow.decimal)"
@@ -101,11 +105,11 @@
             @input="
               item.PorcentajeDescuentoMaximo = sanitizeInput(
                 item.PorcentajeDescuentoMaximo,
-                allow.onlyDigitsAndDot,
+                allow.onlyDigits,
               )
             "
-            @keydown="blockKey($event, allow.onlyDigitsAndDot)"
-            @paste="blockPaste($event, allow.onlyDigitsAndDot)"
+            @keydown="blockKey($event, allow.onlyDigits)"
+            @paste="blockPaste($event, allow.onlyDigits)"
           />
           <span v-else>{{ item.PorcentajeDescuentoMaximo }}%</span>
         </template>

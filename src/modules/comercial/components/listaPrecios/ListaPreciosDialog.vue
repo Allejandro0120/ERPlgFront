@@ -233,7 +233,14 @@
     const { valid } = await formRef.value.validate()
     if (!valid) {
       $toast.error('Por favor corrige los errores en los campos marcados')
-      ui.value.tab = 'info'
+      // Los errores pueden venir de Info (Código/Nombre) o de Productos (precio/descuento
+      // por línea): se navega a la pestaña que realmente tiene el error, no siempre a Info.
+      if (tabErrors.value.info) {
+        ui.value.tab = 'info'
+      } else {
+        productosTabError.value = true
+        ui.value.tab = 'productos'
+      }
       return
     }
 

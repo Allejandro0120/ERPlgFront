@@ -15,10 +15,27 @@
       :facturacion="facturacionDialog.facturacion"
     />
 
+    <!-- Modal para ver el detalle de una remisión ya emitida -->
+    <remision-dialog
+      v-model="detalleRemisionDialog.open"
+      :remision="detalleRemisionDialog.remision"
+    />
+
+    <!-- Modal de confirmación para facturar una remisión pendiente por facturar -->
+    <facturar-remision-dialog
+      v-model="facturarDialog.open"
+      :remision="facturarDialog.remision"
+      @confirm="onConfirmFacturarRemision"
+    />
+
     <v-tabs v-model="activeTab" class="mb-4" color="primary">
       <v-tab value="pendientes">
         <v-icon icon="mdi-clipboard-list-outline" start />
         Pendientes
+      </v-tab>
+      <v-tab value="remisiones">
+        <v-icon icon="mdi-truck-fast-outline" start />
+        Remisiones
       </v-tab>
       <v-tab value="facturados">
         <v-icon icon="mdi-file-document-check-outline" start />
@@ -60,14 +77,80 @@
           </template>
           <template #item.Total="{ item }"> {{ formatCurrencyCOP(item.Total) }} </template>
           <template #item.Estado="{ item }">
+            <div class="d-inline-flex align-center ga-1">
+              <v-chip
+                class="font-weight-medium"
+                :color="getEstadoColor(item.Estado, DOMINIOS_ESTADO.PEDIDO)"
+                size="small"
+                variant="tonal"
+              >
+                <v-icon icon="mdi-tag" size="14" start />
+                {{ formatEstadoTexto(item.Estado) }}
+              </v-chip>
+              <v-tooltip
+                v-if="item.EsParaRemision"
+                location="top"
+                text="Este pedido está marcado para remisión: al confirmar el despacho se generará una remisión en vez de una factura"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <v-chip
+                    v-bind="tooltipProps"
+                    class="pa-0 justify-center pedido-remision-chip"
+                    color="teal-darken-2"
+                    size="x-small"
+                    variant="tonal"
+                  >
+                    <v-icon icon="mdi-truck-fast-outline" size="13" />
+                  </v-chip>
+                </template>
+              </v-tooltip>
+            </div>
+          </template>
+        </base-table>
+      </v-tabs-window-item>
+
+      <!-- ── Remisiones (entregas despachadas sin facturar) ya emitidas ─────── -->
+      <v-tabs-window-item value="remisiones">
+        <base-table
+          ref="remisionesTableRef"
+          empty-text="No se encontraron remisiones"
+          :headers="headersRemisiones"
+          item-key="Id"
+          :items="remisiones"
+          :loading="loadingRemisiones"
+          :row-actions="rowActionsRemisiones"
+          search-placeholder="Buscar por remisión, pedido o cliente..."
+          searchable
+          title="Remisiones"
+          :total-items="totalItemsRemisiones"
+          @load="fetchRemisiones"
+        >
+          <template #filters>
+            <v-col cols="12" md="4">
+              <date-range-filter
+                v-model="dateRangeRemisiones"
+                :disabled="loadingRemisiones"
+                end-label="Hasta"
+                :show-preset-select="false"
+                start-label="Desde"
+              />
+            </v-col>
+          </template>
+
+          <!-- Fecha -->
+          <template #item.FechaDocumento="{ item }">
+            {{ item.FechaDocumento ? formatDate(item.FechaDocumento) : '-' }}
+          </template>
+
+          <!-- Estado de facturación -->
+          <template #item.Facturada="{ item }">
             <v-chip
               class="font-weight-medium"
-              :color="getEstadoColor(item.Estado, DOMINIOS_ESTADO.PEDIDO)"
+              :color="item.Facturada ? 'success' : 'warning'"
               size="small"
               variant="tonal"
             >
-              <v-icon icon="mdi-tag" size="14" start />
-              {{ formatEstadoTexto(item.Estado) }}
+              {{ item.Facturada ? 'Facturada' : 'Pendiente por facturar' }}
             </v-chip>
           </template>
         </base-table>
@@ -123,8 +206,10 @@
   import { ref } from 'vue'
   import { pedidoService } from '@/api/services/pedidoService'
   import { pickingService } from '@/api/services/pickingService'
+  import FacturarRemisionDialog from '@/modules/logistica/components/picking/FacturarRemisionDialog.vue'
   import PickingDialog from '@/modules/logistica/components/picking/PickingDialog.vue'
   import PickingFacturacionDialog from '@/modules/logistica/components/picking/PickingFacturacionDialog.vue'
+  import RemisionDialog from '@/modules/logistica/components/picking/RemisionDialog.vue'
   import { $loading } from '@/plugins/loading/loading'
   import { $toast } from '@/plugins/toast'
   import DateRangeFilter from '@/shared/ui/fields/DateRangeFilter.vue'
@@ -311,4 +396,125 @@
       $loading.hide()
     }
   }
+
+  // ─── Remisiones (picking) ya emitidas ─────────────────────────────────────
+  const remisionesTableRef = ref()
+  const remisiones = ref([])
+  const totalItemsRemisiones = ref(0)
+  const loadingRemisiones = ref(false)
+  const dateRangeRemisiones = ref({ start: null, end: null })
+  const detalleRemisionDialog = ref({ open: false, remision: null })
+  const facturarDialog = ref({ open: false, remision: null })
+
+  const rowActionsRemisiones = [
+    {
+      label: 'Ver detalle',
+      icon: '$eye',
+      color: 'blue-darken-3',
+      // TODO: restaurar `permission: 'Remision.READ'` cuando el permiso esté dado de alta en el back
+      action: (item) => verDetalleRemision(item),
+    },
+    {
+      label: 'Facturar',
+      icon: 'mdi-file-document-check-outline',
+      color: 'purple-darken-3',
+      // El back solo exige que aún no tenga factura generada (Facturada === false)
+      visible: (item) => !item.Facturada,
+      action: (item) => abrirFacturarRemision(item),
+    },
+  ]
+
+  const headersRemisiones = [
+    { title: 'Remisión', key: 'Remision', sortable: true, searchable: true },
+    { title: 'Pedido', key: 'PedidoOrigen', sortable: false, searchable: true },
+    { title: 'Cliente', key: 'Cliente', sortable: true, searchable: true },
+    { title: 'Fecha', key: 'FechaDocumento', sortable: true, align: 'center' },
+    { title: 'Facturación', key: 'Facturada', sortable: false, align: 'center' },
+  ]
+
+  async function fetchRemisiones({ page, itemsPerPage, sortByField, sortOrder, search }) {
+    loadingRemisiones.value = true
+    try {
+      const filters = {}
+      if (
+        dateRangeRemisiones.value &&
+        (dateRangeRemisiones.value.start || dateRangeRemisiones.value.end)
+      ) {
+        if (dateRangeRemisiones.value.start)
+          filters.startDate = new Date(dateRangeRemisiones.value.start).toISOString().slice(0, 10)
+        if (dateRangeRemisiones.value.end)
+          filters.endDate = new Date(dateRangeRemisiones.value.end).toISOString().slice(0, 10)
+      }
+      const response = await pickingService.getRemisiones(
+        page,
+        itemsPerPage,
+        search,
+        sortByField,
+        sortOrder,
+        filters,
+      )
+      if (response.data?.success) {
+        const { items = [], totalItems: total = 0 } = response.data.data || {}
+        remisiones.value = items
+        totalItemsRemisiones.value = total
+      }
+    } catch (error) {
+      console.error('Error al obtener las remisiones:', error)
+      remisiones.value = []
+      totalItemsRemisiones.value = 0
+    } finally {
+      loadingRemisiones.value = false
+    }
+  }
+
+  async function verDetalleRemision(item) {
+    $loading.show()
+    try {
+      const res = await pickingService.getRemisionById(item.Id)
+      if (res.data?.success) {
+        detalleRemisionDialog.value = { open: true, remision: res.data.data }
+      }
+    } catch (error) {
+      console.error('Error al obtener la remisión:', error)
+      if (!error._toastShown) {
+        $toast.error('Error inesperado al cargar la remisión')
+      }
+    } finally {
+      $loading.hide()
+    }
+  }
+
+  function abrirFacturarRemision(item) {
+    facturarDialog.value = { open: true, remision: item }
+  }
+
+  async function onConfirmFacturarRemision(payload) {
+    const remision = facturarDialog.value.remision
+    if (!remision?.Id) return
+
+    $loading.show()
+    try {
+      const res = await pickingService.invoiceRemisiones({ IdsRemision: [remision.Id], ...payload })
+      $toast.success(res.data?.message || 'Remisión facturada exitosamente')
+      facturarDialog.value = { open: false, remision: null }
+      remisionesTableRef.value?.reset()
+      facturadosTableRef.value?.reset()
+    } catch (error) {
+      console.error('Error al facturar la remisión:', error)
+      if (!error._toastShown) {
+        $toast.error('Error inesperado al facturar la remisión')
+      }
+    } finally {
+      $loading.hide()
+    }
+  }
 </script>
+
+<style scoped>
+  .pedido-remision-chip {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+  }
+</style>

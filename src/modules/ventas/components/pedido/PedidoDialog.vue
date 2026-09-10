@@ -23,6 +23,17 @@
       >
         Entrada Directa
       </v-chip>
+      <v-chip
+        v-if="esParaRemision"
+        class="ml-2"
+        color="teal-darken-2"
+        density="comfortable"
+        label
+        size="small"
+        variant="tonal"
+      >
+        Para Remisión
+      </v-chip>
     </template>
 
     <!-- En edición se agregan Anular/Autorizar (transiciones de estado vía PUT /orders/cancel
@@ -200,6 +211,13 @@
     () => origenModo.value === 'libre' && !!props.preseleccion?.entradaDirecta,
   )
 
+  // Mutuamente excluyente con "Entrada Directa" (ya validado en VentaSeleccionDialog):
+  // el pedido queda marcado para que, al pickearlo, el back genere una remisión en vez
+  // de una facturación directa.
+  const esParaRemision = computed(
+    () => origenModo.value === 'libre' && !!props.preseleccion?.esParaRemision,
+  )
+
   const formRef = ref(null)
   const anularDialogOpen = ref(false)
   const productosTabError = ref(false)
@@ -361,6 +379,7 @@
       ValorDespachado: pedido.ValorDespachado ?? null,
       ValorPendiente: pedido.ValorPendiente ?? null,
       Facturaciones: pedido.Facturaciones ?? [],
+      Remisiones: pedido.Remisiones ?? [],
     }
   })
 
@@ -642,6 +661,7 @@
       IdTipoVenta: form.value.IdTipoVenta,
       IdMetodoPago: form.value.IdMetodoPago,
       EsEntregaDirecta: esEntradaDirecta.value,
+      EsParaRemision: esParaRemision.value,
       ...camposComunes,
       detalles: buildDetallesPayloadLibre(esEntradaDirecta.value),
     }

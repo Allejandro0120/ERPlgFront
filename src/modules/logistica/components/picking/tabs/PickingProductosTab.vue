@@ -34,7 +34,7 @@
       </base-table-local>
     </v-col>
 
-    <!-- ── A facturar ─────────────────────────────────────────────────── -->
+    <!-- ── A facturar / a remisionar ────────────────────────────────────── -->
     <v-col cols="12">
       <base-table-local
         empty-text="Aún no se ha tomado ningún producto"
@@ -43,24 +43,24 @@
         :row-actions="rowActionsTomados"
         search-placeholder="Buscar producto tomado..."
         searchable
-        title="A facturar"
+        :title="esParaRemision ? 'A remisionar' : 'A facturar'"
       >
         <template #item.Cantidad="{ item }">{{ item.Cantidad }}</template>
         <template #item.CodigoUbicacion="{ item }">{{ item.CodigoUbicacion || '-' }}</template>
       </base-table-local>
     </v-col>
 
-    <!-- ── Crear facturación con lo tomado ───────────────────────────── -->
+    <!-- ── Confirmar despacho con lo tomado (factura o remisión, según el pedido) -->
     <template v-if="tomados.length > 0">
       <v-col class="d-flex justify-end" cols="12">
         <v-btn
-          color="primary"
+          :color="esParaRemision ? 'teal-darken-2' : 'primary'"
           :loading="creandoFacturacion"
           prepend-icon="mdi-truck-check-outline"
           variant="flat"
           @click="$emit('crear-facturacion')"
         >
-          Facturar
+          {{ esParaRemision ? 'Remisionar' : 'Facturar' }}
         </v-btn>
       </v-col>
     </template>
@@ -75,6 +75,7 @@
     pendientes: { type: Array, default: () => [] },
     tomados: { type: Array, default: () => [] },
     creandoFacturacion: { type: Boolean, default: false },
+    esParaRemision: { type: Boolean, default: false },
   })
 
   const emit = defineEmits(['quitar', 'crear-facturacion', 'codigo-ingresado'])

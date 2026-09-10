@@ -15,6 +15,7 @@
     <venta-seleccion-dialog
       v-model="seleccionDialogOpen"
       mostrar-entrada-directa
+      mostrar-es-para-remision
       titulo="Nuevo Pedido"
       @continue="onSeleccionContinue"
     />
@@ -95,15 +96,34 @@
 
       <!-- Estado -->
       <template #item.Estado="{ item }">
-        <v-chip
-          class="font-weight-medium"
-          :color="getEstadoColor(item.Estado, DOMINIOS_ESTADO.PEDIDO)"
-          size="small"
-          variant="tonal"
-        >
-          <v-icon icon="mdi-tag" size="14" start />
-          {{ formatEstadoTexto(item.Estado) }}
-        </v-chip>
+        <div class="d-inline-flex align-center ga-1">
+          <v-chip
+            class="font-weight-medium"
+            :color="getEstadoColor(item.Estado, DOMINIOS_ESTADO.PEDIDO)"
+            size="small"
+            variant="tonal"
+          >
+            <v-icon icon="mdi-tag" size="14" start />
+            {{ formatEstadoTexto(item.Estado) }}
+          </v-chip>
+          <v-tooltip
+            v-if="item.PasoPorRemision"
+            location="top"
+            text="Este pedido tuvo al menos una remisión"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <v-chip
+                v-bind="tooltipProps"
+                class="pa-0 justify-center pedido-remision-chip"
+                color="teal-darken-2"
+                size="x-small"
+                variant="tonal"
+              >
+                <v-icon icon="mdi-truck-fast-outline" size="13" />
+              </v-chip>
+            </template>
+          </v-tooltip>
+        </div>
       </template>
     </base-table>
   </div>
@@ -195,10 +215,14 @@
       if (response.data?.success) {
         estados.value = [
           { Id: null, Nombre: 'Todos' },
-          ...response.data.data.map((estado) => ({
-            ...estado,
-            Nombre: formatEstadoTexto(estado.Nombre),
-          })),
+          // "Remisionado_Parcial" y "Remisionado_Total" se muestran igual como "Remisionado"
+          // (ver formatEstadoTexto), así que se descarta el parcial para no duplicar la opción
+          ...response.data.data
+            .filter((estado) => estado.Nombre?.toLowerCase() !== 'remisionado_parcial')
+            .map((estado) => ({
+              ...estado,
+              Nombre: formatEstadoTexto(estado.Nombre),
+            })),
         ]
       }
     } catch (error) {
@@ -258,12 +282,12 @@
     seleccionDialogOpen.value = true
   }
 
-  function onSeleccionContinue({ cliente, sucursal, cedi, entradaDirecta }) {
+  function onSeleccionContinue({ cliente, sucursal, cedi, entradaDirecta, esParaRemision }) {
     dialog.value = {
       open: true,
       mode: 'create',
       pedido: null,
-      preseleccion: { cliente, sucursal, cedi, entradaDirecta },
+      preseleccion: { cliente, sucursal, cedi, entradaDirecta, esParaRemision },
     }
   }
 
@@ -449,3 +473,12 @@
     }
   }
 </script>
+
+<style scoped>
+  .pedido-remision-chip {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+  }
+</style>

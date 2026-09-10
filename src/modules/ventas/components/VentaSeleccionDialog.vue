@@ -82,13 +82,26 @@
           />
         </v-col>
 
-        <v-col v-if="mostrarEntradaDirecta" cols="12">
+        <v-col v-if="mostrarEntradaDirecta" cols="12" sm="6">
           <v-switch
             v-model="form.EntradaDirecta"
             color="primary"
+            :disabled="form.EsParaRemision"
             hide-details
             inset
             label="Entrada Directa"
+            @update:model-value="(v) => v && (form.EsParaRemision = false)"
+          />
+        </v-col>
+        <v-col v-if="mostrarEsParaRemision" cols="12" sm="6">
+          <v-switch
+            v-model="form.EsParaRemision"
+            color="teal-darken-2"
+            :disabled="form.EntradaDirecta"
+            hide-details
+            inset
+            label="Para Remisión"
+            @update:model-value="(v) => v && (form.EntradaDirecta = false)"
           />
         </v-col>
       </v-row>
@@ -111,11 +124,20 @@
     titulo: { type: String, default: 'Nueva Cotización' },
     // Muestra el switch "Entrada Directa" (solo aplica al flujo de Pedidos)
     mostrarEntradaDirecta: { type: Boolean, default: false },
+    // Muestra el switch "Para Remisión" (solo aplica al flujo de Pedidos), mutuamente
+    // excluyente con "Entrada Directa"
+    mostrarEsParaRemision: { type: Boolean, default: false },
   })
 
   const emit = defineEmits(['update:modelValue', 'continue'])
 
-  const formInitial = { IdCliente: null, SucursalKey: null, IdCedi: null, EntradaDirecta: false }
+  const formInitial = {
+    IdCliente: null,
+    SucursalKey: null,
+    IdCedi: null,
+    EntradaDirecta: false,
+    EsParaRemision: false,
+  }
   const form = ref({ ...formInitial })
 
   const clientes = ref([])
@@ -233,7 +255,13 @@
     const sucursal = sucursalSeleccionada.value
     const cedi = cedis.value.find((c) => c.IdCedi === form.value.IdCedi)
 
-    emit('continue', { cliente, sucursal, cedi, entradaDirecta: form.value.EntradaDirecta })
+    emit('continue', {
+      cliente,
+      sucursal,
+      cedi,
+      entradaDirecta: form.value.EntradaDirecta,
+      esParaRemision: form.value.EsParaRemision,
+    })
     emit('update:modelValue', false)
   }
 

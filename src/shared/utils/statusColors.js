@@ -42,6 +42,8 @@ const ESTADO_COLORS = {
     anulado: 'red-darken-3',
     facturado: 'purple-darken-3',
     facturado_parcial: 'orange-darken-2',
+    remisionado_parcial: 'teal-darken-2',
+    remisionado_total: 'teal-darken-2',
     cerrado_con_faltante: 'brown-darken-2',
   },
 }
@@ -72,11 +74,20 @@ export function getEstadoColor(valor, dominio = DOMINIOS_ESTADO.CLIENTE) {
   return colorMap[key] ?? 'grey'
 }
 
+// Estados cuyo texto se unifica sin importar el sufijo que traiga el back
+// (ej: "remisionado_parcial"/"remisionado_total" se muestran igual, ya que
+// hoy toda remisión despacha el 100% del pendiente).
+const ESTADO_TEXTO_OVERRIDES = {
+  remisionado_parcial: 'Remisionado',
+  remisionado_total: 'Remisionado',
+}
+
 /**
  * Formatea un código de estado para mostrar en el front (ej: "facturado_parcial" → "facturado parcial").
  * @param {string} valor - Código de estado tal como viene del back
  * @returns {string} Texto para mostrar, con espacios en vez de guion bajo
  */
 export function formatEstadoTexto(valor) {
-  return (valor ?? '').toString().replaceAll('_', ' ')
+  const key = (valor ?? '').toString().trim().toLowerCase()
+  return ESTADO_TEXTO_OVERRIDES[key] ?? (valor ?? '').toString().replaceAll('_', ' ')
 }

@@ -7,6 +7,7 @@ const PEDIDO_INFO_DEFAULTS = {
   NombreCedi: '',
   Usuario: '',
   Observaciones: '',
+  EsParaRemision: false,
 }
 
 function buildPendienteItem(detalle) {
@@ -43,6 +44,7 @@ export function usePicking() {
       NombreCedi: pickingInfo?.NombreCedi ?? '',
       Usuario: pickingInfo?.Usuario ?? '',
       Observaciones: pickingInfo?.Observaciones ?? '',
+      EsParaRemision: !!pickingInfo?.EsParaRemision,
     }
     pendientes.value = (pickingInfo?.Detalles ?? []).map((detalle) => buildPendienteItem(detalle))
     tomados.value = []
