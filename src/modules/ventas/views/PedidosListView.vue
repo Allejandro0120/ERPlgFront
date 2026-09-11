@@ -326,12 +326,12 @@
       const data = res.data?.data ?? {}
 
       if (payload.EsEntregaDirecta) {
-        // Entrada Directa: el back crea, aprueba y factura el pedido en un solo paso —
+        // Entrega Directa: el back crea, aprueba y factura el pedido en un solo paso —
         // la respuesta es la de la facturación (PedidoOrigen/OrderSettlement), no la del pedido.
         $toast.success(
           data.PedidoOrigen
             ? `Pedido ${data.PedidoOrigen} creado y facturado exitosamente (${data.OrderSettlement})`
-            : 'Pedido de entrada directa creado y facturado exitosamente',
+            : 'Pedido de entrega directa creado y facturado exitosamente',
         )
         if (Array.isArray(data.LineasRecortadas) && data.LineasRecortadas.length > 0) {
           $toast.warning('Algunas líneas se facturaron por menos cantidad de la solicitada.')

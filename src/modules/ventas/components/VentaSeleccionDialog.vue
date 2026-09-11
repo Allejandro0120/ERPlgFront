@@ -88,7 +88,7 @@
             color="primary"
             hide-details
             inset
-            label="Entrada Directa"
+            label="Entrega Directa"
           />
         </v-col>
       </v-row>
@@ -109,7 +109,7 @@
     // Título completo del diálogo (el género del artículo depende del documento:
     // "Nueva Cotización" / "Nuevo Pedido"), así que lo decide quien lo usa.
     titulo: { type: String, default: 'Nueva Cotización' },
-    // Muestra el switch "Entrada Directa" (solo aplica al flujo de Pedidos)
+    // Muestra el switch "Entrega Directa" (solo aplica al flujo de Pedidos)
     mostrarEntradaDirecta: { type: Boolean, default: false },
   })
 

@@ -43,7 +43,7 @@
                 />
               </v-col>
 
-              <!-- Entrada Directa: mismo layout que cotizaciones, solo cantidad -->
+              <!-- Entrega Directa: mismo layout que cotizaciones, solo cantidad -->
               <template v-if="form.IdProducto && esEntradaDirecta">
                 <v-col cols="12" sm="6">
                   <v-text-field
@@ -406,7 +406,7 @@
     // Disponibilidad por lote/ubicación del producto elegido
     ubicaciones: { type: Array, default: () => [] },
     cargando: { type: Boolean, default: false },
-    // Pedido "Entrada Directa": sin ubicación ni faltante, solo cantidad + lote (como cotizaciones + lote)
+    // Pedido "Entrega Directa": sin ubicación ni faltante, solo cantidad + lote (como cotizaciones + lote)
     esEntradaDirecta: { type: Boolean, default: false },
   })
 
@@ -439,7 +439,7 @@
     PorcentajeIva: IVA_DEFAULT,
     Observacion: '',
     CantidadFaltante: 0,
-    // Solo se usan en "Entrada Directa"
+    // Solo se usan en "Entrega Directa"
     Cantidad: 0,
     IdLote: null,
     CodLote: '',
@@ -537,7 +537,7 @@
     if (props.esEntradaDirecta) {
       cargarLotes(idProducto)
     } else {
-      // En "Entrada Directa" no hay disponibilidad por lote/ubicación que consultar
+      // En "Entrega Directa" no hay disponibilidad por lote/ubicación que consultar
       emit('producto-change', idProducto)
     }
   }

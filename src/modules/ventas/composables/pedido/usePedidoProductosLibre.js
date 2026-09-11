@@ -34,7 +34,7 @@ const LINEA_DEFAULTS = {
   PorcentajeDescuentoMaximo: null,
   PorcentajeIva: 0,
   Observacion: '',
-  // Solo se usan en pedidos "Entrada Directa" (sin toma por ubicación, pero sí con lote)
+  // Solo se usan en pedidos "Entrega Directa" (sin toma por ubicación, pero sí con lote)
   Cantidad: 0,
   IdLote: null,
   CodLote: '',
@@ -42,7 +42,7 @@ const LINEA_DEFAULTS = {
 
 /**
  * Cantidad total ya tomada del inventario para un producto agrupado. En pedidos
- * "Entrada Directa" no hay tomas por lote/ubicación: se usa la Cantidad indicada
+ * "Entrega Directa" no hay tomas por lote/ubicación: se usa la Cantidad indicada
  * directamente, igual que en cotizaciones.
  */
 export function cantidadTomada(producto) {
@@ -229,7 +229,7 @@ export function usePedidoProductosLibre() {
    * producto sí tiene tomas, el faltante declarado viaja en una sola de ellas (la
    * última) para que el back no lo duplique.
    *
-   * En pedidos "Entrada Directa" (esEntradaDirecta = true) no hay tomas por ubicación
+   * En pedidos "Entrega Directa" (esEntregaDirecta = true) no hay tomas por ubicación
    * ni faltante, pero sí se elige el lote: cada producto viaja como una sola fila con
    * su Cantidad e IdLote (sin IdUbicacion). El endpoint que consume este payload en ese
    * modo aún no existe.

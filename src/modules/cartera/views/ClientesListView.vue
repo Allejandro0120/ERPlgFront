@@ -186,35 +186,45 @@
   }
 
   async function editarCliente(item) {
-    $loading.show()
-    try {
-      const res = await clienteService.getClienteById(item.IdCliente)
-      if (res.data?.success) {
-        dialog.value = { open: true, mode: 'edit', cliente: res.data.data }
+    if (hasPermission('Clientes.EDIT')) {
+      $loading.show()
+      try {
+        const res = await clienteService.getClienteById(item.IdCliente)
+        if (res.data?.success) {
+          dialog.value = { open: true, mode: 'edit', cliente: res.data.data }
+        }
+      } catch (error) {
+        console.error('Error al obtener cliente:', error)
+        if (!error._toastShown) {
+          $toast.error('Error inesperado al cargar el cliente')
+        }
+      } finally {
+        $loading.hide()
       }
-    } catch (error) {
-      console.error('Error al obtener cliente:', error)
-      if (!error._toastShown) {
-        $toast.error('Error inesperado al cargar el cliente')
-      }
-    } finally {
-      $loading.hide()
+    } else {
+      $toast.error('No tienes permiso para editar el cliente')
+      return
     }
   }
 
   async function verDetalle(item) {
-    $loading.show()
-    try {
-      const res = await clienteService.getClienteById(item.IdCliente)
-      if (res.data?.success) {
-        dialog.value = { open: true, mode: 'view', cliente: res.data.data }
+    if (hasPermission('Clientes.READ')) {
+      $loading.show()
+      try {
+        const res = await clienteService.getClienteById(item.IdCliente)
+        if (res.data?.success) {
+          dialog.value = { open: true, mode: 'view', cliente: res.data.data }
+        }
+      } catch (error) {
+        if (!error._toastShown) {
+          $toast.error('Error inesperado al cargar el cliente')
+        }
+      } finally {
+        $loading.hide()
       }
-    } catch (error) {
-      if (!error._toastShown) {
-        $toast.error('Error inesperado al cargar el cliente')
-      }
-    } finally {
-      $loading.hide()
+    } else {
+      $toast.error('No tienes permiso para ver el detalle del cliente')
+      return
     }
   }
 

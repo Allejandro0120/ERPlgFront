@@ -133,7 +133,7 @@
       default: () => ({ subtotal: 0, descuentoTotal: 0, valorIva: 0 }),
     },
     isReadonly: { type: Boolean, default: false },
-    // Pedido "Entrada Directa": sin ubicación/lote ni faltante, solo cantidad (como cotizaciones)
+    // Pedido "Entrega Directa": sin ubicación/lote ni faltante, solo cantidad (como cotizaciones)
     esEntradaDirecta: { type: Boolean, default: false },
   })
 

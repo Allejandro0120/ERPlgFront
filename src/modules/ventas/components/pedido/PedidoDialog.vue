@@ -21,7 +21,7 @@
         size="small"
         variant="tonal"
       >
-        Entrada Directa
+        Entrega Directa
       </v-chip>
     </template>
 
@@ -193,7 +193,7 @@
     return props.cotizacion ? 'cotizacion' : 'libre'
   })
 
-  // Pedido "Entrada Directa": solo aplica a pedidos armados desde cero (elegido en el
+  // Pedido "Entrega Directa": solo aplica a pedidos armados desde cero (elegido en el
   // modal de selección previa). En ese modo, Productos funciona como en cotizaciones:
   // solo cantidad, sin elegir ubicación/lote ni declarar faltante.
   const esEntradaDirecta = computed(
@@ -525,7 +525,7 @@
 
       // Al editar un producto ya agregado se vuelve a consultar su disponibilidad,
       // igual que al elegirlo en modo "create", porque el stock pudo cambiar desde
-      // que se agregó al pedido. En "Entrada Directa" no hay disponibilidad por
+      // que se agregó al pedido. En "Entrega Directa" no hay disponibilidad por
       // lote/ubicación que consultar.
       if (lineaDialog.value.mode === 'edit' && !esEntradaDirecta.value) {
         $loading.show()
@@ -740,7 +740,7 @@
 
     const confirmado = esEntradaDirecta.value
       ? await $confirm.confirm({
-          title: '¿Crear pedido de Entrada Directa?',
+          title: '¿Crear pedido de Entrega Directa?',
           message: `Se registrará, aprobará y facturará de inmediato un pedido para <strong>${origen.value.Cliente}</strong>. No queda como borrador: no hay paso de aprobación ni facturación manual después de este punto.`,
           labelConfirm: 'Sí, crear y facturar',
           labelCancel: 'Cancelar',
