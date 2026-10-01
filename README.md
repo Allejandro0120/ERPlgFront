@@ -9,13 +9,23 @@ Frontend del ERP de Logicpharma, construido con Vue 3, Vite y Vuetify.
 
 ## Configuración
 
-Copia `.env.example` a `.env` y ajusta la URL del backend si es necesario:
+La URL del backend se define con `VITE_API_URL` y viene por entorno:
 
-```sh
-cp .env.example .env
-```
+| Archivo             | Cuándo se usa                         | Backend                            |
+| ------------------- | ------------------------------------- | ---------------------------------- |
+| `.env.development`  | `npm run dev` y rama `development`    | `https://lgapi.alejoperezbernal.com/api` |
+| `.env.production`   | `npm run build` y rama `main`         | `https://lgapi.logicpharma.cloud/api`    |
 
-- `VITE_API_URL`: URL base de la API del backend.
+Para sobrescribir localmente (por ejemplo, apuntar a un backend en tu máquina),
+crea un `.env.local` (ignorado por git) con `VITE_API_URL=...`. La app no
+arranca si `VITE_API_URL` no está definida.
+
+## Ramas y despliegue
+
+- `development` → hosting de desarrollo (backend `lgapi.alejoperezbernal.com`).
+- `main` → hosting de producción (backend `lgapi.logicpharma.cloud`).
+
+Los cambios se trabajan en `development` y se llevan a `main` mediante PR.
 
 ## Instalación
 

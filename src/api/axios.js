@@ -3,8 +3,14 @@ import { closeSession, getAbortSignal, isSessionClosing, tryRefresh } from '@/ap
 import { AUTH_CODES } from '@/api/handlers/authCodes'
 import { $toast } from '@/plugins/toast'
 
+const baseURL = import.meta.env.VITE_API_URL
+
+if (!baseURL) {
+  throw new Error('VITE_API_URL no está definida. Revisa tus archivos .env.')
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://lgapi.alejoperezbernal.com/api',
+  baseURL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
