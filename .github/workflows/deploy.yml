@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  push:
+    branches: [development, main]
+  workflow_dispatch:
+
+# Evita despliegues simultáneos sobre la misma rama
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # development usa .env.development, main usa .env.production
+      - name: Build
+        run: npm run build -- --mode ${{ github.ref_name == 'main' && 'production' || 'development' }}
+
+      - name: Verificar API en el bundle
+        run: |
+          expected="${{ github.ref_name == 'main' && 'lgapi.logicpharma.cloud' || 'lgapi.alejoperezbernal.com' }}"
+          grep -rq "$expected" dist/assets || { echo "El bundle no apunta a $expected"; exit 1; }
+
+      - name: Deploy a Hostinger (development)
+        if: github.ref_name == 'development'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: 195.179.239.168
+          username: u933230694.lg.alejoperezbernal.com
+          password: ${{ secrets.FTP_PASSWORD_DEV }}
+          protocol: ftps
+          security: loose
+          local-dir: ./dist/
+          server-dir: ./public_html/
+
+      - name: Deploy a Hostinger (producción)
+        if: github.ref_name == 'main'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: 195.179.239.168
+          username: u933230694.logicpharma.cloud
+          password: ${{ secrets.FTP_PASSWORD_PROD }}
+          protocol: ftps
+          security: loose
+          local-dir: ./dist/
+          server-dir: ./public_html/
