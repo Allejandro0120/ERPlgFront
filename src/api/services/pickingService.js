@@ -75,11 +75,12 @@ export const pickingService = {
     api.get(`v1/order-settlements/settleable/${idPedidoOrigen}`),
 
   /**
-   * Crea una facturación (parcial o total) sobre un subconjunto de líneas facturables
+   * Crea una facturación (parcial o total) sobre un subconjunto de líneas facturables.
+   * Si el pedido de origen quedó marcado como EsParaRemision al crearse, el back enruta
+   * internamente esta misma llamada hacia la lógica de remisión: la respuesta trae
+   * Remision/LineasRemisionadas en vez de OrderSettlement/LineasFacturadas.
    * @param {object} facturacionData - { IdPedidoOrigen, FechaEntregaReal, Transportadora?, detalles }
-   * @returns {Promise} Promesa con la respuesta del servidor (incluye OrderSettlement,
-   * EstadoPedidoOrigen y LineasRecortadas si el back tuvo que recortar alguna cantidad
-   * por falta de stock)
+   * @returns {Promise} Promesa con la respuesta del servidor
    */
   createFacturacion: (facturacionData) => api.post('v1/order-settlements/create', facturacionData),
 
@@ -95,4 +96,47 @@ export const pickingService = {
 
     return api.get(`v1/order-settlements/validate-picking?${params.toString()}`)
   },
+
+  /**
+   * Obtiene remisiones ya emitidas (facturadas o no), con paginación y filtros
+   * @param {number} page - Número de página
+   * @param {number} limit - Cantidad de registros por página
+   * @param {string} search - Término de búsqueda
+   * @param {string} sortBy - Campo para ordenamiento
+   * @param {string} sortOrder - Orden (asc/desc)
+   * @param {object} filters - Filtros adicionales
+   */
+  getRemisiones: (
+    page = 1,
+    limit = 10,
+    search = '',
+    sortBy = '',
+    sortOrder = 'asc',
+    filters = {},
+  ) => {
+    const params = new URLSearchParams({
+      page,
+      limit,
+      ...(search && { search }),
+      ...(sortBy && { sortBy }),
+      ...(sortOrder && { sortOrder }),
+      ...filters,
+    })
+
+    return api.get(`v1/remissions/list?${params.toString()}`)
+  },
+
+  /**
+   * Obtiene el detalle completo de una remisión por su ID de transacción
+   * @param {number|string} IdTransaccion - ID de transacción de la remisión
+   */
+  getRemisionById: (IdTransaccion) => api.get(`v1/remissions/unique/${IdTransaccion}`),
+
+  /**
+   * Factura una o varias remisiones pendientes (sin facturar aún), generando
+   * la factura (PF-xxxxx) correspondiente. Cada id se procesa de forma
+   * independiente en el back: una remisión que falla no aborta las demás.
+   * @param {object} payload - { IdsRemision: number[], DireccionEntrega?, ObservacionFacturacion? }
+   */
+  invoiceRemisiones: (payload) => api.post('v1/remissions/invoice', payload),
 }

@@ -5,7 +5,7 @@ Frontend del ERP de Logicpharma, construido con Vue 3, Vite y Vuetify.
 ## Requisitos
 
 - Node.js 18+
-- El backend de Logicpharma corriendo (repo `ERPSanBack`)
+- El backend de Logicpharma corriendo (repo `ERPlgBack`)
 
 ## Configuración
 

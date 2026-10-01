@@ -1,6 +1,19 @@
 <!-- src/modules/logistica/components/picking/tabs/PickingInfoTab.vue -->
 <template>
   <v-row class="mt-1" density="comfortable">
+    <v-col v-if="pedidoInfo?.EsParaRemision" class="mb-2" cols="12">
+      <v-alert
+        class="text-body-medium"
+        color="teal-darken-2"
+        density="comfortable"
+        icon="mdi-truck-fast-outline"
+        variant="tonal"
+      >
+        Este pedido está marcado para remisión: al confirmar el despacho se generará una remisión en
+        vez de una factura.
+      </v-alert>
+    </v-col>
+
     <v-col cols="12" sm="4">
       <v-text-field
         label="Pedido"

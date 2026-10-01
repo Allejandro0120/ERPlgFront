@@ -37,13 +37,16 @@
     descuentoTotal: { type: [Number, String], default: 0 },
     valorIva: { type: [Number, String], default: 0 },
     otrosImpuestos: { type: [Number, String], default: 0 },
-    // Si no se pasa, se calcula como subtotal + valorIva + otrosImpuestos
+    // Si no se pasa, se calcula como subtotal - descuentoTotal + valorIva + otrosImpuestos
     total: { type: [Number, String], default: null },
   })
 
   const totalCalculado = computed(() =>
     props.total === null
-      ? Number(props.subtotal) + Number(props.valorIva) + Number(props.otrosImpuestos)
+      ? Number(props.subtotal) -
+        Number(props.descuentoTotal) +
+        Number(props.valorIva) +
+        Number(props.otrosImpuestos)
       : Number(props.total),
   )
 </script>

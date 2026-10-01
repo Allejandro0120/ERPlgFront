@@ -7,7 +7,7 @@
           <!-- Logo -->
           <div class="d-flex justify-center mb-4">
             <img
-              alt="Logicpharma"
+              alt="Logicpharma logo"
               fetchpriority="high"
               height="100"
               :src="Logo"

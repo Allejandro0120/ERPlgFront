@@ -41,7 +41,7 @@
       />
     </v-col>
 
-    <v-col cols="12" :sm="isCreating ? 12 : 4">
+    <v-col v-if="!isCreating" cols="12" sm="4">
       <v-switch
         v-model="form.Habilitado"
         base-color="grey-lighten-1"

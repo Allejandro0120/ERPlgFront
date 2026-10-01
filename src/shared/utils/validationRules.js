@@ -36,6 +36,12 @@ export const rules = {
     }
     return /^\d+$/.test(String(v)) || 'Solo se permiten valores numéricos'
   },
+  minValue:
+    (min, label = 'El valor') =>
+    (v) => {
+      if (v === null || v === undefined || v === '') return true
+      return Number(v) >= min || `${label} debe ser mayor a ${min.toLocaleString('es-CO')}`
+    },
   matchesWith:
     (getter, message = 'Los valores no coinciden') =>
     (v) =>
@@ -76,5 +82,13 @@ export const rules = {
       const numeric = Number(String(v).replace(/\./g, '').replace(',', '.'))
       if (Number.isNaN(numeric)) return true
       return numeric <= max || `${label} no puede ser mayor a ${max.toLocaleString('es-CO')}`
+    },
+  minCOP:
+    (min, label = 'El valor') =>
+    (v) => {
+      if (v === null || v === undefined || v === '') return true
+      const numeric = Number(String(v).replace(/\./g, '').replace(',', '.'))
+      if (Number.isNaN(numeric)) return true
+      return numeric >= min || `${label} debe ser mayor a ${min.toLocaleString('es-CO')}`
     },
 }

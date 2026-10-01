@@ -45,7 +45,13 @@
           class="excel-dropzone"
           filter-by-type=".xlsx,.xls"
           icon=""
-          :rules="[(v) => !!v || 'Debes seleccionar un archivo Excel']"
+          :rules="[
+            (v) => !!v || 'Debes seleccionar un archivo Excel',
+            (v) =>
+              !v ||
+              v.size <= MAX_FILE_SIZE_BYTES ||
+              `El archivo no puede superar los ${MAX_FILE_SIZE_MB} MB`,
+          ]"
           subtitle="Archivos .xlsx o .xls · máx. 15 MB"
           title="Arrastra aquí el archivo Excel"
           @rejected="onArchivoRechazado"
@@ -75,6 +81,9 @@
   })
 
   const emit = defineEmits(['update:modelValue', 'submit'])
+
+  const MAX_FILE_SIZE_MB = 15
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
   const formRef = ref(null)
   const archivo = ref(null)
@@ -111,7 +120,11 @@
   async function submitForm() {
     const { valid } = await formRef.value.validate()
     if (!valid) {
-      $toast.error('Debes seleccionar un archivo Excel')
+      $toast.error(
+        archivo.value && archivo.value.size > MAX_FILE_SIZE_BYTES
+          ? `El archivo no puede superar los ${MAX_FILE_SIZE_MB} MB`
+          : 'Debes seleccionar un archivo Excel',
+      )
       return
     }
 
