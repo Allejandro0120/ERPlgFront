@@ -45,6 +45,7 @@ jobs:
           security: loose
           local-dir: ./dist/
           server-dir: ./
+          dangerous-clean-slate: true
 
       - name: Deploy a Hostinger (producción)
         if: github.ref_name == 'main'
@@ -57,3 +58,4 @@ jobs:
           security: loose
           local-dir: ./dist/
           server-dir: ./
+          dangerous-clean-slate: true
