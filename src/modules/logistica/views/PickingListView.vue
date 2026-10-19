@@ -21,6 +21,13 @@
       :remision="detalleRemisionDialog.remision"
     />
 
+    <!-- Modal para facturar varias remisiones seleccionadas en una sola factura -->
+    <facturar-remisiones-dialog
+      v-model="facturarVariasDialog"
+      :remisiones="remisionesSeleccionadasItems"
+      @confirm="onConfirmFacturarRemisiones"
+    />
+
     <!-- Modal de confirmación para facturar una remisión pendiente por facturar -->
     <facturar-remision-dialog
       v-model="facturarDialog.open"
@@ -113,15 +120,20 @@
       <v-tabs-window-item value="remisiones">
         <base-table
           ref="remisionesTableRef"
+          v-model="remisionesSeleccionadas"
           empty-text="No se encontraron remisiones"
           :headers="headersRemisiones"
           item-key="Id"
+          :item-selectable="esRemisionSeleccionable"
+          item-value="Id"
           :items="remisiones"
           :loading="loadingRemisiones"
           :row-actions="rowActionsRemisiones"
           search-placeholder="Buscar por remisión, pedido o cliente..."
           searchable
+          show-select
           title="Remisiones"
+          :title-button="facturarSeleccionadasButton"
           :total-items="totalItemsRemisiones"
           @load="fetchRemisiones"
         >
@@ -203,10 +215,11 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { pedidoService } from '@/api/services/pedidoService'
   import { pickingService } from '@/api/services/pickingService'
   import FacturarRemisionDialog from '@/modules/logistica/components/picking/FacturarRemisionDialog.vue'
+  import FacturarRemisionesDialog from '@/modules/logistica/components/picking/FacturarRemisionesDialog.vue'
   import PickingDialog from '@/modules/logistica/components/picking/PickingDialog.vue'
   import PickingFacturacionDialog from '@/modules/logistica/components/picking/PickingFacturacionDialog.vue'
   import RemisionDialog from '@/modules/logistica/components/picking/RemisionDialog.vue'
@@ -335,6 +348,12 @@
       color: 'blue-darken-3',
       action: (item) => verDetalle(item),
     },
+    {
+      label: 'Descargar PDF',
+      icon: '$pdf',
+      color: 'red-darken-2',
+      action: (item) => descargarPdfFacturacion(item),
+    },
   ]
 
   const headersFacturados = [
@@ -406,6 +425,36 @@
   const detalleRemisionDialog = ref({ open: false, remision: null })
   const facturarDialog = ref({ open: false, remision: null })
 
+  // ─── Selección múltiple para facturar en una sola factura ────────────────
+  const remisionesSeleccionadas = ref([]) // ids; persisten al cambiar de página
+  const remisionesCache = new Map() // id → fila, para conocer cliente y datos de lo ya seleccionado
+  const facturarVariasDialog = ref(false)
+
+  const remisionesSeleccionadasItems = computed(() =>
+    remisionesSeleccionadas.value.map((id) => remisionesCache.get(id)).filter(Boolean),
+  )
+  const clienteSeleccionado = computed(
+    () => remisionesSeleccionadasItems.value[0]?.IdCliente ?? null,
+  )
+
+  // Solo remisiones pendientes y, una vez elegida la primera, solo del mismo cliente
+  function esRemisionSeleccionable(item) {
+    return (
+      !item.Facturada &&
+      (!clienteSeleccionado.value || item.IdCliente === clienteSeleccionado.value)
+    )
+  }
+
+  const facturarSeleccionadasButton = computed(() => ({
+    label: `Facturar seleccionadas (${remisionesSeleccionadas.value.length})`,
+    icon: 'mdi-file-document-multiple-outline',
+    color: 'purple-darken-3',
+    disabled: remisionesSeleccionadas.value.length < 2,
+    action: () => {
+      facturarVariasDialog.value = true
+    },
+  }))
+
   const rowActionsRemisiones = [
     {
       label: 'Ver detalle',
@@ -413,6 +462,12 @@
       color: 'blue-darken-3',
       // TODO: restaurar `permission: 'Remision.READ'` cuando el permiso esté dado de alta en el back
       action: (item) => verDetalleRemision(item),
+    },
+    {
+      label: 'Descargar PDF',
+      icon: '$pdf',
+      color: 'red-darken-2',
+      action: (item) => descargarPdfRemision(item),
     },
     {
       label: 'Facturar',
@@ -455,6 +510,7 @@
       )
       if (response.data?.success) {
         const { items = [], totalItems: total = 0 } = response.data.data || {}
+        for (const remision of items) remisionesCache.set(remision.Id, remision)
         remisiones.value = items
         totalItemsRemisiones.value = total
       }
@@ -464,6 +520,32 @@
       totalItemsRemisiones.value = 0
     } finally {
       loadingRemisiones.value = false
+    }
+  }
+
+  async function descargarPdfRemision(item) {
+    $loading.show('Generando PDF...')
+    try {
+      const res = await pickingService.getRemisionPDF(item.Id)
+      downloadPdfResponse(res, `Remision_${item.Remision}`)
+    } catch (error) {
+      console.error('Error al descargar el PDF de la remisión:', error)
+      if (!error._toastShown) $toast.error('Error inesperado al descargar el PDF')
+    } finally {
+      $loading.hide()
+    }
+  }
+
+  async function descargarPdfFacturacion(item) {
+    $loading.show('Generando PDF...')
+    try {
+      const res = await pickingService.getFacturacionPDF(item.Id)
+      downloadPdfResponse(res, `Factura_${item.OrderSettlement}`)
+    } catch (error) {
+      console.error('Error al descargar el PDF de la factura:', error)
+      if (!error._toastShown) $toast.error('Error inesperado al descargar el PDF')
+    } finally {
+      $loading.hide()
     }
   }
 
@@ -484,6 +566,32 @@
     }
   }
 
+  async function onConfirmFacturarRemisiones(payload) {
+    const ids = [...remisionesSeleccionadas.value]
+    if (ids.length < 2) return
+
+    $loading.show()
+    try {
+      const res = await pickingService.invoiceRemisionesConsolidated({
+        IdsRemision: ids,
+        ...payload,
+      })
+      $toast.success(res.data?.message || 'Remisiones facturadas en una sola factura')
+      facturarVariasDialog.value = false
+      remisionesSeleccionadas.value = []
+      remisionesCache.clear()
+      remisionesTableRef.value?.reset()
+      facturadosTableRef.value?.reset()
+    } catch (error) {
+      console.error('Error al facturar las remisiones:', error)
+      if (!error._toastShown) {
+        $toast.error('Error inesperado al facturar las remisiones')
+      }
+    } finally {
+      $loading.hide()
+    }
+  }
+
   function abrirFacturarRemision(item) {
     facturarDialog.value = { open: true, remision: item }
   }
@@ -497,6 +605,9 @@
       const res = await pickingService.invoiceRemisiones({ IdsRemision: [remision.Id], ...payload })
       $toast.success(res.data?.message || 'Remisión facturada exitosamente')
       facturarDialog.value = { open: false, remision: null }
+      remisionesSeleccionadas.value = remisionesSeleccionadas.value.filter(
+        (id) => id !== remision.Id,
+      )
       remisionesTableRef.value?.reset()
       facturadosTableRef.value?.reset()
     } catch (error) {

@@ -67,6 +67,13 @@ export const pickingService = {
   getFacturacionById: (IdTransaccion) => api.get(`v1/order-settlements/unique/${IdTransaccion}`),
 
   /**
+   * Obtiene el PDF de una facturación (PF-xxxxx) por su ID de transacción
+   * @param {number|string} IdTransaccion - ID de transacción de la facturación
+   */
+  getFacturacionPDF: (IdTransaccion) =>
+    api.get(`v1/order-settlements/pdf/${IdTransaccion}`, { responseType: 'blob' }),
+
+  /**
    * Obtiene las líneas facturables de un pedido en estado "Aprobado" o "Facturado_Parcial"
    * @param {number|string} idPedidoOrigen - ID de transacción del pedido origen
    * @returns {Promise} Promesa con el encabezado (incluye Estado) y las líneas facturables
@@ -133,10 +140,25 @@ export const pickingService = {
   getRemisionById: (IdTransaccion) => api.get(`v1/remissions/unique/${IdTransaccion}`),
 
   /**
+   * Obtiene el PDF de una remisión por su ID de transacción
+   * @param {number|string} IdTransaccion - ID de transacción de la remisión
+   */
+  getRemisionPDF: (IdTransaccion) =>
+    api.get(`v1/remissions/pdf/${IdTransaccion}`, { responseType: 'blob' }),
+
+  /**
    * Factura una o varias remisiones pendientes (sin facturar aún), generando
    * la factura (PF-xxxxx) correspondiente. Cada id se procesa de forma
    * independiente en el back: una remisión que falla no aborta las demás.
    * @param {object} payload - { IdsRemision: number[], DireccionEntrega?, ObservacionFacturacion? }
    */
   invoiceRemisiones: (payload) => api.post('v1/remissions/invoice', payload),
+
+  /**
+   * Factura varias remisiones del mismo cliente en UNA sola factura, agrupando los productos.
+   * Es atómico: si alguna remisión no se puede facturar, no se factura ninguna.
+   * @param {object} payload - { IdsRemision: number[], DireccionEntrega?, ObservacionFacturacion? }
+   */
+  invoiceRemisionesConsolidated: (payload) =>
+    api.post('v1/remissions/invoice-consolidated', payload),
 }
