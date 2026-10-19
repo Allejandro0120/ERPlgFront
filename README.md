@@ -16,9 +16,17 @@ La URL del backend se define con `VITE_API_URL` y viene por entorno:
 | `.env.development`  | `npm run dev` y rama `development`    | `https://lgapi.alejoperezbernal.com/api` |
 | `.env.production`   | `npm run build` y rama `main`         | `https://lgapi.logicpharma.cloud/api`    |
 
-Para sobrescribir localmente (por ejemplo, apuntar a un backend en tu máquina),
-crea un `.env.local` (ignorado por git) con `VITE_API_URL=...`. La app no
-arranca si `VITE_API_URL` no está definida.
+Para trabajar contra un backend local sin tocar los entornos desplegados, crea
+`.env.development.local` (ignorado por git, gana sobre `.env.development`):
+
+```sh
+echo 'VITE_API_URL=http://localhost:3002/api' > .env.development.local
+```
+
+No uses `.env.local`: Vite le da menos prioridad que a `.env.development`, así
+que no sobrescribiría la URL de dev. El CI no tiene este archivo, por lo que los
+despliegues no se ven afectados. La app no arranca si `VITE_API_URL` no está
+definida.
 
 ## Ramas y despliegue
 
