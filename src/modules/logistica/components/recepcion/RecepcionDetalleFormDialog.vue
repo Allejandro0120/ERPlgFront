@@ -66,6 +66,18 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-text-field
+              v-model="form.Temperatura"
+              label="Temperatura (°C)"
+              prepend-inner-icon="mdi-thermometer"
+              :readonly="isReadonly"
+              :rules="temperaturaRules"
+              variant="outlined"
+              @keydown="blockKey($event, TEMPERATURA_CHARS)"
+              @paste="blockPaste($event, TEMPERATURA_CHARS)"
+            />
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field
               v-model="form.PrecioUnitario"
               label="Precio Unitario"
               prepend-inner-icon="mdi-currency-usd"
@@ -249,6 +261,7 @@
     CantidadFacturada: null,
     CantidadRecibida: null,
     CantidadMuestra: null,
+    Temperatura: null,
     PrecioUnitario: null,
     ObservacionesProducto: '',
     Aceptado: true,
@@ -433,6 +446,16 @@
       $loading.hide()
     }
   }
+  const TEMPERATURA_CHARS = /^[0-9.,-]$/
+  const temperaturaRules = computed(() => [
+    (v) => {
+      if (v === null || v === undefined || v === '') return true
+      const num = Number(String(v).replace(',', '.'))
+      if (!Number.isFinite(num)) return 'La temperatura debe ser un número válido'
+      return (num >= -100 && num <= 100) || 'La temperatura debe estar entre -100 y 100 °C'
+    },
+  ])
+
   const cantidadMuestraRules = computed(() => [
     rules.required,
     rules.numeric,

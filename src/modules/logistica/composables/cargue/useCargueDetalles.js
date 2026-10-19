@@ -9,6 +9,7 @@ const RECEPCION_DISPLAY_FIELDS = [
   'NombreProducto',
   'CodLote',
   'CantidadRecibida',
+  'Temperatura',
   'ObservacionesProducto',
 ]
 
@@ -93,6 +94,7 @@ export function useCargueDetalles({ isReadonly }) {
     { title: 'Producto', key: 'CodigoProducto', sortable: false },
     { title: 'Lote', key: 'CodLote', sortable: false },
     { title: 'Pendiente', key: 'CantidadPendiente', align: 'center', sortable: false },
+    { title: 'Temp. (°C)', key: 'Temperatura', align: 'center', sortable: false },
     { title: 'Obs.', key: 'ObservacionesProducto', sortable: false },
   ])
 

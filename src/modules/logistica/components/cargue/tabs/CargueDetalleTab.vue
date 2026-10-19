@@ -48,6 +48,9 @@
             {{ item.CantidadPendiente }}
           </v-chip>
         </template>
+        <template #item.Temperatura="{ item }">
+          {{ item.Temperatura ?? '—' }}
+        </template>
         <template #item.ObservacionesProducto="{ item }">
           <div class="text-body-2 text-truncate" style="max-width: 200px">
             {{ item.ObservacionesProducto || '—' }}

@@ -7,6 +7,13 @@ import {
 import { formatCOP, parseCOP } from '@/shared/utils/currencyFormatter'
 import { pickFields } from '@/shared/utils/objectUtils'
 
+// Temperatura en °C: acepta coma o punto decimal y negativos; vacío → null
+function parseTemperatura(value) {
+  if (value === null || value === undefined || value === '') return null
+  const num = Number(String(value).replace(',', '.'))
+  return Number.isFinite(num) ? num : null
+}
+
 // CAMPOS PARA LA API
 const PRODUCTO_PATCH_FIELDS = [
   'IdProducto',
@@ -14,6 +21,7 @@ const PRODUCTO_PATCH_FIELDS = [
   'CantidadFacturada',
   'CantidadRecibida',
   'CantidadMuestra',
+  'Temperatura',
   'PrecioUnitario',
   'Aceptado',
   'ObservacionesProducto',
@@ -30,6 +38,7 @@ const PRODUCTO_DEFAULTS = {
   CantidadFacturada: 0,
   CantidadRecibida: 0,
   CantidadMuestra: 0,
+  Temperatura: null,
   PrecioUnitario: 0,
   Aceptado: true,
   ObservacionesProducto: '',
@@ -63,6 +72,7 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
     return {
       ...pickFields(detalle, PRODUCTO_SNAPSHOT_FIELDS, PRODUCTO_DEFAULTS),
       PrecioUnitario: parseCOP(detalle.PrecioUnitario) ?? 0,
+      Temperatura: parseTemperatura(detalle.Temperatura),
     }
   }
   // Estado local (ya serializado/numérico) → payload para API: solo campos del patch, con ID si se incluye
@@ -141,6 +151,12 @@ export function useRecepcionDetalles({ isReadonly, permisos }) {
     {
       title: 'Muestra',
       key: 'CantidadMuestra',
+      align: 'center',
+      sortable: false,
+    },
+    {
+      title: 'Temp. (°C)',
+      key: 'Temperatura',
       align: 'center',
       sortable: false,
     },

@@ -49,6 +49,9 @@
           {{ item.ObservacionesProducto || '—' }}
         </div>
       </template>
+      <template #item.Temperatura="{ item }">
+        {{ item.Temperatura ?? '—' }}
+      </template>
       <template #item.PrecioUnitario="{ item }"> $ {{ item.PrecioUnitario }} </template>
     </base-table-local>
   </div>
