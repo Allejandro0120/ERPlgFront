@@ -159,6 +159,15 @@ export const mercanciaService = {
   },
 
   /**
+   * Descarga en Excel los saldos de inventario que cumplen los filtros (sin paginar)
+   * @param {object} filters - IdCedi, IdBodega, IdZona, IdPasillo, IdEstante, IdUbicacion, IdProducto, IdLote
+   */
+  exportSaldos: (filters = {}) => {
+    const params = new URLSearchParams(filters)
+    return api.get(`v1/inventory/balances/export?${params.toString()}`, { responseType: 'blob' })
+  },
+
+  /**
    * Obtiene el kardex (movimientos) de un producto específico
    */
   getKardex: (

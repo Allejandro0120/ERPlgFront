@@ -1,6 +1,19 @@
 <template>
   <div class="w-100">
-    <page-header-actions />
+    <page-header-actions>
+      <v-row density="comfortable">
+        <v-col cols="12" sm="auto">
+          <v-btn
+            class="text-none w-100"
+            color="success"
+            prepend-icon="mdi-microsoft-excel"
+            @click="showExportDialog = true"
+          >
+            Descargar Inventario
+          </v-btn>
+        </v-col>
+      </v-row>
+    </page-header-actions>
 
     <base-table
       ref="tableRef"
@@ -124,6 +137,12 @@
       </template>
     </base-table>
 
+    <exportar-inventario-dialog
+      v-model="showExportDialog"
+      :cedi-inicial="selectedCedi"
+      :cedis="cedisList"
+    />
+
     <historial-movimientos-dialog
       v-model="showMovimientosDialog"
       :cedi="selectedCedi"
@@ -144,6 +163,7 @@
   import BaseTable from '@/shared/ui/table/BaseTable.vue'
   import { formatDateTime } from '@/shared/utils/dateFormatter'
 
+  import ExportarInventarioDialog from '../components/inventario/ExportarInventarioDialog.vue'
   import HistorialMovimientosDialog from '../components/inventario/HistorialMovimientosDialog.vue'
 
   const tableRef = ref()
@@ -191,6 +211,7 @@
   const selectedCedi = ref(null)
   const cedisList = ref([])
   const showMovimientosDialog = ref(false)
+  const showExportDialog = ref(false)
   const selectedProduct = ref(null)
 
   // 4. Extraer variables y métodos del composable
